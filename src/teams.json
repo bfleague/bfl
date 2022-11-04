@@ -1,0 +1,354 @@
+[
+	{
+		"name": "Buccaneers",
+		"category": "",
+		"angle": 60,
+		"textColor": 14345709,
+		"colors": [
+			2499364,
+			13895945,
+			13895945
+		]
+	},
+	{
+		"name": "Steelers",
+		"category": "",
+		"angle": 60,
+		"textColor": 16252682,
+		"colors": [
+			0,
+			1644056,
+			1644056
+		]
+	},
+	{
+		"name": "Eagles",
+		"category": "",
+		"angle": 60,
+		"textColor": 15132390,
+		"colors": [
+			1323048,
+			2183748,
+			2183748
+		]
+	},
+	{
+		"name": "Broncos",
+		"category": "",
+		"angle": 60,
+		"textColor": 16248302,
+		"colors": [
+			8514,
+			15550995,
+			15550995
+		]
+	},
+	{
+		"name": "Patriots",
+		"category": "",
+		"angle": 60,
+		"textColor": 14357543,
+		"colors": [
+			9211020,
+			664386,
+			664386
+		]
+	},
+	{
+		"name": "Dolphins",
+		"category": "",
+		"angle": 60,
+		"textColor": 16777215,
+		"colors": [
+			16777215,
+			44994,
+			44994
+		]
+	},
+	{
+		"name": "Bears",
+		"category": "",
+		"angle": 60,
+		"textColor": 15885602,
+		"colors": [
+			3627,
+			5183,
+			5183
+		]
+	},
+	{
+		"name": "Browns",
+		"category": "",
+		"angle": 60,
+		"textColor": 16469780,
+		"colors": [
+			16469780,
+			1314055,
+			1314055
+		]
+	},
+	{
+		"name": "Rams",
+		"category": "",
+		"angle": 60,
+		"textColor": 16513795,
+		"colors": [
+			212605,
+			281238,
+			281238
+		]
+	},
+	{
+		"name": "Falcons",
+		"category": "",
+		"angle": 60,
+		"textColor": 16777215,
+		"colors": [
+			1037,
+			10950960,
+			10950960
+		]
+	},
+	{
+		"name": "Panthers",
+		"category": "",
+		"angle": 60,
+		"textColor": 34250,
+		"colors": [
+			9010329,
+			657930,
+			657930
+		]
+	},
+	{
+		"name": "Saints",
+		"category": "",
+		"angle": 60,
+		"textColor": 10586968,
+		"colors": [
+			10586968,
+			657670,
+			657670
+		]
+	},
+	{
+		"name": "Chiefs",
+		"category": "",
+		"angle": 60,
+		"textColor": 16775161,
+		"colors": [
+			8722464,
+			13706546,
+			13706546
+		]
+	},
+	{
+		"name": "Bills",
+		"category": "",
+		"angle": 60,
+		"textColor": 16250871,
+		"colors": [
+			15130592,
+			13197,
+			13197
+		]
+	},
+	{
+		"name": "Jets",
+		"category": "",
+		"angle": 60,
+		"textColor": 16777215,
+		"colors": [
+			14376,
+			20280,
+			18997
+		]
+	},
+	{
+		"name": "Texans",
+		"category": "",
+		"angle": 60,
+		"textColor": 15404044,
+		"colors": [
+			3627,
+			5183,
+			5183
+		]
+	},
+	{
+		"name": "Jaguars",
+		"category": "",
+		"angle": 60,
+		"textColor": 16777215,
+		"colors": [
+			200980,
+			1271415,
+			1271415
+		]
+	},
+	{
+		"name": "Colts",
+		"category": "",
+		"angle": 60,
+		"textColor": 15737,
+		"colors": [
+			14737632,
+			15461355,
+			15461355
+		]
+	},
+	{
+		"name": "Chargers",
+		"category": "",
+		"angle": 60,
+		"textColor": 16626965,
+		"colors": [
+			15589860,
+			2058692,
+			2058692
+		]
+	},
+	{
+		"name": "Bengals",
+		"category": "",
+		"angle": 60,
+		"textColor": 524801,
+		"colors": [
+			14894866,
+			16118001,
+			16248302
+		]
+	},
+	{
+		"name": "Raiders",
+		"category": "",
+		"angle": 60,
+		"textColor": 11120048,
+		"colors": [
+			11120048,
+			986895,
+			986895
+		]
+	},
+	{
+		"name": "Cowboys",
+		"category": "",
+		"angle": 60,
+		"textColor": 16777215,
+		"colors": [
+			10263708,
+			1452126,
+			1452126
+		]
+	},
+	{
+		"name": "49ers",
+		"category": "",
+		"angle": 60,
+		"textColor": 16513014,
+		"colors": [
+			9804079,
+			13369344,
+			13369344
+		]
+	},
+	{
+		"name": "Ravens",
+		"category": "",
+		"angle": 60,
+		"textColor": 16777215,
+		"colors": [
+			1644056,
+			5119603,
+			5119603
+		]
+	},
+	{
+		"name": "Vikings",
+		"category": "",
+		"angle": 60,
+		"textColor": 15921906,
+		"colors": [
+			4335214,
+			5189252,
+			5189252
+		]
+	},
+	{
+		"name": "Packers",
+		"category": "",
+		"angle": 60,
+		"textColor": 15460842,
+		"colors": [
+			16563732,
+			2376252,
+			2376252
+		]
+	},
+	{
+		"name": "Titans",
+		"category": "",
+		"angle": 60,
+		"textColor": 10587,
+		"colors": [
+			10587,
+			4232657,
+			4232657
+		]
+	},
+	{
+		"name": "Cardinals",
+		"category": "",
+		"angle": 60,
+		"textColor": 16118514,
+		"colors": [
+			16118514,
+			13181994,
+			13181994
+		]
+	},
+	{
+		"name": "Giants",
+		"category": "",
+		"angle": 60,
+		"textColor": 15734808,
+		"colors": [
+			1650284,
+			16448250,
+			16448250
+		]
+	},
+	{
+		"name": "Seahawks",
+		"category": "",
+		"angle": 60,
+		"textColor": 4521728,
+		"colors": [
+			5934,
+			8256,
+			8256
+		]
+	},
+	{
+		"name": "Lions",
+		"category": "",
+		"angle": 60,
+		"textColor": 11581372,
+		"colors": [
+			10199462,
+			290484,
+			290484
+		]
+	},
+	{
+		"name": "Washington",
+		"category": "",
+		"angle": 60,
+		"textColor": 16103950,
+		"colors": [
+			16761359,
+			8131605,
+			8131605
+		]
+	}
+]

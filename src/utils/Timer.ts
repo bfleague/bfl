@@ -1,47 +1,54 @@
 export default class Timer {
-    private timerId: number;
-    private start: number;
-    private remaining: number;
-    private finishTime: number;
-    private args: any[];
-    private paused = false;
+  private timerId: number;
+  private start: number;
+  private remaining: number;
+  private finishTime: number;
+  private args: any[];
+  private paused = false;
 
-    constructor(private callback: Function, delay: number, ...args: any[]) {
-        this.remaining = delay;
-        this.args = args;
-        this.finishTime = delay;
+  constructor(
+    private callback: Function,
+    delay: number,
+    ...args: any[]
+  ) {
+    this.remaining = delay;
+    this.args = args;
+    this.finishTime = delay;
 
-        this.resume();
-    }
-    
-    public resume() {
-        this.paused = false;
+    this.resume();
+  }
 
-        this.start = Date.now();
-        this.finishTime = this.start + this.remaining;
+  public resume() {
+    this.paused = false;
 
-        clearTimeout(this.timerId);
+    this.start = Date.now();
+    this.finishTime = this.start + this.remaining;
 
-        this.timerId = setTimeout(this.callback, this.remaining, ...this.args);
-    }
+    clearTimeout(this.timerId);
 
-    public pause() {
-        if (this.paused) return;
+    this.timerId = setTimeout(this.callback, this.remaining, ...this.args);
+  }
 
-        this.paused = true;
+  public pause() {
+    if (this.paused) return;
 
-        clearTimeout(this.timerId);
+    this.paused = true;
 
-        this.remaining -= Date.now() - this.start;
-    }
+    clearTimeout(this.timerId);
 
-    public stop() {
-        this.paused = false;
+    this.remaining -= Date.now() - this.start;
+  }
 
-        clearTimeout(this.timerId);
-    }
+  public stop() {
+    this.paused = false;
 
-    public getRemainingTime() {        
-        return Math.max(0, this.paused ? this.remaining : this.finishTime - Date.now());
-    }
+    clearTimeout(this.timerId);
+  }
+
+  public getRemainingTime() {
+    return Math.max(
+      0,
+      this.paused ? this.remaining : this.finishTime - Date.now(),
+    );
+  }
 }

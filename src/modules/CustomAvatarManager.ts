@@ -2,50 +2,50 @@ import Player from "../core/Player";
 import Room from "../core/Room";
 
 export class CustomAvatarManager {
-    private room: Room;
-    private list: Map<number, { time: number, avatar: string }> = new Map();
+  private room: Room;
+  private list: Map<number, { time: number; avatar: string }> = new Map();
 
-    constructor(room: Room) {
-        this.room = room;
-    }
+  constructor(room: Room) {
+    this.room = room;
+  }
 
-    private setPlayerDefaultAvatar(player: Player) {
-        //player.setAvatar(player.name.replace(/[^\w\s]/gi, '').slice(0, 2));
-        player.clearAvatar();
-    }
- 
-    clearAll() {
-        this.list.forEach((_, id) => {
-            this.clearPlayerAvatar(id);
-        });
-    }
+  private setPlayerDefaultAvatar(player: Player) {
+    //player.setAvatar(player.name.replace(/[^\w\s]/gi, '').slice(0, 2));
+    player.clearAvatar();
+  }
 
-    getPlayer(player: Player) {
-        return this.list.get(player.id);
-    }
+  clearAll() {
+    this.list.forEach((_, id) => {
+      this.clearPlayerAvatar(id);
+    });
+  }
 
-    clearPlayerAvatar(playerId: number) {
-        this.list.delete(playerId);
+  getPlayer(player: Player) {
+    return this.list.get(player.id);
+  }
 
-        const player = this.room.getPlayer(playerId);
+  clearPlayerAvatar(playerId: number) {
+    this.list.delete(playerId);
 
-        if (player) this.setPlayerDefaultAvatar(player);
-    }
+    const player = this.room.getPlayer(playerId);
 
-    setPlayerAvatar(player: Player, avatar: string, time?: number) {
-        this.list.set(player.id, { time: time ? Date.now() + time : 0, avatar });
+    if (player) this.setPlayerDefaultAvatar(player);
+  }
 
-        player.setAvatar(avatar);
-    }
+  setPlayerAvatar(player: Player, avatar: string, time?: number) {
+    this.list.set(player.id, { time: time ? Date.now() + time : 0, avatar });
 
-    run() {
-        this.list.forEach(({ time }, id) => {
-            if (!time) return;
+    player.setAvatar(avatar);
+  }
 
-            if (time < Date.now()) {
-                this.clearPlayerAvatar(id);
-                this.list.delete(id);
-            }
-        });
-    }
+  run() {
+    this.list.forEach(({ time }, id) => {
+      if (!time) return;
+
+      if (time < Date.now()) {
+        this.clearPlayerAvatar(id);
+        this.list.delete(id);
+      }
+    });
+  }
 }

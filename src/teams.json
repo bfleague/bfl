@@ -1,34 +1,130 @@
 {
-	"Buccaneers": 	{ "category": "RED", "color": "/colors red 60 FFFFFF D50A0A C20B0B 34302B" },
-	"Steelers": 	{ "category": "DARK", "color": "/colors red 60 FFFFFF 131D26 101820 FFB612" },
-	"Eagles": 		{ "category": "GREEN", "color": "/colors red 60 FFFFFF 045454 056E6E 057070" },
-	"Broncos":		{ "category": "RED", "color": "/colors red 60 FFFFFF FB4F14 D64311 002244" },
-	"Patriots":		{ "category": "DARK", "color": "/colors red 60 FFFFFF C60C30 002244 002244" },
-	"Dolphins": 	{ "category": "LIGHT", "color": "/colors red 60 FFFFFF FC4C02 008E97 BCCED1" },
-	"Bears": 		{ "category": "RED", "color": "/colors red 60 FFFFFF D93D03 C83803 DBB781" },
-	"Browns": 		{ "category": "DARK", "color": "/colors red 60 ED8D39 FF3C00 311D00 382100" },
-	"Rams": 		{ "category": "BLUE", "color": "/colors red 60 FFD70F 003AA3 003594 FFA300" },
-	"Falcons":		{ "category": "DARK", "color": "/colors red 60 EDEDED A71930 000000 121212" },
-	"Panthers": 	{ "category": "DARK", "color": "/colors red 60 EDEDED 0085CA 101820 141F29" },
-	"Saints":		{ "category": "LIGHT", "color": "/colors red 60 9C7B1C D3BC8D FFFFFF EDEDED" },
-	"Chiefs":		{ "category": "RED", "color": "/colors red 60 FFFFFF BD142D E31837 F2EBEB" },
-	"Bills": 		{ "category": "BLUE", "color": "/colors red 60 FFFFFF 003AA1 00338D C6D4F5" },
-	"Jets":			{ "category": "GREEN", "color": "/colors red 60 FFFFFF 146147 125740 B5F2D6" },
-	"Texans": 		{ "category": "DARK", "color": "/colors red 60 FFFFFF A71930 03202F 042A3D" },
-	"Jaguars":		{ "category": "GREEN", "color": "/colors red 60 C7F8FF 007487 006778 000000" },
-	"Colts": 		{ "category": "DARK", "color": "/colors red 60 EBF3FF 003573 002C5F C9DAFF" },
-	"Chargers": 	{ "category": "BLUE", "color": "/colors red 60 FCFDFF 0087D1 0080C6 FFC20E" },
-	"Bengals":		{ "category": "DARK", "color": "/colors red 60 F7EEE8 FB4F14 000000 141414" },
-	"Raiders":		{ "category": "DARK", "color": "/colors red 60 F5F5F5 141414 000000 A5ACAF" },
-	"Cowboys": 		{ "category": "DARK", "color": "/colors red 60 FFFFFF 062C61 041E42 C9C9C9" },
-	"49ers": 		{ "category": "RED", "color": "/colors red 60 FFF0F0 BA0000 AA0000 B3995D" },
-	"Ravens": 		{ "category": "DARK", "color": "/colors red 60 FFFFFF 291A82 241773 CACBE8" },
-	"Vikings": 		{ "category": "DARK", "color": "/colors red 60 FFC62F 5E2D9C 4F2683 452173" },
-	"Packers": 		{ "category": "GREEN", "color": "/colors red 60 E6B22A FFB612 203731 27423B" },
-	"Titans": 		{ "category": "BLUE", "color": "/colors red 60 08182B 52A0F0 4B92DB 0C2340" },
-	"Cardinals": 	{ "category": "RED", "color": "/colors red 60 FFFFFF 97233F 97233F FFD6DE" },
-	"Giants": 		{ "category": "DARK", "color": "/colors red 60 FFFFFF 0F2D87 0B2265 DCE8F7" },
-	"Seahawks": 	{ "category": "DARK", "color": "/colors red 60 69BE28 002B57 002244 001C38" },
-	"Lions": 		{ "category": "LIGHT", "color": "/colors red 60 EDEDED 007FC4 0076B6 B0B7BC" },
-	"Commanders": 	{ "category": "DARK", "color": "/colors red 60 FFB612 6B1818 5A1414 471010" }
+  "Buccaneers": {
+    "category": "RED",
+    "color": "/colors red 60 FFFFFF D50A0A C20B0B 34302B"
+  },
+  "Steelers": {
+    "category": "DARK",
+    "color": "/colors red 60 FFFFFF 131D26 101820 FFB612"
+  },
+  "Eagles": {
+    "category": "GREEN",
+    "color": "/colors red 60 FFFFFF 045454 056E6E 057070"
+  },
+  "Broncos": {
+    "category": "RED",
+    "color": "/colors red 60 FFFFFF FB4F14 D64311 002244"
+  },
+  "Patriots": {
+    "category": "DARK",
+    "color": "/colors red 60 FFFFFF C60C30 002244 002244"
+  },
+  "Dolphins": {
+    "category": "LIGHT",
+    "color": "/colors red 60 FFFFFF FC4C02 008E97 BCCED1"
+  },
+  "Bears": {
+    "category": "RED",
+    "color": "/colors red 60 FFFFFF D93D03 C83803 DBB781"
+  },
+  "Browns": {
+    "category": "DARK",
+    "color": "/colors red 60 ED8D39 FF3C00 311D00 382100"
+  },
+  "Rams": {
+    "category": "BLUE",
+    "color": "/colors red 60 FFD70F 003AA3 003594 FFA300"
+  },
+  "Falcons": {
+    "category": "DARK",
+    "color": "/colors red 60 EDEDED A71930 000000 121212"
+  },
+  "Panthers": {
+    "category": "DARK",
+    "color": "/colors red 60 EDEDED 0085CA 101820 141F29"
+  },
+  "Saints": {
+    "category": "LIGHT",
+    "color": "/colors red 60 9C7B1C D3BC8D FFFFFF EDEDED"
+  },
+  "Chiefs": {
+    "category": "RED",
+    "color": "/colors red 60 FFFFFF BD142D E31837 F2EBEB"
+  },
+  "Bills": {
+    "category": "BLUE",
+    "color": "/colors red 60 FFFFFF 003AA1 00338D C6D4F5"
+  },
+  "Jets": {
+    "category": "GREEN",
+    "color": "/colors red 60 FFFFFF 146147 125740 B5F2D6"
+  },
+  "Texans": {
+    "category": "DARK",
+    "color": "/colors red 60 FFFFFF A71930 03202F 042A3D"
+  },
+  "Jaguars": {
+    "category": "GREEN",
+    "color": "/colors red 60 C7F8FF 007487 006778 000000"
+  },
+  "Colts": {
+    "category": "DARK",
+    "color": "/colors red 60 EBF3FF 003573 002C5F C9DAFF"
+  },
+  "Chargers": {
+    "category": "BLUE",
+    "color": "/colors red 60 FCFDFF 0087D1 0080C6 FFC20E"
+  },
+  "Bengals": {
+    "category": "DARK",
+    "color": "/colors red 60 F7EEE8 FB4F14 000000 141414"
+  },
+  "Raiders": {
+    "category": "DARK",
+    "color": "/colors red 60 F5F5F5 141414 000000 A5ACAF"
+  },
+  "Cowboys": {
+    "category": "DARK",
+    "color": "/colors red 60 FFFFFF 062C61 041E42 C9C9C9"
+  },
+  "49ers": {
+    "category": "RED",
+    "color": "/colors red 60 FFF0F0 BA0000 AA0000 B3995D"
+  },
+  "Ravens": {
+    "category": "DARK",
+    "color": "/colors red 60 FFFFFF 291A82 241773 CACBE8"
+  },
+  "Vikings": {
+    "category": "DARK",
+    "color": "/colors red 60 FFC62F 5E2D9C 4F2683 452173"
+  },
+  "Packers": {
+    "category": "GREEN",
+    "color": "/colors red 60 E6B22A FFB612 203731 27423B"
+  },
+  "Titans": {
+    "category": "BLUE",
+    "color": "/colors red 60 08182B 52A0F0 4B92DB 0C2340"
+  },
+  "Cardinals": {
+    "category": "RED",
+    "color": "/colors red 60 FFFFFF 97233F 97233F FFD6DE"
+  },
+  "Giants": {
+    "category": "DARK",
+    "color": "/colors red 60 FFFFFF 0F2D87 0B2265 DCE8F7"
+  },
+  "Seahawks": {
+    "category": "DARK",
+    "color": "/colors red 60 69BE28 002B57 002244 001C38"
+  },
+  "Lions": {
+    "category": "LIGHT",
+    "color": "/colors red 60 EDEDED 007FC4 0076B6 B0B7BC"
+  },
+  "Commanders": {
+    "category": "DARK",
+    "color": "/colors red 60 FFB612 6B1818 5A1414 471010"
+  }
 }

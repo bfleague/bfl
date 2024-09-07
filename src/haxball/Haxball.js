@@ -10,19 +10,21 @@ const { performance } = require("perf_hooks");
 const net = require("net");
 
 function startHaxball(proxy) {
-  var proxyAgent = proxy ? new HttpsProxyAgent.HttpsProxyAgent(url.parse("http://" + proxy)) : null;
+  var proxyAgent = proxy
+    ? new HttpsProxyAgent.HttpsProxyAgent(url.parse("http://" + proxy))
+    : null;
   var debug = false;
   var ipCache = [];
 
-  console.log(proxyAgent)
+  console.log(proxyAgent);
 
   return new Promise((resolve) => {
     let blockedPlayersId = [];
     let api;
-    
+
     (function (cb) {
-      function Ra() { }
-      function k() { }
+      function Ra() {}
+      function k() {}
       function l(a) {
         this.Db = a;
         Error.captureStackTrace && Error.captureStackTrace(this, l);
@@ -96,7 +98,7 @@ function startHaxball(proxy) {
         this.gd = !1;
         this.D = 0;
       }
-      function Sa() { }
+      function Sa() {}
       function ma() {
         this.D = 0;
       }
@@ -204,7 +206,7 @@ function startHaxball(proxy) {
         this.sd = !0;
         this.Xc = !1;
       }
-      function Ga() { }
+      function Ga() {}
       function Ba() {
         this.Gc = 0;
         this.L = 15;
@@ -242,9 +244,9 @@ function startHaxball(proxy) {
         this.s = new x(0, 0);
         this.a = new x(0, 0);
       }
-      function Ha() { }
-      function y() { }
-      function ta() { }
+      function Ha() {}
+      function y() {}
+      function ta() {}
       function M() {
         this.gb = "";
         this.Kc = this.Mc = 0;
@@ -255,16 +257,16 @@ function startHaxball(proxy) {
         this.sb = a;
         this.Jc = performance.now();
       }
-      function Da() { }
-      function Ia() { }
-      function Ea() { }
-      function ua() { }
-      function F() { }
+      function Da() {}
+      function Ia() {}
+      function Ea() {}
+      function ua() {}
+      function F() {}
       function x(a, b) {
         this.x = a;
         this.y = b;
       }
-      function Ta() { }
+      function Ta() {}
       function Ja(a) {
         this.ve = new Map();
         this.Fg = new Ca(100, 16);
@@ -309,7 +311,7 @@ function startHaxball(proxy) {
         this.re = 0.06;
         va.call(this, a);
       }
-      function ga() { }
+      function ga() {}
       function La(a, b) {
         this.Qf = 0;
         this.version = 1;
@@ -338,7 +340,7 @@ function startHaxball(proxy) {
           e = d;
         });
       }
-      function Ma() { }
+      function Ma() {}
       function ha() {
         this.D = 0;
       }
@@ -352,10 +354,10 @@ function startHaxball(proxy) {
       function g() {
         this.D = 0;
       }
-      function Va() { }
-      function Wa() { }
-      function ia() { }
-      function V() { }
+      function Va() {}
+      function Wa() {}
+      function ia() {}
+      function V() {}
       function r(a, b) {
         null == b && (b = !1);
         this.j = a;
@@ -392,7 +394,7 @@ function startHaxball(proxy) {
           ("closed" != a && "failed" != a) || b.bb();
         };
         a = 0;
-        for (var d = this.hb; a < d.length;) {
+        for (var d = this.hb; a < d.length; ) {
           var e = d[a];
           ++a;
           e.onmessage = function (a) {
@@ -403,7 +405,7 @@ function startHaxball(proxy) {
           };
         }
       }
-      function Xa() { }
+      function Xa() {}
       function fa(a, b, c, d) {
         this.pc = new Set();
         this.Vb = new Set();
@@ -432,7 +434,7 @@ function startHaxball(proxy) {
           {
             iceServers: b,
           },
-          wa.qg
+          wa.qg,
         );
         this.Le = new Promise(function (a) {
           d.Qg = a;
@@ -442,17 +444,17 @@ function startHaxball(proxy) {
             ? d.Qg(d.zd)
             : ((a = a.candidate),
               null != a.candidate &&
-              "" != a.candidate &&
-              (null != d.Hd && d.Hd(a), d.zd.push(a)));
+                "" != a.candidate &&
+                (null != d.Hd && d.Hd(a), d.zd.push(a)));
         };
-        for (b = 0; b < c.length;) this.sg(c[b++]);
+        for (b = 0; b < c.length; ) this.sg(c[b++]);
         this.R = a;
       }
-      function H() { }
-      function Ya() { }
-      function ja() { }
-      function Za() { }
-      function G() { }
+      function H() {}
+      function Ya() {}
+      function ja() {}
+      function Za() {}
+      function G() {}
       function bb() {
         return k.Ub(this, "");
       }
@@ -510,7 +512,7 @@ function startHaxball(proxy) {
       ja.parseInt = function (a) {
         a = parseInt(
           a,
-          !a || "0" != a[0] || ("x" != a[1] && "X" != a[1]) ? 10 : 16
+          !a || "0" != a[0] || ("x" != a[1] && "X" != a[1]) ? 10 : 16,
         );
         return isNaN(a) ? null : a;
       };
@@ -519,9 +521,9 @@ function startHaxball(proxy) {
         for (
           var b = "";
           (b = "0123456789ABCDEF".charAt(a & 15) + b), (a >>>= 4), 0 < a;
-  
+
         );
-        for (; 2 > b.length;) b = "0" + b;
+        for (; 2 > b.length; ) b = "0" + b;
         return b;
       };
       H.b = !0;
@@ -529,7 +531,7 @@ function startHaxball(proxy) {
         return a.length <= b ? a : G.substr(a, 0, b);
       };
       H.hi = function (a) {
-        for (var b = "", c = 0, d = a.byteLength; c < d;) b += Ya.li(a[c++]);
+        for (var b = "", c = 0, d = a.byteLength; c < d; ) b += Ya.li(a[c++]);
         return b;
       };
       wa.b = !0;
@@ -541,51 +543,59 @@ function startHaxball(proxy) {
         },
         rg: function (a, b) {
           var c = this;
-  
+
           const checks = [];
           const blockedLocations = [
             { org: "TIM SA", city: "BRASÍLIA" },
             { org: "TELEFONICA BRASIL S.A", city: "SALVADOR" },
-            { org: "RIO CLARO", city: "SAO PAULO" }
+            { org: "RIO CLARO", city: "SAO PAULO" },
           ];
-  
+
           const onBeforeEstablishConnection = (ip) => {
             return new Promise((resolve, reject) => {
-                if (!net.isIPv4(ip)) resolve();
-    
-                const findAndCache = async (ip, ipCache) => {
-                    const found = ipCache.find(i => i.ip === ip);
-                    if (found) return found;
-  
-                    const request = await fetch(`https://ipapi.co/${ip}/json/`);
-                    const response = await request.json();
-    
-                    const loc = { ip: response.ip, org: response.org?.toUpperCase(), city: response.city?.toUpperCase() };
-                    ipCache.push(loc);
-    
-                    return loc;
+              if (!net.isIPv4(ip)) resolve();
+
+              const findAndCache = async (ip, ipCache) => {
+                const found = ipCache.find((i) => i.ip === ip);
+                if (found) return found;
+
+                const request = await fetch(`https://ipapi.co/${ip}/json/`);
+                const response = await request.json();
+
+                const loc = {
+                  ip: response.ip,
+                  org: response.org?.toUpperCase(),
+                  city: response.city?.toUpperCase(),
                 };
-    
-                findAndCache(ip, ipCache).then(loc => {
-                    const isBlocked = !!blockedLocations.find(l => l.org === loc.org && l.city === loc.city);
-            
-                    if (isBlocked) reject();
-  
-                    resolve();
-                }).catch(err => {
-                  console.error(err)
+                ipCache.push(loc);
+
+                return loc;
+              };
+
+              findAndCache(ip, ipCache)
+                .then((loc) => {
+                  const isBlocked = !!blockedLocations.find(
+                    (l) => l.org === loc.org && l.city === loc.city,
+                  );
+
+                  if (isBlocked) reject();
+
+                  resolve();
+                })
+                .catch((err) => {
+                  console.error(err);
                   resolve();
                 });
             });
           };
-  
+
           for (const ice of b) {
             const candidates = ice.candidate.split(" ");
-            const ip = candidates.find(c => net.isIPv4(c));
-  
+            const ip = candidates.find((c) => net.isIPv4(c));
+
             if (ip) checks.push(onBeforeEstablishConnection(ip));
           }
-  
+
           Promise.all(checks)
             .then(() => {
               this.wg(
@@ -593,10 +603,10 @@ function startHaxball(proxy) {
                   return c.ra.createAnswer();
                 }),
                 b,
-                500
+                500,
               );
             })
-            .catch(_ => {});
+            .catch((_) => {});
         },
         wg: function (a, b, c) {
           var d = this;
@@ -609,15 +619,15 @@ function startHaxball(proxy) {
               function e() {
                 return a;
               }
-              for (var h = 0; h < b.length;) d.we(b[h++]);
+              for (var h = 0; h < b.length; ) d.we(b[h++]);
               return Va.Yh(d.Le, c).then(e, e);
             })
             .then(function (a) {
               d.Ye(a);
             })
-          ["catch"](function () {
-            d.Cc();
-          });
+            ["catch"](function () {
+              d.Cc();
+            });
         },
         sg: function (a) {
           var b = this,
@@ -630,7 +640,7 @@ function startHaxball(proxy) {
           a = this.ra.createDataChannel(a.name, c);
           a.binaryType = "arraybuffer";
           a.onopen = function () {
-            for (var a = 0, c = b.hb; a < c.length;)
+            for (var a = 0, c = b.hb; a < c.length; )
               if ("open" != c[a++].readyState) return;
             null != b.Fd && b.Fd();
           };
@@ -666,7 +676,7 @@ function startHaxball(proxy) {
           this.ra.ondatachannel = null;
           this.ra.onsignalingstatechange = null;
           this.ra.oniceconnectionstatechange = null;
-          for (var a = 0, b = this.hb; a < b.length;) {
+          for (var a = 0, b = this.hb; a < b.length; ) {
             var c = b[a];
             ++a;
             c.onopen = null;
@@ -693,15 +703,15 @@ function startHaxball(proxy) {
               toString: bb,
             };
           }),
-            ($a.ue = ["reason"]),
-            $a),
+          ($a.ue = ["reason"]),
+          $a),
       });
       fa.b = !0;
       fa.Je = function (a) {
         try {
           var b = Xa.oh(a.candidate);
           if ("srflx" == b.$h) return b.Sg;
-        } catch (c) { }
+        } catch (c) {}
         return null;
       };
       fa.prototype = {
@@ -715,12 +725,12 @@ function startHaxball(proxy) {
             ) {
               for (
                 var c = new Uint8Array(this.Ya),
-                d = new Uint8Array(a),
-                e = !1,
-                f = 0,
-                h = this.Ya.byteLength;
+                  d = new Uint8Array(a),
+                  e = !1,
+                  f = 0,
+                  h = this.Ya.byteLength;
                 f < h;
-  
+
               ) {
                 var m = f++;
                 if (c[m] != d[m]) {
@@ -736,10 +746,10 @@ function startHaxball(proxy) {
               1 == this.ta.readyState &&
               null == this.Zc &&
               (this.Nd(),
-                (this.Zc = setTimeout(function () {
-                  b.Zc = null;
-                  1 == b.ta.readyState && b.Yc && b.Nd();
-                }, 1e4)));
+              (this.Zc = setTimeout(function () {
+                b.Zc = null;
+                1 == b.ta.readyState && b.Yc && b.Nd();
+              }, 1e4)));
           }
         },
         Pd: function (a) {
@@ -775,7 +785,7 @@ function startHaxball(proxy) {
               agent: proxyAgent,
             });
             d.ta.binaryType = "arraybuffer";
-  
+
             d.ta.on("open", () => {
               d.Og();
             });
@@ -790,17 +800,17 @@ function startHaxball(proxy) {
           }
           null == a && (a = "");
           var d = this;
-          F.vh(this.Rh, "token=" + this.$c + "&rcr=" + a, F.Uf).then(function (
-            a
-          ) {
-            switch (a.action) {
-              case "connect":
-                c(a);
-                break;
-              case "recaptcha":
-                throw new l("Invalid Token Provided!");
-            }
-          });
+          F.vh(this.Rh, "token=" + this.$c + "&rcr=" + a, F.Uf).then(
+            function (a) {
+              switch (a.action) {
+                case "connect":
+                  c(a);
+                  break;
+                case "recaptcha":
+                  throw new l("Invalid Token Provided!");
+              }
+            },
+          );
         },
         Og: function () {
           var a = this;
@@ -836,7 +846,7 @@ function startHaxball(proxy) {
             a = new C(new DataView(pako.inflateRaw(a.Ka()).buffer), !1);
             d = 0 != a.B();
             e = a.kb();
-            for (var h = a.jf(), m = [], q = 0; q < h.length;)
+            for (var h = a.jf(), m = [], q = 0; q < h.length; )
               m.push(new wrtc.RTCIceCandidate(h[q++]));
             f = m;
           } catch (ib) {
@@ -850,7 +860,7 @@ function startHaxball(proxy) {
           if (16 <= this.vb.size) this.fc(a, 4104);
           else if (this.pc.has(b)) this.fc(a, 4102);
           else {
-            for (var m = [], q = 0; q < d.length;) {
+            for (var m = [], q = 0; q < d.length; ) {
               var g = fa.Je(d[q++]);
               if (null != g) {
                 if (this.Vb.has(g)) {
@@ -896,7 +906,7 @@ function startHaxball(proxy) {
                 sdp: c,
                 type: "offer",
               }),
-              d
+              d,
             );
           }
         },
@@ -976,7 +986,7 @@ function startHaxball(proxy) {
           this.gc(4, a, c);
         },
         xg: function () {
-          for (var a = this.vb.values(), b = a.next(); !b.done;) {
+          for (var a = this.vb.values(), b = a.next(); !b.done; ) {
             var c = b.value,
               b = a.next();
             c.bb();
@@ -992,12 +1002,15 @@ function startHaxball(proxy) {
           clearInterval(this.qh);
           clearTimeout(this.Hh);
           a &&
-            (this.Hh = setTimeout(function () {
-              b.Rd();
-            }, (this.Fh + Math.random() * this.Gh) | 0));
+            (this.Hh = setTimeout(
+              function () {
+                b.Rd();
+              },
+              (this.Fh + Math.random() * this.Gh) | 0,
+            ));
         },
         gg: function (a) {
-          for (var b = 0, c = a.Ob; b < c.length;) this.Vb.add(c[b++]);
+          for (var b = 0, c = a.Ob; b < c.length; ) this.Vb.add(c[b++]);
           null != a.fb && this.pc.add(a.fb);
           return {
             si: a.Ob,
@@ -1009,7 +1022,7 @@ function startHaxball(proxy) {
           this.pc.clear();
         },
         td: function (a) {
-          for (var b = 0, c = a.si; b < c.length;) this.Vb["delete"](c[b++]);
+          for (var b = 0, c = a.si; b < c.length; ) this.Vb["delete"](c[b++]);
           this.pc["delete"](a.gi);
         },
         h: fa,
@@ -1069,7 +1082,8 @@ function startHaxball(proxy) {
           (d = a.getUint8(b + 1)),
             (e = a.getUint8(b + 2)),
             (f = a.getUint8(b + 3)),
-            (c = ((c & 7) << 18) | ((d & 63) << 12) | ((e & 63) << 6) | (f & 63)),
+            (c =
+              ((c & 7) << 18) | ((d & 63) << 12) | ((e & 63) << 6) | (f & 63)),
             (b += 4);
         else if (248 == (c & 252))
           (d = a.getUint8(b + 1)),
@@ -1100,10 +1114,10 @@ function startHaxball(proxy) {
         else
           throw new l(
             "Cannot decode UTF8 character at offset " +
-            b +
-            ": charCode (" +
-            c +
-            ") is invalid"
+              b +
+              ": charCode (" +
+              c +
+              ") is invalid",
           );
         return {
           char: c,
@@ -1159,10 +1173,10 @@ function startHaxball(proxy) {
           for (
             var a = this.a, b = 0, c, d = 0;
             (c = this.j.getUint8(a + b)),
-            5 > b && (d |= ((c & 127) << (7 * b)) >>> 0),
-            ++b,
-            0 != (c & 128);
-  
+              5 > b && (d |= ((c & 127) << (7 * b)) >>> 0),
+              ++b,
+              0 != (c & 128);
+
           );
           this.a += b;
           return d | 0;
@@ -1171,15 +1185,15 @@ function startHaxball(proxy) {
           var b = this.a,
             c,
             d = "";
-          for (a = b + a; b < a;)
+          for (a = b + a; b < a; )
             (c = C.ug(this.j, b)),
               (b += c.length),
               (d += String.fromCodePoint(c["char"]));
           if (b != a)
             throw new l(
               "Actual string length differs from the specified: " +
-              (b - a) +
-              " bytes"
+                (b - a) +
+                " bytes",
             );
           this.a = b;
           return d;
@@ -1207,7 +1221,7 @@ function startHaxball(proxy) {
         var d = c;
         if (0 > a)
           throw new l(
-            "Cannot encode UTF8 character: charCode (" + a + ") is negative"
+            "Cannot encode UTF8 character: charCode (" + a + ") is negative",
           );
         if (128 > a) b.setUint8(c, a & 127), ++c;
         else if (2048 > a)
@@ -1243,8 +1257,8 @@ function startHaxball(proxy) {
         else
           throw new l(
             "Cannot encode UTF8 character: charCode (" +
-            a +
-            ") is too large (>= 0x80000000)"
+              a +
+              ") is too large (>= 0x80000000)",
           );
         return c - d;
       };
@@ -1252,8 +1266,8 @@ function startHaxball(proxy) {
         if (0 > a)
           throw new l(
             "Cannot calculate length of UTF8 character: charCode (" +
-            a +
-            ") is negative"
+              a +
+              ") is negative",
           );
         if (128 > a) return 1;
         if (2048 > a) return 2;
@@ -1263,12 +1277,12 @@ function startHaxball(proxy) {
         if (-2147483648 > a) return 6;
         throw new l(
           "Cannot calculate length of UTF8 character: charCode (" +
-          a +
-          ") is too large (>= 0x80000000)"
+            a +
+            ") is too large (>= 0x80000000)",
         );
       };
       r.xc = function (a) {
-        for (var b = 0, c = a.length, d = 0; d < c;) b += r.hg(G.Jf(a, d++));
+        for (var b = 0, c = a.length, d = 0; d < c; ) b += r.hg(G.Jf(a, d++));
         return b;
       };
       r.ig = function (a) {
@@ -1358,10 +1372,11 @@ function startHaxball(proxy) {
           var b = this.a;
           this.a += a.byteLength;
           this.Ia(this.a);
-          new Uint8Array(this.j.buffer, this.j.byteOffset, this.j.byteLength).set(
-            a,
-            b
-          );
+          new Uint8Array(
+            this.j.buffer,
+            this.j.byteOffset,
+            this.j.byteLength,
+          ).set(a, b);
         },
         Ff: function (a) {
           this.ob(new Uint8Array(a));
@@ -1385,7 +1400,7 @@ function startHaxball(proxy) {
         fd: function (a) {
           var b = this.a;
           this.Ia(b + r.xc(a));
-          for (var c = a.length, d = 0; d < c;)
+          for (var c = a.length, d = 0; d < c; )
             b += r.zg(G.Jf(a, d++), this.j, b);
           this.a = b;
         },
@@ -1406,7 +1421,8 @@ function startHaxball(proxy) {
                           (a = 4)))
                     : (this.j.setUint8(b + 2, this.j.getUint8(b + 2) & 127),
                       (a = 3)))
-                : (this.j.setUint8(b + 1, this.j.getUint8(b + 1) & 127), (a = 2)))
+                : (this.j.setUint8(b + 1, this.j.getUint8(b + 1) & 127),
+                  (a = 2)))
             : (this.j.setUint8(b, this.j.getUint8(b) & 127), (a = 1));
           this.a += a;
         },
@@ -1424,7 +1440,7 @@ function startHaxball(proxy) {
             m = f.kb(),
             q = f.Ka();
           if (q.byteLength != b.byteLength) return Promise.reject(null);
-          for (var c = 0, g = q.byteLength; c < g;) {
+          for (var c = 0, g = q.byteLength; c < g; ) {
             var k = c++;
             if (q[k] != b[k]) return Promise.reject(null);
           }
@@ -1454,7 +1470,7 @@ function startHaxball(proxy) {
             },
             V.eg,
             !0,
-            ["verify"]
+            ["verify"],
           );
         } catch (c) {
           return Promise.reject(c instanceof l ? c.Db : c);
@@ -1476,7 +1492,7 @@ function startHaxball(proxy) {
           iceServers: [],
         });
         try {
-          b.createAnswer()["catch"](function () { });
+          b.createAnswer()["catch"](function () {});
         } catch (e) {
           var a = a.RTCPeerConnection.prototype,
             c = a.createOffer,
@@ -1509,7 +1525,7 @@ function startHaxball(proxy) {
             function (a) {
               clearTimeout(e);
               d(a);
-            }
+            },
           );
         });
       };
@@ -1561,7 +1577,7 @@ function startHaxball(proxy) {
           for (
             var b = 0, c = a.cb, d = a.D, e = 0, f = this.list;
             e < f.length;
-  
+
           ) {
             var h = f[e];
             ++e;
@@ -1624,8 +1640,8 @@ function startHaxball(proxy) {
       ea.M = va;
       ea.prototype = v(va.prototype, {
         dg: function (a) {
-          for (var b = this.Md.list, c = 0, d = b.length, e = 0; e < a;) {
-            for (++e; c < d;) {
+          for (var b = this.Md.list, c = 0, d = b.length, e = 0; e < a; ) {
+            for (++e; c < d; ) {
               var f = b[c];
               if (f.cb != this.ea) break;
               f.apply(this.Fa);
@@ -1638,7 +1654,7 @@ function startHaxball(proxy) {
             this.Qa = 0;
             this.ea++;
           }
-          for (; c < d;) {
+          for (; c < d; ) {
             a = b[c];
             if (a.cb != this.ea || a.D != this.Qa) break;
             a.apply(this.Fa);
@@ -1650,7 +1666,9 @@ function startHaxball(proxy) {
         },
         nf: function (a) {
           a.cb == this.ea && a.D <= this.Qa
-            ? ((a.D = this.Qa++), a.apply(this.Fa), null != this.wb && this.wb(a))
+            ? ((a.D = this.Qa++),
+              a.apply(this.Fa),
+              null != this.wb && this.wb(a))
             : this.Md.ni(a);
         },
         h: ea,
@@ -1777,7 +1795,7 @@ function startHaxball(proxy) {
         },
         ad: function (a, b) {
           null == b && (b = 0);
-          for (var c = 0, d = this.Ga; c < d.length;) {
+          for (var c = 0, d = this.Ga; c < d.length; ) {
             var e = d[c];
             ++c;
             e.Wc && e.mb(a, b);
@@ -1792,7 +1810,7 @@ function startHaxball(proxy) {
           c.ya(this.ed);
           c.Da(this.Qa);
           this.Fa.G(c);
-          for (var d = this.Md.list, e = 0, f = d.length; e < f;)
+          for (var d = this.Md.list, e = 0, f = d.length; e < f; )
             this.bf(d[e++], c);
           b.ob(pako.deflateRaw(c.nb()));
           a.mb(b);
@@ -1815,9 +1833,9 @@ function startHaxball(proxy) {
             f = b.Xb;
           b.Xb = null;
           V.ci(d, f)
-          ["catch"](function () {
-            return null;
-          })
+            ["catch"](function () {
+              return null;
+            })
             .then(function (a) {
               try {
                 if (-1 != c.Ga.indexOf(b)) {
@@ -1828,7 +1846,10 @@ function startHaxball(proxy) {
                   Ea.va(
                     c.lh,
                     d,
-                    new C(new DataView(e.buffer, e.byteOffset, e.byteLength), !1)
+                    new C(
+                      new DataView(e.buffer, e.byteOffset, e.byteLength),
+                      !1,
+                    ),
                   );
                   b.Wc = !0;
                   c.Nh(b);
@@ -2018,7 +2039,7 @@ function startHaxball(proxy) {
             },
             function () {
               return {};
-            }
+            },
           )
           .then(function () {
             resolve(y.Th);
@@ -2027,12 +2048,12 @@ function startHaxball(proxy) {
       y.Ph = function (a, b, c) {
         null == y.Vc &&
           ((y.Vc = undefined),
-            (y.Ch = a.render(y.Vc, {
-              sitekey: b,
-              callback: function (a) {
-                null != y.Kd && y.Kd(a);
-              },
-            })));
+          (y.Ch = a.render(y.Vc, {
+            sitekey: b,
+            callback: function (a) {
+              null != y.Kd && y.Kd(a);
+            },
+          })));
         y.Vc.hidden = !1;
         a.reset(y.Ch);
         y.Kd = function (a) {
@@ -2073,31 +2094,31 @@ function startHaxball(proxy) {
           return null == a
             ? null
             : {
-              x: a.a.x,
-              y: a.a.y,
-              xspeed: a.s.x,
-              yspeed: a.s.y,
-              xgravity: a.ma.x,
-              ygravity: a.ma.y,
-              radius: a.L,
-              bCoeff: a.i,
-              invMass: a.K,
-              damping: a.ga,
-              color: a.S,
-              cMask: a.c,
-              cGroup: a.m,
-            };
+                x: a.a.x,
+                y: a.a.y,
+                xspeed: a.s.x,
+                yspeed: a.s.y,
+                xgravity: a.ma.x,
+                ygravity: a.ma.y,
+                radius: a.L,
+                bCoeff: a.i,
+                invMass: a.K,
+                damping: a.ga,
+                color: a.S,
+                cMask: a.c,
+                cGroup: a.m,
+              };
         }
         function e() {
           return null == u.C
             ? null
             : {
-              red: u.C.Mb,
-              blue: u.C.Fb,
-              time: u.C.Jb,
-              scoreLimit: u.C.$a,
-              timeLimit: 60 * u.C.Ma,
-            };
+                red: u.C.Mb,
+                blue: u.C.Fb,
+                time: u.C.Jb,
+                scoreLimit: u.C.$a,
+                timeLimit: 60 * u.C.Ma,
+              };
         }
         function f(a) {
           if (null == a) return null;
@@ -2126,13 +2147,13 @@ function startHaxball(proxy) {
         }
         if (y.tf) throw new l("Can't init twice");
         y.tf = !0;
-  
+
         // proxyAgent = m("proxy", null)
         //   ? new HttpsProxyAgent(url.parse(m("proxy", null)))
         //   : null;
         // console.log(m("proxy", null))
         debug = m("debug", null) == true;
-  
+
         var q = !m("public", !1),
           g = h("roomName", "Headless Room"),
           eb = h("playerName", "Host"),
@@ -2144,12 +2165,16 @@ function startHaxball(proxy) {
           x = y.Ge;
         if (null != z && ((x = M.He(z)), 3 < x.gb.length))
           throw new l("Invalid country code");
-  
+
         if (v == null) throw new l("No Token Provided!");
         var u = new Aa();
         u.Ld = g;
         xa ||
-          ((g = new ra()), (g.pa = eb), (g.Rb = !0), (g.ae = x.gb), u.ca.push(g));
+          ((g = new ra()),
+          (g.pa = eb),
+          (g.Rb = !0),
+          (g.ae = x.gb),
+          u.ca.push(g));
         var A = new Fa({
           iceServers: ta.Ad,
           oi: ta.ye + "api/host",
@@ -2168,8 +2193,8 @@ function startHaxball(proxy) {
               d.Oa = a;
               null != b
                 ? B.then(function () {
-                  A.rf(d, b);
-                })
+                    A.rf(d, b);
+                  })
                 : c(d);
             },
             sendAnnouncement: function (a, b, d, e, f) {
@@ -2186,8 +2211,8 @@ function startHaxball(proxy) {
               var h = U.V(a, d, e, f);
               null != b
                 ? B.then(function () {
-                  A.rf(h, b);
-                })
+                    A.rf(h, b);
+                  })
                 : c(h);
             },
             setPlayerAdmin: function (a, b) {
@@ -2232,7 +2257,7 @@ function startHaxball(proxy) {
               c(a);
             },
             setDefaultStadium: function (a) {
-              for (var b = n.wd(), d = null, e = 0; e < b.length;) {
+              for (var b = n.wd(), d = null, e = 0; e < b.length; ) {
                 var f = b[e];
                 ++e;
                 if (f.pa == a) {
@@ -2260,7 +2285,7 @@ function startHaxball(proxy) {
               h.Pa = [];
               var m = e.length;
               a = 0;
-              for (m = 3 > m ? m : 3; a < m;) h.Pa.push(e[a++] | 0);
+              for (m = 3 > m ? m : 3; a < m; ) h.Pa.push(e[a++] | 0);
               h.Td = d | 0;
               h.xe = ((256 * b) / 360) | 0;
               c(f);
@@ -2296,7 +2321,8 @@ function startHaxball(proxy) {
               A.Pd(k.l(a, Qa));
             },
             getPlayerList: function () {
-              for (var a = [], b = 0, c = u.ca; b < c.length;) a.push(f(c[b++]));
+              for (var a = [], b = 0, c = u.ca; b < c.length; )
+                a.push(f(c[b++]));
               return a;
             },
             getPlayer: function (a) {
@@ -2357,7 +2383,7 @@ function startHaxball(proxy) {
               all: 63,
             },
           };
-          api = D;
+        api = D;
         A.$b = function (a, b) {
           return ia.Wg().then(function (c) {
             y.Ph(c, a, b);
@@ -2397,16 +2423,16 @@ function startHaxball(proxy) {
           var b = A.ub.get(a.na),
             c = null,
             d = null;
-  
-          const ip = decodeURIComponent(b.ac.fb.replace(/(..)/g,'%$1'));
+
+          const ip = decodeURIComponent(b.ac.fb.replace(/(..)/g, "%$1"));
           if (D.onBeforePlayerJoin) D.onBeforePlayerJoin(ip);
-  
+
           if (a.pa === "teste") {
             blockedPlayersId.push(a.na);
             b.ac.ra.close();
             return;
           }
-  
+
           null != b && ((c = b.tg), (d = b.ac.fb));
           b = D.onPlayerJoin;
           null != b && ((a = f(a)), (a.auth = c), (a.conn = d), b(a));
@@ -2465,19 +2491,19 @@ function startHaxball(proxy) {
         };
         u.sh = function (a, c, d, e) {
           if (blockedPlayersId.includes(a.na)) {
-            blockedPlayersId = blockedPlayersId.filter(b => b !== a.na);
+            blockedPlayersId = blockedPlayersId.filter((b) => b !== a.na);
             return;
           }
-  
+
           b();
           var h = D.onPlayerLeave;
           null != h && h(f(a));
           null != c &&
             ((h = null),
-              null != e && (h = e.pa),
-              A.yg(a.na, c, h, d),
-              (h = D.onPlayerKicked),
-              null != h && h(f(a), c, d, f(e)));
+            null != e && (h = e.pa),
+            A.yg(a.na, c, h, d),
+            (h = D.onPlayerKicked),
+            null != h && h(f(a), c, d, f(e)));
         };
         u.Ug = function (a, b, c, d) {
           var e = D.onKickRateLimitSet;
@@ -2585,7 +2611,7 @@ function startHaxball(proxy) {
           this.ia.I = this.fa.I;
           this.ia.Sa = this.fa.Sa;
           a = 0;
-          for (var b = this.fa.w; a < b.length;) this.ia.w.push(b[a++].gh());
+          for (var b = this.fa.w; a < b.length; ) this.ia.w.push(b[a++].gh());
           this.Oe();
         },
         Ne: function (a) {
@@ -2620,7 +2646,7 @@ function startHaxball(proxy) {
           else {
             var b = this.ha.Ag;
             null != b && b();
-            for (var b = this.ha.ca, c = 0; c < b.length;) {
+            for (var b = this.ha.ca, c = 0; c < b.length; ) {
               var d = b[c];
               ++c;
               if (null != d.N) {
@@ -2629,7 +2655,7 @@ function startHaxball(proxy) {
                 0 < d.kc && d.kc--;
                 d.Sb < this.ha.Dd && d.Sb++;
                 if (d.yb && 0 >= d.kc && 0 <= d.Sb) {
-                  for (var f = !1, h = 0, m = this.ia.w; h < m.length;) {
+                  for (var f = !1, h = 0, m = this.ia.w; h < m.length; ) {
                     var q = m[h];
                     ++h;
                     if (0 != (q.m & 64) && q != d.N) {
@@ -2658,9 +2684,9 @@ function startHaxball(proxy) {
                   }
                   f &&
                     (null != this.ha.gf && this.ha.gf(d),
-                      (d.yb = !1),
-                      (d.kc = this.ha.Qc),
-                      (d.Sb -= this.ha.Zb));
+                    (d.yb = !1),
+                    (d.kc = this.ha.Qc),
+                    (d.Sb -= this.ha.Zb));
                 }
                 f = d.Hb;
                 m = h = 0;
@@ -2681,11 +2707,11 @@ function startHaxball(proxy) {
             c = 0;
             d = this.ia.w;
             e = 0;
-            for (h = d.length; e < h;)
+            for (h = d.length; e < h; )
               (f = e++),
                 (m = d[f]),
                 0 != (m.m & 128) &&
-                ((J.Fe[c] = f),
+                  ((J.Fe[c] = f),
                   (f = J.Ve[c]),
                   (m = m.a),
                   (f.x = m.x),
@@ -2693,13 +2719,13 @@ function startHaxball(proxy) {
                   ++c);
             this.ia.Ba(a);
             if (0 == this.Za) {
-              for (a = 0; a < b.length;)
+              for (a = 0; a < b.length; )
                 (c = b[a]), ++a, null != c.N && (c.N.c = 39 | this.Bd.Vg);
               b = this.ia.w[0].s;
               0 < b.x * b.x + b.y * b.y && (this.Za = 1);
             } else if (1 == this.Za) {
               this.Jb += 0.016666666666666666;
-              for (a = 0; a < b.length;)
+              for (a = 0; a < b.length; )
                 (d = b[a]), ++a, null != d.N && (d.N.c = 39);
               d = p.oa;
               b = this.ia.w;
@@ -2707,7 +2733,7 @@ function startHaxball(proxy) {
                 a = 0;
                 a < c &&
                 ((d = a++), (d = this.fa.lg(b[J.Fe[d]].a, J.Ve[d])), d == p.oa);
-  
+
               );
               d != p.oa
                 ? ((this.Za = 2),
@@ -2717,23 +2743,24 @@ function startHaxball(proxy) {
                   null != this.ha.zf && this.ha.zf(d.Sc),
                   null != this.ha.kf && this.ha.kf(d.R))
                 : 0 < this.Ma &&
-                this.Jb >= 60 * this.Ma &&
-                this.Mb != this.Fb &&
-                (null != this.ha.Wh && this.ha.Wh(), this.wf());
+                  this.Jb >= 60 * this.Ma &&
+                  this.Mb != this.Fb &&
+                  (null != this.ha.Wh && this.ha.Wh(), this.wf());
             } else if (2 == this.Za)
               this.xb--,
                 0 >= this.xb &&
-                ((0 < this.$a && (this.Mb >= this.$a || this.Fb >= this.$a)) ||
+                  ((0 < this.$a &&
+                    (this.Mb >= this.$a || this.Fb >= this.$a)) ||
                   (0 < this.Ma && this.Jb >= 60 * this.Ma && this.Mb != this.Fb)
-                  ? this.wf()
-                  : (this.Oe(), null != this.ha.hf && this.ha.hf()));
+                    ? this.wf()
+                    : (this.Oe(), null != this.ha.hf && this.ha.hf()));
             else if (
               3 == this.Za &&
               (this.xb--, 0 >= this.xb && ((b = this.ha), null != b.C))
             ) {
               b.C = null;
               a = 0;
-              for (c = b.ca; a < c.length;)
+              for (c = b.ca; a < c.length; )
                 (d = c[a]), ++a, (d.N = null), (d.Ab = 0);
               null != b.dd && b.dd(null);
             }
@@ -2749,17 +2776,17 @@ function startHaxball(proxy) {
           this.Za = 0;
           for (
             var b = this.fa.w,
-            c = this.ia.w,
-            d = 0,
-            e = this.fa.Xc ? b.length : 1;
+              c = this.ia.w,
+              d = 0,
+              e = this.fa.Xc ? b.length : 1;
             d < e;
-  
+
           ) {
             var f = d++;
             b[f].Me(c[f]);
           }
           b = [0, 0, 0];
-          for (c = 0; c < a.length;)
+          for (c = 0; c < a.length; )
             if (((d = a[c]), ++c, this.Ne(d), (e = d.ja), e != p.oa)) {
               var f = d.N.a,
                 h = this.fa,
@@ -2891,7 +2918,7 @@ function startHaxball(proxy) {
           a = new n();
           a.ib("Huge", 750, 350, 700, 320, 100, 80);
           n.xa.push(a);
-          for (var a = 0, b = n.xa.length; a < b;) {
+          for (var a = 0, b = n.xa.length; a < b; ) {
             var c = a++;
             n.xa[c].vd = c;
           }
@@ -2902,7 +2929,7 @@ function startHaxball(proxy) {
         if (null != a.trait) {
           var c = b[k.l(a.trait, String)];
           if (null != c)
-            for (var d = 0, e = Za.ji(c); d < e.length;) {
+            for (var d = 0, e = Za.ji(c); d < e.length; ) {
               var f = e[d];
               ++d;
               null == a[f] && (a[f] = c[f]);
@@ -2911,7 +2938,7 @@ function startHaxball(proxy) {
       };
       n.Ta = function (a) {
         a = k.l(a, Array);
-        for (var b = 0, c = 0; c < a.length;)
+        for (var b = 0, c = 0; c < a.length; )
           switch (a[c++]) {
             case "all":
               b |= 63;
@@ -3150,7 +3177,7 @@ function startHaxball(proxy) {
             a.f(this.sd ? 1 : 0);
             a.f(this.Xc ? 1 : 0);
             a.f(this.u.length);
-            for (var b = 0, c = this.u.length; b < c;) {
+            for (var b = 0, c = this.u.length; b < c; ) {
               var d = b++,
                 e = this.u[d];
               e.Dc = d;
@@ -3158,30 +3185,32 @@ function startHaxball(proxy) {
             }
             a.f(this.I.length);
             b = 0;
-            for (c = this.I; b < c.length;) c[b++].G(a);
+            for (c = this.I; b < c.length; ) c[b++].G(a);
             a.f(this.Y.length);
             b = 0;
-            for (c = this.Y; b < c.length;) c[b++].G(a);
+            for (c = this.Y; b < c.length; ) c[b++].G(a);
             a.f(this.Ra.length);
             b = 0;
-            for (c = this.Ra; b < c.length;) c[b++].G(a);
+            for (c = this.Ra; b < c.length; ) c[b++].G(a);
             a.f(this.w.length);
             b = 0;
-            for (c = this.w; b < c.length;) c[b++].G(a);
+            for (c = this.w; b < c.length; ) c[b++].G(a);
             a.f(this.Sa.length);
             b = 0;
-            for (c = this.Sa; b < c.length;) c[b++].G(a);
+            for (c = this.Sa; b < c.length; ) c[b++].G(a);
             a.f(this.Nb.length);
             b = 0;
-            for (c = this.Nb; b < c.length;) (d = c[b]), ++b, a.g(d.x), a.g(d.y);
+            for (c = this.Nb; b < c.length; )
+              (d = c[b]), ++b, a.g(d.x), a.g(d.y);
             a.f(this.Gb.length);
             b = 0;
-            for (c = this.Gb; b < c.length;) (d = c[b]), ++b, a.g(d.x), a.g(d.y);
+            for (c = this.Gb; b < c.length; )
+              (d = c[b]), ++b, a.g(d.x), a.g(d.y);
           }
         },
         ai: function (a) {
           function b() {
-            for (var b = [], c = a.B(), d = 0; d < c;) {
+            for (var b = [], c = a.B(), d = 0; d < c; ) {
               ++d;
               var e = new x(0, 0);
               e.x = a.o();
@@ -3207,7 +3236,7 @@ function startHaxball(proxy) {
           this.sd = 0 != a.B();
           this.Xc = 0 != a.B();
           this.u = [];
-          for (var c = a.B(), d = 0; d < c;) {
+          for (var c = a.B(), d = 0; d < c; ) {
             var e = new w();
             e.qa(a);
             e.Dc = d++;
@@ -3215,26 +3244,26 @@ function startHaxball(proxy) {
           }
           this.I = [];
           c = a.B();
-          for (d = 0; d < c;)
+          for (d = 0; d < c; )
             ++d, (e = new z()), e.qa(a, this.u), this.I.push(e);
           this.Y = [];
           c = a.B();
-          for (d = 0; d < c;) ++d, (e = new B()), e.qa(a), this.Y.push(e);
+          for (d = 0; d < c; ) ++d, (e = new B()), e.qa(a), this.Y.push(e);
           this.Ra = [];
           c = a.B();
-          for (d = 0; d < c;) ++d, (e = new sa()), e.qa(a), this.Ra.push(e);
+          for (d = 0; d < c; ) ++d, (e = new sa()), e.qa(a), this.Ra.push(e);
           this.w = [];
           c = a.B();
-          for (d = 0; d < c;) ++d, (e = new X()), e.qa(a), this.w.push(e);
+          for (d = 0; d < c; ) ++d, (e = new X()), e.qa(a), this.w.push(e);
           this.Sa = [];
           c = a.B();
-          for (d = 0; d < c;) ++d, (e = new ka()), e.qa(a), this.Sa.push(e);
+          for (d = 0; d < c; ) ++d, (e = new ka()), e.qa(a), this.Sa.push(e);
           this.Nb = b();
           this.Gb = b();
           this.Kb();
         },
         Kb: function () {
-          for (var a = 0, b = this.I; a < b.length;) b[a++].Kb();
+          for (var a = 0, b = this.I; a < b.length; ) b[a++].Kb();
         },
         Tg: function () {
           return 255 != this.vd;
@@ -3258,7 +3287,7 @@ function startHaxball(proxy) {
             b = e[b];
             if (!d || null != b)
               if (((d = k.l(b, Array)), null != d))
-                for (b = 0; b < d.length;) {
+                for (b = 0; b < d.length; ) {
                   var f = d[b];
                   ++b;
                   try {
@@ -3327,7 +3356,7 @@ function startHaxball(proxy) {
             function (a) {
               return n.Zg(a, d.w);
             },
-            !0
+            !0,
           );
           c(this.Nb, "redSpawnPoints", b, !0);
           c(this.Gb, "blueSpawnPoints", b, !0);
@@ -3344,7 +3373,7 @@ function startHaxball(proxy) {
           this.Kb();
         },
         lg: function (a, b) {
-          for (var c = 0, d = this.Ra; c < d.length;) {
+          for (var c = 0, d = this.Ra; c < d.length; ) {
             var e = d[c];
             ++c;
             var f = e.F,
@@ -3352,13 +3381,13 @@ function startHaxball(proxy) {
               m = b.x - a.x,
               g = b.y - a.y;
             0 < -(f.y - a.y) * m + (f.x - a.x) * g ==
-              0 < -(h.y - a.y) * m + (h.x - a.x) * g
+            0 < -(h.y - a.y) * m + (h.x - a.x) * g
               ? (f = !1)
               : ((m = h.x - f.x),
                 (h = h.y - f.y),
                 (f =
                   0 < -(a.y - f.y) * m + (a.x - f.x) * h ==
-                    0 < -(b.y - f.y) * m + (b.x - f.x) * h
+                  0 < -(b.y - f.y) * m + (b.x - f.x) * h
                     ? !1
                     : !0));
             if (f) return e.ic;
@@ -3610,15 +3639,21 @@ function startHaxball(proxy) {
           this.u.push(l);
           this.u.push(n);
           m = b;
-          for (b = this.u.length; m < b;)
-            (g = m++), (this.u[g].c = f), (this.u[g].m = h), (this.u[g].i = 0.1);
+          for (b = this.u.length; m < b; )
+            (g = m++),
+              (this.u[g].c = f),
+              (this.u[g].m = h),
+              (this.u[g].i = 0.1);
           b = this.I.length;
           this.I.push(k);
           this.I.push(p);
           this.I.push(r);
           m = b;
-          for (b = this.I.length; m < b;)
-            (g = m++), (this.I[g].c = f), (this.I[g].m = h), (this.I[g].i = 0.1);
+          for (b = this.I.length; m < b; )
+            (g = m++),
+              (this.I[g].c = f),
+              (this.I[g].m = h),
+              (this.I[g].i = 0.1);
           f = new X();
           h = f.a;
           h.x = a;
@@ -3805,7 +3840,7 @@ function startHaxball(proxy) {
           a.f(this.xe);
           a.v(this.Td);
           a.f(this.Pa.length);
-          for (var b = 0, c = this.Pa; b < c.length;) a.v(c[b++]);
+          for (var b = 0, c = this.Pa; b < c.length; ) a.v(c[b++]);
         },
         qa: function (a) {
           this.xe = a.B();
@@ -3813,7 +3848,7 @@ function startHaxball(proxy) {
           var b = a.B();
           if (3 < b) throw new l("too many");
           this.Pa = [];
-          for (var c = 0; c < b;) ++c, this.Pa.push(a.H());
+          for (var c = 0; c < b; ) ++c, this.Pa.push(a.H());
         },
         h: W,
       };
@@ -3827,7 +3862,7 @@ function startHaxball(proxy) {
         Sh: function (a) {
           if (null == this.C) {
             this.C = new J();
-            for (var b = 0, c = this.ca; b < c.length;) {
+            for (var b = 0, c = this.ca; b < c.length; ) {
               var d = c[b];
               ++b;
               d.N = null;
@@ -3845,9 +3880,9 @@ function startHaxball(proxy) {
             if (null != this.C) {
               null != b.N && (G.remove(this.C.ia.w, b.N), (b.N = null));
               this.C.Ne(b);
-              for (var d = 0, e = !1; !e;) {
+              for (var d = 0, e = !1; !e; ) {
                 ++d;
-                for (var e = !0, f = 0, h = this.ca; f < h.length;) {
+                for (var e = !0, f = 0, h = this.ca; f < h.length; ) {
                   var g = h[f];
                   ++f;
                   if (g != b && g.ja == b.ja && g.Ab == d) {
@@ -3862,7 +3897,7 @@ function startHaxball(proxy) {
           }
         },
         T: function (a) {
-          for (var b = 0, c = this.ca; b < c.length;) {
+          for (var b = 0, c = this.ca; b < c.length; ) {
             var d = c[b];
             ++b;
             if (d.na == a) return d;
@@ -3884,7 +3919,7 @@ function startHaxball(proxy) {
           a.f(null != this.C ? 1 : 0);
           null != this.C && this.C.G(a);
           a.f(this.ca.length);
-          for (var b = 0, c = this.ca; b < c.length;) c[b++].P(a);
+          for (var b = 0, c = this.ca; b < c.length; ) c[b++].P(a);
           this.jc[1].G(a);
           this.jc[2].G(a);
         },
@@ -3892,7 +3927,7 @@ function startHaxball(proxy) {
           var a = 0,
             b = r.ba();
           this.G(b);
-          for (b = b.Zh(); 4 <= b.j.byteLength - b.a;) a ^= b.H();
+          for (b = b.Zh(); 4 <= b.j.byteLength - b.a; ) a ^= b.H();
           return a;
         },
         Cg: function () {
@@ -3995,7 +4030,7 @@ function startHaxball(proxy) {
             for (
               var b = a.T(this.A), c = a.ca, d = [], e = 0, f = 0, h = 0;
               h < c.length;
-  
+
             ) {
               var g = c[h];
               ++h;
@@ -4009,8 +4044,8 @@ function startHaxball(proxy) {
                 : a.zc(b, d[0], f > e ? p.ka : p.wa));
           }
         },
-        P: function () { },
-        W: function () { },
+        P: function () {},
+        W: function () {},
         h: pa,
       });
       L.b = !0;
@@ -4084,7 +4119,8 @@ function startHaxball(proxy) {
         },
         W: function (a) {
           this.Ea = a.Xa();
-          if (["🏈", "❌", "🚧", "💪", "🤡", "😵"].includes(this.Ea)) this.Ea = null;
+          if (["🏈", "❌", "🚧", "💪", "🤡", "😵"].includes(this.Ea))
+            this.Ea = null;
           null != this.Ea && (this.Ea = H.pb(this.Ea, 2));
           //if (api["onPlayerChangeAvatar"]) api["onPlayerChangeAvatar"](this.Ea, );
         },
@@ -4142,7 +4178,7 @@ function startHaxball(proxy) {
         W: function (a) {
           a = pako.inflateRaw(a.Ka(a.cc()));
           this.md = n.qa(
-            new C(new DataView(a.buffer, a.byteOffset, a.byteLength))
+            new C(new DataView(a.buffer, a.byteOffset, a.byteLength)),
           );
         },
         h: K,
@@ -4384,9 +4420,10 @@ function startHaxball(proxy) {
       });
       P.b = !0;
       P.V = function (a, b) {
-        for (var c = new P(), d = new Set(), e = 0; e < a.length;) d.add(a[e++]);
+        for (var c = new P(), d = new Set(), e = 0; e < a.length; )
+          d.add(a[e++]);
         a = [];
-        for (var e = 0, d = d.values(), f = d.next(); !f.done;) {
+        for (var e = 0, d = d.values(), f = d.next(); !f.done; ) {
           var h = f.value,
             f = d.next();
           a.push(h);
@@ -4401,14 +4438,14 @@ function startHaxball(proxy) {
       P.prototype = v(g.prototype, {
         apply: function (a) {
           if (0 == this.A) {
-            for (var b = new Map(), c = 0, d = a.ca; c < d.length;) {
+            for (var b = new Map(), c = 0, d = a.ca; c < d.length; ) {
               var e = d[c];
               ++c;
               b.set(e.na, e);
             }
             c = [];
             d = 0;
-            for (e = this.lc; d < e.length;) {
+            for (e = this.lc; d < e.length; ) {
               var f = e[d];
               ++d;
               var h = b.get(f);
@@ -4416,7 +4453,7 @@ function startHaxball(proxy) {
             }
             d = [];
             b = b.values();
-            for (e = b.next(); !e.done;)
+            for (e = b.next(); !e.done; )
               (f = e.value), (e = b.next()), d.push(f);
             a.ca = this.ie ? c.concat(d) : d.concat(c);
           }
@@ -4424,13 +4461,13 @@ function startHaxball(proxy) {
         P: function (a) {
           a.f(this.ie ? 1 : 0);
           a.f(this.lc.length);
-          for (var b = 0, c = this.lc; b < c.length;) a.v(c[b++]);
+          for (var b = 0, c = this.lc; b < c.length; ) a.v(c[b++]);
         },
         W: function (a) {
           this.ie = 0 != a.B();
           var b = a.B();
           this.lc = [];
-          for (var c = 0; c < b;) ++c, this.lc.push(a.H());
+          for (var c = 0; c < b; ) ++c, this.lc.push(a.H());
         },
         h: P,
       });
@@ -4453,13 +4490,13 @@ function startHaxball(proxy) {
         ];
         d.za = [c.color, c.cMask, c.cGroup];
         a = 0;
-        for (b = d.O.length; a < b;) {
+        for (b = d.O.length; a < b; ) {
           c = a++;
           var e = d.O[c];
           null != e && ((E.Lf[0] = e), (d.O[c] = E.Lf[0]));
         }
         a = 0;
-        for (b = d.za.length; a < b;)
+        for (b = d.za.length; a < b; )
           (c = a++),
             (e = d.za[c]),
             null != e && ((E.Of[0] = e), (d.za[c] = E.Of[0]));
@@ -4478,18 +4515,18 @@ function startHaxball(proxy) {
               } else a = b.ia.w[this.rb];
               null != a &&
                 (null != this.O[0] && (a.a.x = this.O[0]),
-                  null != this.O[1] && (a.a.y = this.O[1]),
-                  null != this.O[2] && (a.s.x = this.O[2]),
-                  null != this.O[3] && (a.s.y = this.O[3]),
-                  null != this.O[4] && (a.ma.x = this.O[4]),
-                  null != this.O[5] && (a.ma.y = this.O[5]),
-                  null != this.O[6] && (a.L = this.O[6]),
-                  null != this.O[7] && (a.i = this.O[7]),
-                  null != this.O[8] && (a.K = this.O[8]),
-                  null != this.O[9] && (a.ga = this.O[9]),
-                  null != this.za[0] && (a.S = this.za[0]),
-                  null != this.za[1] && (a.c = this.za[1]),
-                  null != this.za[2] && (a.m = this.za[2]));
+                null != this.O[1] && (a.a.y = this.O[1]),
+                null != this.O[2] && (a.s.x = this.O[2]),
+                null != this.O[3] && (a.s.y = this.O[3]),
+                null != this.O[4] && (a.ma.x = this.O[4]),
+                null != this.O[5] && (a.ma.y = this.O[5]),
+                null != this.O[6] && (a.L = this.O[6]),
+                null != this.O[7] && (a.i = this.O[7]),
+                null != this.O[8] && (a.K = this.O[8]),
+                null != this.O[9] && (a.ga = this.O[9]),
+                null != this.za[0] && (a.S = this.za[0]),
+                null != this.za[1] && (a.c = this.za[1]),
+                null != this.za[2] && (a.m = this.za[2]));
             }
           }
         },
@@ -4498,14 +4535,14 @@ function startHaxball(proxy) {
           a.f(this.ee ? 1 : 0);
           var b = a.a;
           a.Na(0);
-          for (var c = 0, d = 1, e = 0, f = this.O; e < f.length;) {
+          for (var c = 0, d = 1, e = 0, f = this.O; e < f.length; ) {
             var h = f[e];
             ++e;
             null != h && ((c |= d), a.Wd(h));
             d <<= 1;
           }
           e = 0;
-          for (f = this.za; e < f.length;)
+          for (f = this.za; e < f.length; )
             (h = f[e]), ++e, null != h && ((c |= d), a.v(h)), (d <<= 1);
           d = a.a;
           a.a = b;
@@ -4517,14 +4554,14 @@ function startHaxball(proxy) {
           this.ee = 0 != a.B();
           var b = a.cc();
           this.O = [];
-          for (var c = 0; 10 > c;) {
+          for (var c = 0; 10 > c; ) {
             var d = c++;
             this.O[d] = null;
             0 != (b & 1) && (this.O[d] = a.Bh());
             b >>>= 1;
           }
           this.za = [];
-          for (c = 0; 3 > c;)
+          for (c = 0; 3 > c; )
             (d = c++),
               (this.za[d] = null),
               0 != (b & 1) && (this.za[d] = a.H()),
@@ -4563,8 +4600,8 @@ function startHaxball(proxy) {
         apply: function (a) {
           a.Aa(this.A, 32) && a.Sh(a.T(this.A), 0);
         },
-        P: function () { },
-        W: function () { },
+        P: function () {},
+        W: function () {},
         h: Z,
       });
       Y.b = !0;
@@ -4575,7 +4612,7 @@ function startHaxball(proxy) {
             var b = a.T(this.A);
             if (null != a.C) {
               a.C = null;
-              for (var c = 0, d = a.ca; c < d.length;) {
+              for (var c = 0, d = a.ca; c < d.length; ) {
                 var e = d[c];
                 ++c;
                 e.N = null;
@@ -4585,13 +4622,13 @@ function startHaxball(proxy) {
             }
           }
         },
-        P: function () { },
-        W: function () { },
+        P: function () {},
+        W: function () {},
         h: Y,
       });
       N.b = !0;
       N.V = function (a) {
-        for (var b = new N(), c = a.Fa.ca, d = [], e = 0; e < c.length;) {
+        for (var b = new N(), c = a.Fa.ca, d = [], e = 0; e < c.length; ) {
           var f = a.ub.get(c[e++].na);
           d.push(null == f ? 0 : f.Tc);
         }
@@ -4603,7 +4640,7 @@ function startHaxball(proxy) {
         apply: function (a) {
           if (0 == this.A) {
             a = a.ca;
-            for (var b = 0, c = a.length; b < c;) {
+            for (var b = 0, c = a.length; b < c; ) {
               var d = b++;
               if (d >= this.Tb.length) break;
               a[d].Tc = this.Tb[d];
@@ -4612,11 +4649,11 @@ function startHaxball(proxy) {
         },
         P: function (a) {
           a.Da(this.Tb.length);
-          for (var b = 0, c = this.Tb; b < c.length;) a.Da(c[b++]);
+          for (var b = 0, c = this.Tb; b < c.length; ) a.Da(c[b++]);
         },
         W: function (a) {
           this.Tb = [];
-          for (var b = a.lb(), c = 0; c < b;) ++c, this.Tb.push(a.lb());
+          for (var b = a.lb(), c = 0; c < b; ) ++c, this.Tb.push(a.lb());
         },
         h: N,
       });
@@ -4668,14 +4705,14 @@ function startHaxball(proxy) {
             e = d * (e.x - f.x) + b * (e.y - f.y);
             0 > e &&
               ((e *= this.i * a.i + 1),
-                (c *= e),
-                (h = f = this.s),
-                (f.x = h.x - d * c),
-                (f.y = h.y - b * c),
-                (a = f = a.s),
-                (c = e - c),
-                (f.x = a.x + d * c),
-                (f.y = a.y + b * c));
+              (c *= e),
+              (h = f = this.s),
+              (f.x = h.x - d * c),
+              (f.y = h.y - b * c),
+              (a = f = a.s),
+              (c = e - c),
+              (f.x = a.x + d * c),
+              (f.y = a.y + b * c));
           }
         },
         og: function (a) {
@@ -4716,16 +4753,16 @@ function startHaxball(proxy) {
             return;
           d >= this.L ||
             ((d = this.L - d),
-              (f = e = this.a),
-              (e.x = f.x + b * d),
-              (e.y = f.y + c * d),
-              (d = this.s),
-              (d = b * d.x + c * d.y),
-              0 > d &&
+            (f = e = this.a),
+            (e.x = f.x + b * d),
+            (e.y = f.y + c * d),
+            (d = this.s),
+            (d = b * d.x + c * d.y),
+            0 > d &&
               ((d *= this.i * a.i + 1),
-                (e = a = this.s),
-                (a.x = e.x - b * d),
-                (a.y = e.y - c * d)));
+              (e = a = this.s),
+              (a.x = e.x - b * d),
+              (a.y = e.y - c * d)));
         },
         h: la,
       };
@@ -4795,13 +4832,13 @@ function startHaxball(proxy) {
                 f = e * (f.x - h.x) + c * (f.y - h.y);
                 0 >= f * g &&
                   ((d *= f),
-                    (b = g = b.s),
-                    (g.x = b.x - e * d),
-                    (g.y = b.y - c * d),
-                    (a = b = a.s),
-                    (d = f - d),
-                    (b.x = a.x + e * d),
-                    (b.y = a.y + c * d));
+                  (b = g = b.s),
+                  (g.x = b.x - e * d),
+                  (g.y = b.y - c * d),
+                  (a = b = a.s),
+                  (d = f - d),
+                  (b.x = a.x + e * d),
+                  (b.y = a.y + c * d));
               }
             }
           }
@@ -4813,7 +4850,7 @@ function startHaxball(proxy) {
       za.prototype = {
         G: function (a) {
           a.f(this.w.length);
-          for (var b = 0, c = this.w.length; b < c;) {
+          for (var b = 0, c = this.w.length; b < c; ) {
             var d = b++,
               e = this.w[d];
             e.cf = d;
@@ -4821,7 +4858,7 @@ function startHaxball(proxy) {
           }
         },
         Ba: function (a) {
-          for (var b = 0, c = this.w; b < c.length;) {
+          for (var b = 0, c = this.w; b < c.length; ) {
             var d = c[b];
             ++b;
             var e = d.a,
@@ -4836,15 +4873,16 @@ function startHaxball(proxy) {
             e.y = (f.y + h.y) * d;
           }
           a = 0;
-          for (b = this.w.length; a < b;) {
+          for (b = this.w.length; a < b; ) {
             d = a++;
             c = this.w[d];
             d += 1;
-            for (e = this.w.length; d < e;)
-              (f = this.w[d++]), 0 != (f.c & c.m) && 0 != (f.m & c.c) && c.ng(f);
+            for (e = this.w.length; d < e; )
+              (f = this.w[d++]),
+                0 != (f.c & c.m) && 0 != (f.m & c.c) && c.ng(f);
             if (0 != c.K) {
               d = 0;
-              for (e = this.Y; d < e.length;)
+              for (e = this.Y; d < e.length; )
                 if (((f = e[d]), ++d, 0 != (f.c & c.m) && 0 != (f.m & c.c))) {
                   var h = f.X,
                     g = c.a,
@@ -4859,28 +4897,30 @@ function startHaxball(proxy) {
                     h = h.x * g.x + h.y * g.y;
                     0 > h &&
                       ((h *= c.i * f.i + 1),
-                        (k = g = c.s),
-                        (f = f.X),
-                        (g.x = k.x - f.x * h),
-                        (g.y = k.y - f.y * h));
+                      (k = g = c.s),
+                      (f = f.X),
+                      (g.x = k.x - f.x * h),
+                      (g.y = k.y - f.y * h));
                   }
                 }
               d = 0;
-              for (e = this.I; d < e.length;)
-                (f = e[d]), ++d, 0 != (f.c & c.m) && 0 != (f.m & c.c) && c.og(f);
+              for (e = this.I; d < e.length; )
+                (f = e[d]),
+                  ++d,
+                  0 != (f.c & c.m) && 0 != (f.m & c.c) && c.og(f);
               d = 0;
-              for (e = this.u; d < e.length;)
+              for (e = this.u; d < e.length; )
                 if (
                   ((f = e[d]),
-                    ++d,
-                    0 != (f.c & c.m) &&
+                  ++d,
+                  0 != (f.c & c.m) &&
                     0 != (f.m & c.c) &&
                     ((g = c.a),
-                      (k = f.a),
-                      (h = g.x - k.x),
-                      (g = g.y - k.y),
-                      (k = h * h + g * g),
-                      0 < k && k <= c.L * c.L))
+                    (k = f.a),
+                    (h = g.x - k.x),
+                    (g = g.y - k.y),
+                    (k = h * h + g * g),
+                    0 < k && k <= c.L * c.L))
                 ) {
                   var k = Math.sqrt(k),
                     h = h / k,
@@ -4893,14 +4933,14 @@ function startHaxball(proxy) {
                   k = h * k.x + g * k.y;
                   0 > k &&
                     ((k *= c.i * f.i + 1),
-                      (l = f = c.s),
-                      (f.x = l.x - h * k),
-                      (f.y = l.y - g * k));
+                    (l = f = c.s),
+                    (f.x = l.x - h * k),
+                    (f.y = l.y - g * k));
                 }
             }
           }
-          for (a = 0; 2 > a;)
-            for (++a, b = 0, c = this.Sa; b < c.length;) c[b++].Ba(this.w);
+          for (a = 0; 2 > a; )
+            for (++a, b = 0, c = this.Sa; b < c.length; ) c[b++].Ba(this.w);
         },
         h: za,
       };
@@ -4988,11 +5028,11 @@ function startHaxball(proxy) {
             this.cd = new x(-(c.y - a.y), c.x - a.x);
             0 >= this.Ha &&
               ((a = c = this.bd),
-                (c.x = -a.x),
-                (c.y = -a.y),
-                (a = c = this.cd),
-                (c.x = -a.x),
-                (c.y = -a.y));
+              (c.x = -a.x),
+              (c.y = -a.y),
+              (a = c = this.cd),
+              (c.x = -a.x),
+              (c.y = -a.y));
           } else
             (a = this.F.a),
               (b = this.J.a),
@@ -5054,7 +5094,7 @@ function startHaxball(proxy) {
                 e = d[c];
               if (e.ue) {
                 b += "\t";
-                for (var c = c + "(", d = [], f = 0, e = e.ue; f < e.length;) {
+                for (var c = c + "(", d = [], f = 0, e = e.ue; f < e.length; ) {
                   var g = e[f];
                   ++f;
                   d.push(k.Ub(a[g], b));
@@ -5067,7 +5107,7 @@ function startHaxball(proxy) {
               c = a.length;
               d = "[";
               b += "\t";
-              for (f = 0; f < c;)
+              for (f = 0; f < c; )
                 (e = f++), (d += (0 < e ? "," : "") + k.Ub(a[e], b));
               return d + "]";
             }
@@ -5095,7 +5135,7 @@ function startHaxball(proxy) {
                 "__interfaces__" == c ||
                 "__properties__" == c ||
                 (2 != d.length && (d += ", \n"),
-                  (d += b + c + " : " + k.Ub(a[c], b)));
+                (d += b + c + " : " + k.Ub(a[c], b)));
             b = b.substring(1);
             return d + ("\n" + b + "}");
           case "string":
@@ -5109,7 +5149,7 @@ function startHaxball(proxy) {
         if (a == b) return !0;
         var c = a.Eb;
         if (null != c)
-          for (var d = 0, e = c.length; d < e;) {
+          for (var d = 0, e = c.length; d < e; ) {
             var f = c[d++];
             if (f == b || k.pd(f, b)) return !0;
           }
@@ -5135,7 +5175,8 @@ function startHaxball(proxy) {
               if ("function" == typeof b) {
                 if (a instanceof b || k.pd(k.Mf(a), b)) return !0;
               } else {
-                if ("object" == typeof b && k.$f(b) && a instanceof b) return !0;
+                if ("object" == typeof b && k.$f(b) && a instanceof b)
+                  return !0;
               }
             else return !1;
             return (b == gb && null != a.b) || (b == hb && null != a.se)
@@ -5172,7 +5213,7 @@ function startHaxball(proxy) {
           return 65536 > a
             ? String.fromCharCode(a)
             : String.fromCharCode((a >> 10) + 55232) +
-            String.fromCharCode((a & 1023) + 56320);
+                String.fromCharCode((a & 1023) + 56320);
         });
       String.prototype.h = String;
       String.b = !0;
@@ -5245,11 +5286,11 @@ function startHaxball(proxy) {
       y.Ge = new M();
       y.tf = !1;
       J.Ve = (function () {
-        for (var a = [], b = 0; 256 > b;) ++b, a.push(new x(0, 0));
+        for (var a = [], b = 0; 256 > b; ) ++b, a.push(new x(0, 0));
         return a;
       })(this);
       J.Fe = (function () {
-        for (var a = [], b = 0; 256 > b;) ++b, a.push(0);
+        for (var a = [], b = 0; 256 > b; ) ++b, a.push(0);
         return a;
       })(this);
       qa.U = g.$({

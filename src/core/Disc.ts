@@ -3,29 +3,29 @@ import Room from "./Room";
 import Settings from "./Settings";
 
 export default class Disc extends AbstractDisc {
-    public index: number;
-    
-    public settings = new Settings();
+  public index: number;
 
-    constructor(room: Room, discIndex: number) {
-        super(room);
+  public settings = new Settings();
 
-        this.index = discIndex;
-    }
+  constructor(room: Room, discIndex: number) {
+    super(room);
 
-    protected getDiscObject(): DiscPropertiesObject {
-		return this._room.getNative().getDiscProperties(this.index);
-	}
+    this.index = discIndex;
+  }
 
-    protected setDiscObject(properties: DiscPropertiesObject) {
-		this._room.getNative().setDiscProperties(this.index, properties);
-	}
+  protected getDiscObject(): DiscPropertiesObject {
+    return this._room.getNative().getDiscProperties(this.index);
+  }
 
-    public getColor(): number | null | undefined {
-        return this.getDiscObject().color;
-    }
+  protected setDiscObject(properties: DiscPropertiesObject) {
+    this._room.getNative().setDiscProperties(this.index, properties);
+  }
 
-    public setColor(value: number | null | undefined) {
-        this.setDiscObject({ color: value });
-    }
+  public getColor(): number | null | undefined {
+    return this.getDiscObject().color;
+  }
+
+  public setColor(value: number | null | undefined) {
+    this.setDiscObject({ color: value });
+  }
 }

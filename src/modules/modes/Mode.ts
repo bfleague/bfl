@@ -4,12 +4,12 @@ import Module from "../../core/Module";
 import { GameModes } from "../Game";
 
 export abstract class Mode extends Module {
-    abstract mode: GameModes;
-    abstract name: string;
+  abstract mode: GameModes;
+  abstract name: string;
 
-    constructor(protected game: Game) {
-        super();
-    }
+  constructor(protected game: Game) {
+    super();
+  }
 
-    public abstract reset(): void;
+  public abstract reset(): void;
 }

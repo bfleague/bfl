@@ -16,395 +16,624 @@ import translate from "../../utils/Translate";
 import { Tackle, Tackleable } from "./Tackleable";
 
 export class FieldGoal extends Tackleable {
-    name = "field goal";
-    mode = GameModes.FieldGoal;
+  name = "field goal";
+  mode = GameModes.FieldGoal;
 
-    fgPoints = 3;
-    fgTimeLimit = 15 * 1000;
-    playerLineLengthFieldGoalKickingTeam = 100;
-    playerLineLengthFieldGoalOtherTeam = 100;
-    maxPlayerBackDistanceFieldGoalOffense = 1000;
-    maxPlayerBackDistanceFieldGoalDefense = 900;
-    maxTimeFGMoveBallPenalty = 1 * 1000;
-    yardsBackOffense = 10;
-    yardsBackDefense = 15;
-    fgMaxDistanceMoveBall = 8.5;
-    maxDistanceYardsFG = 47 + 10;
-    playerLineLengthFG = 100;
-    kickerY = 30;
-    maxDistanceKickerToBallYards = 10;
+  fgPoints = 3;
+  fgTimeLimit = 15 * 1000;
+  playerLineLengthFieldGoalKickingTeam = 100;
+  playerLineLengthFieldGoalOtherTeam = 100;
+  maxPlayerBackDistanceFieldGoalOffense = 1000;
+  maxPlayerBackDistanceFieldGoalDefense = 900;
+  maxTimeFGMoveBallPenalty = 1 * 1000;
+  yardsBackOffense = 10;
+  yardsBackDefense = 15;
+  fgMaxDistanceMoveBall = 8.5;
+  maxDistanceYardsFG = 47 + 10;
+  playerLineLengthFG = 100;
+  kickerY = 30;
+  maxDistanceKickerToBallYards = 10;
 
-    fgFailed = false;
-    disabledBallTouch = false;
+  fgFailed = false;
+  disabledBallTouch = false;
 
-    fgKicker: Player;
-    
-    constructor(room: Room, game: Game) {
-        super(game);
+  fgKicker: Player;
 
-        room.on("playerBallKick", (player: Player) => {
-            if (this.game.mode !== this.mode) return;
-            if (this.fgFailed) return;
+  constructor(room: Room, game: Game) {
+    super(game);
 
-            this.game.fieldGoalTimeout.stop();
+    room.on("playerBallKick", (player: Player) => {
+      if (this.game.mode !== this.mode) return;
+      if (this.fgFailed) return;
 
-            if (player.id !== this.fgKicker.id) {
-                this.handleIllegalTouch(room, player);
+      this.game.fieldGoalTimeout.stop();
 
-                return;
-            }
-            
-            if (!this.game.qbKickedBall) {
-                this.game.qbKickedBall = true;
+      if (player.id !== this.fgKicker.id) {
+        this.handleIllegalTouch(room, player);
 
-                this.game.setBallUnmoveable(room);
-                this.game.lockBall(room);
-                this.game.setBallUnkickable(room);
-                //this.game.unghostAll(room);
+        return;
+      }
 
-                const ballPos = room.getBall().getPosition();
+      if (!this.game.qbKickedBall) {
+        this.game.qbKickedBall = true;
 
-                setTimeout(() => {
-                    this.disabledBallTouch = true;
-                    if (!this.fgFailed && this.detectFailedFieldGoal(room, player, ballPos)) this.handleMissedFieldGoalBallWrongDirection(room);
-                }, 0);
-            } else {
-                this.handleIllegalBallKick(room);
-            }
-        });
+        this.game.setBallUnmoveable(room);
+        this.game.lockBall(room);
+        this.game.setBallUnkickable(room);
+        //this.game.unghostAll(room);
 
-        room.on("gameTick", () => {
-            if (this.game.mode !== this.mode) return;
-            if (this.fgFailed) return;
+        const ballPos = room.getBall().getPosition();
 
-            if (!this.disabledBallTouch) {
-                const playerTouchingBall = this.getPlayerTouchingBall(room);
+        setTimeout(() => {
+          this.disabledBallTouch = true;
+          if (
+            !this.fgFailed &&
+            this.detectFailedFieldGoal(room, player, ballPos)
+          )
+            this.handleMissedFieldGoalBallWrongDirection(room);
+        }, 0);
+      } else {
+        this.handleIllegalBallKick(room);
+      }
+    });
 
-                if (playerTouchingBall && playerTouchingBall.id !== this.fgKicker.id) {
-                    this.handleIllegalTouch(room, playerTouchingBall);
-                    
-                    return;
-                }
-            }
+    room.on("gameTick", () => {
+      if (this.game.mode !== this.mode) return;
+      if (this.fgFailed) return;
 
-            if (!this.game.qbKickedBall) {
-                const playerTouchingBall = this.getPlayerTouchingBall(room);
+      if (!this.disabledBallTouch) {
+        const playerTouchingBall = this.getPlayerTouchingBall(room);
 
-                if (playerTouchingBall && playerTouchingBall.getTeam() === this.fgKicker.getTeam()) {
-                    if (playerTouchingBall.getTeam() === this.fgKicker.getTeam()) {
-                        this.handleIllegalTouch(room, playerTouchingBall);
-                    } else {
-                        this.handleTackle(room, { players: [playerTouchingBall], tackleCount: 1 });
-                    }
-                    
-                    return;
-                }
+        if (playerTouchingBall && playerTouchingBall.id !== this.fgKicker.id) {
+          this.handleIllegalTouch(room, playerTouchingBall);
 
-                if (this.game.ballMovedTimeFG == null && this.didBallMove(room)) this.game.ballMovedTimeFG = Date.now();
+          return;
+        }
+      }
 
-                const tackle = this.getTackle(room, this.fgKicker);
+      if (!this.game.qbKickedBall) {
+        const playerTouchingBall = this.getPlayerTouchingBall(room);
 
-                if (tackle.players.length > 0) {
-                    this.handleTackle(room, tackle);
+        if (
+          playerTouchingBall &&
+          playerTouchingBall.getTeam() === this.fgKicker.getTeam()
+        ) {
+          if (playerTouchingBall.getTeam() === this.fgKicker.getTeam()) {
+            this.handleIllegalTouch(room, playerTouchingBall);
+          } else {
+            this.handleTackle(room, {
+              players: [playerTouchingBall],
+              tackleCount: 1,
+            });
+          }
 
-                    return;
-                }
-
-                if (this.didBallIlegallyMoveDuringFG(room)) {
-                    this.handleIllegalBallMove(room);
-                    
-                    return;
-                }
-
-                if (this.fgKicker.distanceTo(room.getBall()) > this.maxDistanceKickerToBallYards * MapMeasures.Yard) {
-                    this.handleKickerTooFarFromBall(room);
-
-                    return;
-                }
-            } else {
-                if (this.didBallPassedGoalLine(room)) {
-                    this.handleSuccessfulFieldGoal(room);
-                } else if (MathUtils.getBallSpeed(room.getBall()) < 0.02) {
-                    this.handleMissedFieldGoalBallStopped(room);
-                }
-            }
-        });
-    }
-
-    public set({ room, forTeam = this.game.teamWithBall, pos = this.game.ballPosition, kicker }:
-        { room: Room, forTeam?: Team, pos?: Global.FieldPosition, kicker?: Player }) {
-        this.game.mode = null;
-
-        this.game.reset(room);
-        this.game.resetPlay(room);
-
-        this.game.teamWithBall = forTeam;
-        this.game.ballPosition = pos;
-        this.game.downCount = 0;
-        this.game.distance = 20;
-
-        this.fgKicker = kicker;
-
-        room.send({ message: translate("FG", this.game.getTeamName(forTeam), Utils.getFormattedSeconds(this.fgTimeLimit / 1000)), color: Global.Color.LightGreen, style: "bold" });
-
-        const ballPosInMap = StadiumUtils.getCoordinateFromYards(pos.team, pos.yards);
-        const ball = room.getBall()
-        
-        ball.setVelocityX(0);
-        ball.setVelocityY(0);
-        ball.setPosition(ballPosInMap);
-        this.game.unlockBall(room);
-        this.game.setBallMoveable(room);
-
-        const red = room.getPlayers().red();
-        const blue = room.getPlayers().blue();
-
-        this.game.down.resetFirstDownLine(room);
-        this.game.down.resetBallLine(room);
-
-        const filterPlayerOutsideField = (p: Player) => Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
-
-        let kickingTeam = (forTeam === Team.Red ? red : blue)
-            .filter(p => p.id !== kicker.id)
-            .filter(filterPlayerOutsideField);
-        let otherTeam = (forTeam === Team.Red ? blue : red)
-            .filter(filterPlayerOutsideField);
-
-        this.game.teamWithBall = forTeam;
-
-        const xBackOffense = forTeam === Team.Blue ? Math.max(-this.maxPlayerBackDistanceFieldGoalOffense, ball.getX() - (this.yardsBackOffense * MapMeasures.Yard)) : Math.min(this.maxPlayerBackDistanceFieldGoalOffense, ball.getX() + (this.yardsBackOffense * MapMeasures.Yard));
-        const xBackDefense = forTeam === Team.Blue ? Math.max(-this.maxPlayerBackDistanceFieldGoalDefense, ball.getX() - (this.yardsBackDefense * MapMeasures.Yard)) : Math.min(this.maxPlayerBackDistanceFieldGoalDefense, ball.getX() + (this.yardsBackDefense * MapMeasures.Yard));
-
-        const kickingTeamPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthFG }, { x: 0, y: -this.playerLineLengthFG }, kickingTeam.length);
-        const defenseTeamPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthFG }, { x: 0, y: -this.playerLineLengthFG }, otherTeam.length);
-
-        for (let i = 0; i < kickingTeam.length; i++) {
-            const player = kickingTeam[i];
-
-            if (player.id === kicker.id) continue;
-                
-            player.setPosition({ x: xBackOffense, y: kickingTeamPositions[i].y });
+          return;
         }
 
-        for (let i = 0; i < otherTeam.length; i++) {
-            const player = otherTeam[i];
-                    
-            player.setPosition({ x: xBackDefense, y: defenseTeamPositions[i].y });
+        if (this.game.ballMovedTimeFG == null && this.didBallMove(room))
+          this.game.ballMovedTimeFG = Date.now();
+
+        const tackle = this.getTackle(room, this.fgKicker);
+
+        if (tackle.players.length > 0) {
+          this.handleTackle(room, tackle);
+
+          return;
         }
 
-        kicker.setY(this.kickerY);
+        if (this.didBallIlegallyMoveDuringFG(room)) {
+          this.handleIllegalBallMove(room);
 
-        //this.game.ghostTeam(room, this.game.invertTeam(forTeam));
-        
-        this.game.mode = this.mode;
-
-        this.game.fieldGoalTimeout = new Timer(() => {
-            room.send({ message: translate("TOOK_TOO_LONG_FG"), color: Global.Color.Orange, style: "bold" });
-
-            this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
-        }, this.fgTimeLimit);
-    }
-
-    public reset() {
-        this.fgKicker = null;
-        this.fgFailed = false;
-        this.disabledBallTouch = false;
-    }
-
-    @Command({
-        name: "fg"
-    })
-    fgCommand($: CommandInfo, room: Room) {
-        if (!room.isGameInProgress()) {
-            $.caller.reply({ message: translate("GAME_NOT_IN_PROGRESS"), sound: 2, color: Global.Color.Tomato, style: "bold" });
-
-            return false;
+          return;
         }
 
-        if ($.caller.getTeam() === Team.Spectators) {
-            $.caller.reply({ message: translate("NOT_ON_TEAM"), sound: 2, color: Global.Color.Tomato, style: "bold" });
+        if (
+          this.fgKicker.distanceTo(room.getBall()) >
+          this.maxDistanceKickerToBallYards * MapMeasures.Yard
+        ) {
+          this.handleKickerTooFarFromBall(room);
 
-            return false;
+          return;
         }
-
-        if ($.caller.getTeam() !== this.game.teamWithBall) {
-            $.caller.reply({ message: translate("TEAM_WITHOUT_BALL"), sound: 2, color: Global.Color.Tomato, style: "bold" });
-
-            return false;
+      } else {
+        if (this.didBallPassedGoalLine(room)) {
+          this.handleSuccessfulFieldGoal(room);
+        } else if (MathUtils.getBallSpeed(room.getBall()) < 0.02) {
+          this.handleMissedFieldGoalBallStopped(room);
         }
+      }
+    });
+  }
 
-        if (this.game.mode !== this.game.down.waitingHikeMode || this.game.conversion) {
-            $.caller.reply({ message: translate("CANNOT_FG_NOW"), sound: 2, color: Global.Color.Tomato, style: "bold" });
+  public set({
+    room,
+    forTeam = this.game.teamWithBall,
+    pos = this.game.ballPosition,
+    kicker,
+  }: {
+    room: Room;
+    forTeam?: Team;
+    pos?: Global.FieldPosition;
+    kicker?: Player;
+  }) {
+    this.game.mode = null;
 
-            return false;
-        }
+    this.game.reset(room);
+    this.game.resetPlay(room);
 
-        if (StadiumUtils.getDifferenceBetweenFieldPositions(this.game.ballPosition, { team: this.game.invertTeam(this.game.teamWithBall), yards: 0 }) > this.maxDistanceYardsFG) {
-            $.caller.reply({ message: translate("CANNOT_FG_AT_THIS_DISTANCE"), sound: 2, color: Global.Color.Tomato, style: "bold" });
+    this.game.teamWithBall = forTeam;
+    this.game.ballPosition = pos;
+    this.game.downCount = 0;
+    this.game.distance = 20;
 
-            return false;
-        }
+    this.fgKicker = kicker;
 
-        if ($.caller.distanceTo(room.getBall()) > 50) {
-            $.caller.reply({ message: translate("FAR_AWAY_FROM_BALL"), sound: 2, color: Global.Color.Tomato, style: "bold" });
+    room.send({
+      message: translate(
+        "FG",
+        this.game.getTeamName(forTeam),
+        Utils.getFormattedSeconds(this.fgTimeLimit / 1000),
+      ),
+      color: Global.Color.LightGreen,
+      style: "bold",
+    });
 
-            return false;
-        }
+    const ballPosInMap = StadiumUtils.getCoordinateFromYards(
+      pos.team,
+      pos.yards,
+    );
+    const ball = room.getBall();
 
-        room.send({ message: translate("SET_FG", $.caller.name), color: Global.Color.Yellow, style: "bold" });
+    ball.setVelocityX(0);
+    ball.setVelocityY(0);
+    ball.setPosition(ballPosInMap);
+    this.game.unlockBall(room);
+    this.game.setBallMoveable(room);
 
-        this.set({ room, kicker: $.caller });
+    const red = room.getPlayers().red();
+    const blue = room.getPlayers().blue();
 
-        return false;
+    this.game.down.resetFirstDownLine(room);
+    this.game.down.resetBallLine(room);
+
+    const filterPlayerOutsideField = (p: Player) =>
+      Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
+
+    let kickingTeam = (forTeam === Team.Red ? red : blue)
+      .filter((p) => p.id !== kicker.id)
+      .filter(filterPlayerOutsideField);
+    let otherTeam = (forTeam === Team.Red ? blue : red).filter(
+      filterPlayerOutsideField,
+    );
+
+    this.game.teamWithBall = forTeam;
+
+    const xBackOffense =
+      forTeam === Team.Blue
+        ? Math.max(
+            -this.maxPlayerBackDistanceFieldGoalOffense,
+            ball.getX() - this.yardsBackOffense * MapMeasures.Yard,
+          )
+        : Math.min(
+            this.maxPlayerBackDistanceFieldGoalOffense,
+            ball.getX() + this.yardsBackOffense * MapMeasures.Yard,
+          );
+    const xBackDefense =
+      forTeam === Team.Blue
+        ? Math.max(
+            -this.maxPlayerBackDistanceFieldGoalDefense,
+            ball.getX() - this.yardsBackDefense * MapMeasures.Yard,
+          )
+        : Math.min(
+            this.maxPlayerBackDistanceFieldGoalDefense,
+            ball.getX() + this.yardsBackDefense * MapMeasures.Yard,
+          );
+
+    const kickingTeamPositions = MathUtils.getPointsAlongLine(
+      { x: 0, y: this.playerLineLengthFG },
+      { x: 0, y: -this.playerLineLengthFG },
+      kickingTeam.length,
+    );
+    const defenseTeamPositions = MathUtils.getPointsAlongLine(
+      { x: 0, y: this.playerLineLengthFG },
+      { x: 0, y: -this.playerLineLengthFG },
+      otherTeam.length,
+    );
+
+    for (let i = 0; i < kickingTeam.length; i++) {
+      const player = kickingTeam[i];
+
+      if (player.id === kicker.id) continue;
+
+      player.setPosition({ x: xBackOffense, y: kickingTeamPositions[i].y });
     }
 
-    protected handleTackle(room: Room, tackle: Tackle) {
-        this.fgFailed = true;
-        this.game.customAvatarManager.setPlayerAvatar(this.fgKicker, "❌", 3000);
+    for (let i = 0; i < otherTeam.length; i++) {
+      const player = otherTeam[i];
 
-        this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
-        tackle.players.forEach(p => this.game.matchStats.add(p, { tackles: 1, sacks: 1 }));
-
-        tackle.players.forEach(p => {
-            this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
-        });
-
-        Utils.sendSoundTeamMessage(room, { message: translate("TACKLED_QB_FG", this.fgKicker.name, Utils.getPlayersNames(tackle.players)), color: Global.Color.LimeGreen, style: "bold" });
-
-        this.game.failedFielGoalTimeout = new Timer(() => {
-            this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
-
-            return;
-        }, 1000);
+      player.setPosition({ x: xBackDefense, y: defenseTeamPositions[i].y });
     }
 
-    private getPlayerTouchingBall(room: Room) {
-        for (const player of room.getPlayers().teams()) {
-            if (player.id === this.fgKicker?.id) continue;
+    kicker.setY(this.kickerY);
 
-            if (player.distanceTo(room.getBall()) < 0.5) return player;
-        }
+    //this.game.ghostTeam(room, this.game.invertTeam(forTeam));
+
+    this.game.mode = this.mode;
+
+    this.game.fieldGoalTimeout = new Timer(() => {
+      room.send({
+        message: translate("TOOK_TOO_LONG_FG"),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.down.set({
+        room,
+        forTeam: this.game.invertTeam(this.game.teamWithBall),
+      });
+    }, this.fgTimeLimit);
+  }
+
+  public reset() {
+    this.fgKicker = null;
+    this.fgFailed = false;
+    this.disabledBallTouch = false;
+  }
+
+  @Command({
+    name: "fg",
+  })
+  fgCommand($: CommandInfo, room: Room) {
+    if (!room.isGameInProgress()) {
+      $.caller.reply({
+        message: translate("GAME_NOT_IN_PROGRESS"),
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
+
+      return false;
     }
 
-    private scoreFieldGoal(room: Room, forTeam: Team) {
-        this.game.mode = null;
-    
-        if (forTeam === Team.Red) this.game.scoreRed += this.fgPoints;
-        else this.game.scoreBlue += this.fgPoints;
+    if ($.caller.getTeam() === Team.Spectators) {
+      $.caller.reply({
+        message: translate("NOT_ON_TEAM"),
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
 
-        this.game.kickOffReset = new Timer(() => this.game.kickOff.set({ room, forTeam }), 3000);
+      return false;
     }
 
-    private didBallMove(room: Room) {
-        const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition.team, this.game.ballPosition.yards);
-        const ball = room.getBall(); 
+    if ($.caller.getTeam() !== this.game.teamWithBall) {
+      $.caller.reply({
+        message: translate("TEAM_WITHOUT_BALL"),
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
 
-        return (Math.abs(ball.getX() - ballPos.x) > 0.01 || Math.abs(ball.getY() - ballPos.y) > 0.01)
+      return false;
     }
 
-    private didBallIlegallyMoveDuringFG(room: Room) {
-        const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition.team, this.game.ballPosition.yards);
-        const ball = room.getBall(); 
+    if (
+      this.game.mode !== this.game.down.waitingHikeMode ||
+      this.game.conversion
+    ) {
+      $.caller.reply({
+        message: translate("CANNOT_FG_NOW"),
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
 
-        return ((ball.distanceTo({ ...ballPos, radius: ball.getRadius() }) > this.fgMaxDistanceMoveBall) ||
-        (this.game.ballMovedTimeFG != null && !this.game.qbKickedBall && Date.now() > this.game.ballMovedTimeFG + this.maxTimeFGMoveBallPenalty));
+      return false;
     }
 
-    private didBallPassedGoalLine(room: Room) {
-        return StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.invertTeam(this.game.teamWithBall));
+    if (
+      StadiumUtils.getDifferenceBetweenFieldPositions(this.game.ballPosition, {
+        team: this.game.invertTeam(this.game.teamWithBall),
+        yards: 0,
+      }) > this.maxDistanceYardsFG
+    ) {
+      $.caller.reply({
+        message: translate("CANNOT_FG_AT_THIS_DISTANCE"),
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
+
+      return false;
     }
 
-    private detectFailedFieldGoal(room: Room, player: Player, ballPos: { x: number, y: number }) {
-        const ballPath = MathUtils.getBallPathFromPosition(ballPos, room.getBall().getPosition(), 2000);
+    if ($.caller.distanceTo(room.getBall()) > 50) {
+      $.caller.reply({
+        message: translate("FAR_AWAY_FROM_BALL"),
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
 
-        const goalLine = player.getTeam() === Team.Red ? MapMeasures.BlueGoalLine : MapMeasures.RedGoalLine;
-
-        const pointOfIntersection = MathUtils.getPointOfIntersection(
-            ballPath[0].x, ballPath[0].y, ballPath[1].x, ballPath[1].y,
-            goalLine[0].x, goalLine[0].y * 1.1, goalLine[1].x, goalLine[1].y * 1.1
-        );
-
-        if (!this.game.playerWithBall) {
-            if (pointOfIntersection === false) return true;
-        }
+      return false;
     }
 
-    private handleIllegalBallMove(room: Room) {
-        this.fgFailed = true;
+    room.send({
+      message: translate("SET_FG", $.caller.name),
+      color: Global.Color.Yellow,
+      style: "bold",
+    });
 
-        this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
+    this.set({ room, kicker: $.caller });
 
-        room.send({ message: translate("CARRIED_BALL_FG"), color: Global.Color.Orange, style: "bold" });
+    return false;
+  }
 
-        this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
+  protected handleTackle(room: Room, tackle: Tackle) {
+    this.fgFailed = true;
+    this.game.customAvatarManager.setPlayerAvatar(this.fgKicker, "❌", 3000);
+
+    this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
+    tackle.players.forEach((p) =>
+      this.game.matchStats.add(p, { tackles: 1, sacks: 1 }),
+    );
+
+    tackle.players.forEach((p) => {
+      this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
+    });
+
+    Utils.sendSoundTeamMessage(room, {
+      message: translate(
+        "TACKLED_QB_FG",
+        this.fgKicker.name,
+        Utils.getPlayersNames(tackle.players),
+      ),
+      color: Global.Color.LimeGreen,
+      style: "bold",
+    });
+
+    this.game.failedFielGoalTimeout = new Timer(() => {
+      this.game.down.set({
+        room,
+        forTeam: this.game.invertTeam(this.game.teamWithBall),
+      });
+
+      return;
+    }, 1000);
+  }
+
+  private getPlayerTouchingBall(room: Room) {
+    for (const player of room.getPlayers().teams()) {
+      if (player.id === this.fgKicker?.id) continue;
+
+      if (player.distanceTo(room.getBall()) < 0.5) return player;
+    }
+  }
+
+  private scoreFieldGoal(room: Room, forTeam: Team) {
+    this.game.mode = null;
+
+    this.game.incrementScore({ [forTeam]: this.fgPoints });
+
+    this.game.kickOffReset = new Timer(
+      () => this.game.kickOff.set({ room, forTeam }),
+      3000,
+    );
+  }
+
+  private didBallMove(room: Room) {
+    const ballPos = StadiumUtils.getCoordinateFromYards(
+      this.game.ballPosition.team,
+      this.game.ballPosition.yards,
+    );
+    const ball = room.getBall();
+
+    return (
+      Math.abs(ball.getX() - ballPos.x) > 0.01 ||
+      Math.abs(ball.getY() - ballPos.y) > 0.01
+    );
+  }
+
+  private didBallIlegallyMoveDuringFG(room: Room) {
+    const ballPos = StadiumUtils.getCoordinateFromYards(
+      this.game.ballPosition.team,
+      this.game.ballPosition.yards,
+    );
+    const ball = room.getBall();
+
+    return (
+      ball.distanceTo({ ...ballPos, radius: ball.getRadius() }) >
+        this.fgMaxDistanceMoveBall ||
+      (this.game.ballMovedTimeFG != null &&
+        !this.game.qbKickedBall &&
+        Date.now() > this.game.ballMovedTimeFG + this.maxTimeFGMoveBallPenalty)
+    );
+  }
+
+  private didBallPassedGoalLine(room: Room) {
+    return StadiumUtils.ballWithinGoalLine(
+      room.getBall(),
+      this.game.invertTeam(this.game.teamWithBall),
+    );
+  }
+
+  private detectFailedFieldGoal(
+    room: Room,
+    player: Player,
+    ballPos: { x: number; y: number },
+  ) {
+    const ballPath = MathUtils.getBallPathFromPosition(
+      ballPos,
+      room.getBall().getPosition(),
+      2000,
+    );
+
+    const goalLine =
+      player.getTeam() === Team.Red
+        ? MapMeasures.BlueGoalLine
+        : MapMeasures.RedGoalLine;
+
+    const pointOfIntersection = MathUtils.getPointOfIntersection(
+      ballPath[0].x,
+      ballPath[0].y,
+      ballPath[1].x,
+      ballPath[1].y,
+      goalLine[0].x,
+      goalLine[0].y * 1.1,
+      goalLine[1].x,
+      goalLine[1].y * 1.1,
+    );
+
+    if (!this.game.playerWithBall) {
+      if (pointOfIntersection === false) return true;
+    }
+  }
+
+  private handleIllegalBallMove(room: Room) {
+    this.fgFailed = true;
+
+    this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
+
+    room.send({
+      message: translate("CARRIED_BALL_FG"),
+      color: Global.Color.Orange,
+      style: "bold",
+    });
+
+    this.game.down.set({
+      room,
+      forTeam: this.game.invertTeam(this.game.teamWithBall),
+    });
+  }
+
+  private handleIllegalBallKick(room: Room) {
+    room.send({
+      message: translate("TOUCHED_BALL_FG_SAME_TEAM"),
+      color: Global.Color.Orange,
+      style: "bold",
+    });
+
+    this.game.down.set({
+      room,
+      forTeam: this.game.invertTeam(this.game.teamWithBall),
+    });
+  }
+
+  private handleIllegalTouch(room: Room, player: Player) {
+    this.fgFailed = true;
+
+    if (player.getTeam() === this.game.teamWithBall) {
+      this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
+
+      Utils.sendSoundTeamMessage(room, {
+        message: translate(
+          "TOUCHED_BALL_FG_DEFENSE",
+          this.game.getTeamName(this.game.teamWithBall),
+          this.fgPoints,
+          this.game.getScoreMessage(),
+        ),
+        color: Global.Color.LimeGreen,
+        style: "bold",
+      });
+    } else {
+      Utils.sendSoundTeamMessage(room, {
+        message: translate("TACKLED_QB_FG", this.fgKicker.name, player.name),
+        color: Global.Color.LimeGreen,
+        style: "bold",
+      });
     }
 
-    private handleIllegalBallKick(room: Room) {
-        room.send({ message: translate("TOUCHED_BALL_FG_SAME_TEAM"), color: Global.Color.Orange, style: "bold" });
+    this.game.failedFielGoalTimeout = new Timer(() => {
+      this.game.down.set({
+        room,
+        forTeam: this.game.invertTeam(this.game.teamWithBall),
+      });
 
-        this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
-    }
+      return;
+    }, 2000);
+  }
 
-    private handleIllegalTouch(room: Room, player: Player) {
-        this.fgFailed = true;
+  private handleSuccessfulFieldGoal(room: Room) {
+    const distance = StadiumUtils.getDifferenceBetweenFieldPositions(
+      this.game.ballPosition,
+      {
+        team: this.game.invertTeam(this.game.teamWithBall),
+        yards: -MapMeasures.YardsBetween0MarkAndGoalLine,
+      },
+    );
 
-        if (player.getTeam() === this.game.teamWithBall) {
-            this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
+    this.scoreFieldGoal(room, this.game.teamWithBall);
 
-            Utils.sendSoundTeamMessage(room, { message: translate("TOUCHED_BALL_FG_DEFENSE", this.game.getTeamName(this.game.teamWithBall), this.fgPoints, this.game.getScoreMessage()), color: Global.Color.LimeGreen, style: "bold" });
-        } else {
-            Utils.sendSoundTeamMessage(room, { message: translate("TACKLED_QB_FG", this.fgKicker.name, player.name), color: Global.Color.LimeGreen, style: "bold" });
-        }
+    Utils.sendSoundTeamMessage(room, {
+      message: `🙌 FIELD GOAL DO ${this.game.getTeamName(this.game.teamWithBall).toUpperCase()} A ${distance} JARDAS DE DISTÂNCIA!!! • +${this.fgPoints} pontos para o ${this.game.getTeamName(this.game.teamWithBall)} • ${this.game.getScoreMessage()}`,
+      color: Global.Color.LimeGreen,
+      style: "bold",
+    });
 
-        this.game.failedFielGoalTimeout = new Timer(() => {
-            this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
+    this.game.matchStats.add(this.fgKicker, { fieldGoalJardas: distance });
+    this.game.matchStats.add(this.fgKicker, { fieldGoalCompletos: 1 });
+  }
 
-            return;
-        }, 2000);
-    }
+  private handleMissedFieldGoalBallWrongDirection(room: Room) {
+    room.send({
+      message: translate("DETECTED_FAILED_FG"),
+      color: Global.Color.Yellow,
+      style: "bold",
+    });
 
-    private handleSuccessfulFieldGoal(room: Room) {
-        const distance = StadiumUtils.getDifferenceBetweenFieldPositions(this.game.ballPosition, { team: this.game.invertTeam(this.game.teamWithBall), yards: -MapMeasures.YardsBetween0MarkAndGoalLine });
+    this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
 
-        this.scoreFieldGoal(room, this.game.teamWithBall);
+    this.game.mode = null;
 
-        Utils.sendSoundTeamMessage(room, { message: `🙌 FIELD GOAL DO ${this.game.getTeamName(this.game.teamWithBall).toUpperCase()} A ${distance} JARDAS DE DISTÂNCIA!!! • +${this.fgPoints} pontos para o ${this.game.getTeamName(this.game.teamWithBall)} • ${this.game.getScoreMessage()}`, color: Global.Color.LimeGreen, style: "bold" });
-        
-        this.game.matchStats.add(this.fgKicker, { fieldGoalJardas: distance });
-        this.game.matchStats.add(this.fgKicker, { fieldGoalCompletos: 1 });
-    }
-    
-    private handleMissedFieldGoalBallWrongDirection(room: Room) {
-        room.send({ message: translate("DETECTED_FAILED_FG"), color: Global.Color.Yellow, style: "bold" });
+    this.game.failedFielGoalTimeout = new Timer(() => {
+      this.game.down.set({
+        room,
+        forTeam: this.game.invertTeam(this.game.teamWithBall),
+      });
 
-        this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
+      return;
+    }, 2000);
+  }
 
-        this.game.mode = null;
+  private handleMissedFieldGoalBallStopped(room: Room) {
+    this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
 
-        this.game.failedFielGoalTimeout = new Timer(() => {
-            this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
+    this.game.mode = null;
 
-            return;
-        }, 2000);
-    }
+    room.send({
+      message: translate("FAILED_FG_BALL_STOPPED"),
+      color: Global.Color.Yellow,
+      style: "bold",
+    });
 
-    private handleMissedFieldGoalBallStopped(room: Room) {
-        this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
+    this.game.failedFielGoalTimeout = new Timer(
+      () =>
+        this.game.down.set({
+          room,
+          forTeam: this.game.invertTeam(this.game.teamWithBall),
+        }),
+      1000,
+    );
+  }
 
-        this.game.mode = null;
+  private handleKickerTooFarFromBall(room: Room) {
+    this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
 
-        room.send({ message: translate("FAILED_FG_BALL_STOPPED"), color: Global.Color.Yellow, style: "bold" });
+    this.game.mode = null;
 
-        this.game.failedFielGoalTimeout = new Timer(() => this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) }), 1000);
-    }
+    room.send({
+      message: translate("KICKER_TOO_FAR_FROM_BALL", this.fgKicker.name),
+      color: Global.Color.Yellow,
+      style: "bold",
+    });
 
-    private handleKickerTooFarFromBall(room: Room) {
-        this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
-
-        this.game.mode = null;
-
-        room.send({ message: translate("KICKER_TOO_FAR_FROM_BALL", this.fgKicker.name), color: Global.Color.Yellow, style: "bold" });
-
-        this.game.failedFielGoalTimeout = new Timer(() => this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) }), 1000);
-    }
+    this.game.failedFielGoalTimeout = new Timer(
+      () =>
+        this.game.down.set({
+          room,
+          forTeam: this.game.invertTeam(this.game.teamWithBall),
+        }),
+      1000,
+    );
+  }
 }

@@ -14,8 +14,8 @@
     "discord.js": "^14.11.0",
     "dotenv": "^16.3.1",
     "https-proxy-agent": "^7.0.0",
+    "json-2-csv": "^5.0.1",
     "json5": "^2.2.3",
-    "lz4": "^0.6.5",
     "node-fetch": "^3.3.1",
     "node-fetch-commonjs": "^3.2.4",
     "pako": "^2.1.0",
@@ -29,6 +29,7 @@
     "@types/lz4": "^0.6.2",
     "@types/node": "^18.11.11",
     "@types/ws": "^8.5.4",
-    "@types/yargs": "^17.0.24"
+    "@types/yargs": "^17.0.24",
+    "prettier": "3.3.3"
   }
 }

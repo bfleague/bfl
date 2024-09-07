@@ -14,8 +14,6 @@ import StadiumUtils from "../../utils/StadiumUtils";
 import Utils from "../../utils/Utils";
 import { DownPlay } from "./DownPlay";
 
-const TICKS_PER_SECOND = 60;
-
 type Line = { x1: number, y1: number, x2: number, y2: number };
 
 export default class Invasion extends DownPlay {
@@ -143,7 +141,7 @@ export default class Invasion extends DownPlay {
 
         // Check crowding time
 
-        if (this.crowdingPlayers.every(p => p[1] < this.invasionTimeSeconds * TICKS_PER_SECOND)) return false;
+        if (this.crowdingPlayers.every(p => p[1] < this.invasionTimeSeconds * Global.TICKS_PER_SECOND)) return false;
 
         // Check if receivers are bodying defense
 

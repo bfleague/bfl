@@ -9,6 +9,8 @@ import Player from "../../core/Player";
 export type Tackle = { tackleCount: number, players: Player[] };
 
 export abstract class Tackleable extends Mode {
+    distanceToTackle = 0.5;
+
     constructor(game: Game) {
         super(game);
     }
@@ -21,7 +23,7 @@ export abstract class Tackleable extends Mode {
         const tackles: Tackle = { tackleCount: playerBeingTackled.id === this.game.playerWithBall?.id ? this.game.playerWithBallTackleCount : 0, players: [] };
 
         for (const player of teamAgainstPlayerWithBall) {
-            if (playerBeingTackled.distanceTo(player) < 0.5) {
+            if (playerBeingTackled.distanceTo(player) < this.distanceToTackle) {
                 tackles.players.push(player);
 
                 if (playerBeingTackled.id === this.game.playerWithBall?.id) {

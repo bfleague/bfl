@@ -22,6 +22,7 @@ interface Stats {
     corridas: number,
     touchdownRecebidos: number,
     touchdownCorridos: number,
+    fumbles: number,
 
     // Special Teams
     retornos: number,
@@ -37,6 +38,7 @@ interface Stats {
     sacks: number,
     interceptacoes: number,
     pickSix: number,
+    fumblesForcados: number,
 
     // Passing
     corridasQb: number,
@@ -47,6 +49,7 @@ interface Stats {
     interceptacoesLancadas: number,
     jardasPerdidasSack: number,
     sacksRecebidos: number,
+    stripSackRecebidos: number,
 
     // Misc
     faltas: number
@@ -60,6 +63,7 @@ export const STAT_POINTS: Partial<Stats> = {
     touchdownRecebidos: 6,
     touchdownCorridos: 6,
     pickSix: 6,
+    fumbles: -6,
 
     // Passing
     passesTentados: 0,
@@ -73,12 +77,14 @@ export const STAT_POINTS: Partial<Stats> = {
      * otherwise multiplying them would result in a positive score
      */
     jardasPerdidasSack: 0.5,
+    stripSackRecebidos: -4,
 
     // Defense
     passesBloqueados: 3,
     tackles: 1.5,
     sacks: 6,
     interceptacoes: 12,
+    fumblesForcados: 8,
 
     // Misc
     faltas: -3,
@@ -99,6 +105,7 @@ export const STAT_NAMES: Record<keyof Stats, [string, string, StatCategory]> = {
     touchdownCorridos: ["Touchdowns Corridos", "TD Run", StatCategory.WideReceiver],
     pickSix: ["Pick Six", "P Six", StatCategory.WideReceiver],
     corridas: ["Corridas", "Run", StatCategory.WideReceiver],
+    fumbles: ["Fumbles", "Fum", StatCategory.WideReceiver],
 
     // Passing
     passesTentados: ["Passes Tentados", "Pass Ten", StatCategory.Quarterback],
@@ -109,12 +116,14 @@ export const STAT_NAMES: Record<keyof Stats, [string, string, StatCategory]> = {
     sacksRecebidos: ["Sacks Recebidos", "Sac Rec", StatCategory.Quarterback],
     corridasQb: ["Corridas de Quarterback", "QB Run", StatCategory.Quarterback],
     jardasPerdidasSack: ["Jardas Perdidas em Sack", "J Sac", StatCategory.Quarterback],
+    stripSackRecebidos: ["Strip Sacks Recebidos", "St Sac", StatCategory.WideReceiver],
 
     // Defense
     passesBloqueados: ["Passes Bloqueados", "Pass Block", StatCategory.Defense],
     tackles: ["Tackles", "Tackle", StatCategory.Defense],
     sacks: ["Sacks", "Sack", StatCategory.Defense],
     interceptacoes: ["Interceptações", "Int", StatCategory.Defense],
+    fumblesForcados: ["Fumbles Forçados", "Fum Forc", StatCategory.Defense],
 
     // Misc
     faltas: ["Faltas", "Faltas", StatCategory.Misc],

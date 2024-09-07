@@ -8,6 +8,8 @@ export enum DEFAULT_PORTS {
     DATABASE = 3000
 };
 
+export const TICKS_PER_SECOND = 60;
+
 export const version = "03/12/2022";
 export const discord = "discord.gg/6E6bZymqTt";
 

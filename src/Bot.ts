@@ -1,5 +1,6 @@
 // @ts-ignore
-import HaxballJS from "./core/Haxball.js"
+import HaxballJS from "./core/Haxball.js";
+import readline from "readline";
 
 import Room from "./core/Room";
 import { AFK } from "./modules/administration/AFK";
@@ -17,15 +18,15 @@ import Tutorial from "./modules/administration/Tutorial";
 
 const prod = true; //process.env.MODE === "production" ? true : false;
 
-HaxballJS.then((HBInit: any) => {
-    console.log(`This process is pid ${process.pid}`); 
+function run(HBInit: any, token: string) {
+    console.log(`This process is pid ${process.pid}`);
     
     const room = new Room(HBInit, {
         public: false,
         noPlayer: true,
         maxPlayers: 25,
         roomName: `🏈 Futebol Americano 🏈`,
-        token: process.argv.slice(-1)[0]
+        token
     });
 
     room.setPlayerChat(false);
@@ -51,4 +52,20 @@ HaxballJS.then((HBInit: any) => {
     room.on("roomLink", (link) => console.log(link));
 
     console.log("https://github.com/haxfootballbrazil/hfb-bot");
+}
+
+HaxballJS.then((HBInit: any) => {
+    const io = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    if (process.argv[2]) {
+        run(HBInit, process.argv[2]);
+    } else {
+        io.question('Haxball headless token: ', token => {
+            run(HBInit, token);
+            io.close();
+        });    
+    }
 });

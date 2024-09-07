@@ -464,7 +464,8 @@ class Game extends Module {
                     room,
                     pos: StadiumUtils.getYardsFromXCoord(player.getX()),
                     forTeam: this.invertTeam(this.teamWithBall),
-                    countDistanceFromNewPos: false
+                    countDistanceFromNewPos: false,
+                    positionPlayersEvenly: true
                 });
             }
         }

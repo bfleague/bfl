@@ -139,11 +139,9 @@ export class ExtraPoint extends Mode {
             const blue = room.getPlayers().blue();
 
             let kickingTeam = (forTeam === Team.Red ? red : blue);
-            let otherTeam = (forTeam === Team.Red ? blue : red).sort((a, b) => b.getY() - a.getY());
+            let otherTeam = (forTeam === Team.Red ? blue : red);
 
             this.game.teamWithBall = forTeam;
-
-            const positionsOtherTeam = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthExtraPointOtherTeam }, { x: 0, y: -this.playerLineLengthExtraPointOtherTeam }, otherTeam.length);
 
             for (let i = 0; i < kickingTeam.length; i++) {
                 const player = kickingTeam[i];
@@ -154,7 +152,7 @@ export class ExtraPoint extends Mode {
             for (let i = 0; i < otherTeam.length; i++) {
                 const player = otherTeam[i];
                         
-                player.setPosition({ x: forTeam === Team.Red ? 900 : -900, y: positionsOtherTeam[i].y });
+                player.setX(forTeam === Team.Red ? 900 : -900);
             }
         }
         

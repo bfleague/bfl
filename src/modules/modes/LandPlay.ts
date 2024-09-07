@@ -218,7 +218,7 @@ export abstract class LandPlay extends Tackleable {
 
             room.send({ message: `❌ ${name} chutado para fora de campo • ` + (msg ?? `Bola na linha de ${yards} jardas`), color: Global.Color.Orange, style: "bold" });
 
-            this.game.down.set({ room, pos: { team: teamPos, yards }, forTeam: team, countDistanceFromNewPos: false });
+            this.game.down.set({ room, pos: { team: teamPos, yards }, forTeam: team, countDistanceFromNewPos: false, positionPlayersEvenly: true });
 
             return;
         } else {

@@ -17,6 +17,16 @@ import Invasion from "./Invasion";
 import translate from "../../utils/Translate";
 import Disc from "../../core/Disc";
 
+type SetHikeProperties = {
+    room: Room,
+    pos?: Global.FieldPosition,
+    forTeam?: Team,
+    countDown?: boolean,
+    increment?: number,
+    countDistanceFromNewPos?: boolean,
+    positionPlayersEvenly?: boolean
+}
+
 export class Down extends LandPlay {
     name = "descida";
     mode = "down";
@@ -49,8 +59,10 @@ export class Down extends LandPlay {
     goalMode = false;
     hikeTimeEnabled = true;
 
-    offensiveDistanceSpawnYardsHike = 10;
+    offensiveDistanceSpawnYardsHike = 12;
     defensiveDistanceSpawnYardsHike = 10;
+
+    playerLineLengthForEvenlyPositiong = 150;
 
     invasion: Invasion;
 
@@ -468,8 +480,7 @@ export class Down extends LandPlay {
         }, 0);
     }
 
-    public set({ room, pos, forTeam = this.game.teamWithBall,  increment, countDown = true, countDistanceFromNewPos = true }:
-        { room: Room, pos?: Global.FieldPosition, forTeam?: Team, countDown?: boolean, increment?: number, countDistanceFromNewPos?: boolean }) {
+    public set({ room, pos, forTeam = this.game.teamWithBall, increment, countDown = true, countDistanceFromNewPos = true, positionPlayersEvenly = false }: SetHikeProperties) {
         const beforeModeWasHike = this.game.mode === this.mode;
 
         const isConversion = this.game.conversion;
@@ -559,7 +570,11 @@ export class Down extends LandPlay {
 
         this.setBallForHike(room, forTeam);
 
-        this.resetPlayersPosition(room);
+        if (positionPlayersEvenly) {
+            this.resetPlayersPositionEvenly(room);
+        } else {
+            this.resetPlayersPosition(room);
+        }
 
         this.game.mode = this.waitingHikeMode;
 
@@ -664,6 +679,31 @@ export class Down extends LandPlay {
 
         for (const player of defensiveTeam) {
             player.setX(ballPos.x + (MapMeasures.Yard * this.defensiveDistanceSpawnYardsHike * getSinal(player)));
+        }
+    }
+
+    public resetPlayersPositionEvenly(room: Room) {
+        const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition.team, this.game.ballPosition.yards);
+
+        const sortByYAxis = (players: Player[]) => players.sort((a, b) => b.getY() - a.getY()); 
+        const getSinal = (player: Player) => player.getTeam() === Team.Red ? -1 : 1;
+
+        const offensiveTeam = sortByYAxis(this.game.getTeamWithBall(room));
+        const defensiveTeam = sortByYAxis(this.game.getTeamWithoutBall(room));
+
+        const positionsOffense = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthForEvenlyPositiong }, { x: 0, y: -this.playerLineLengthForEvenlyPositiong }, offensiveTeam.length);
+        const positionsDefense = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthForEvenlyPositiong }, { x: 0, y: -this.playerLineLengthForEvenlyPositiong }, defensiveTeam.length);
+
+        for (let i = 0; i < offensiveTeam.length; i++) {
+            const player = offensiveTeam[i];
+                
+            player.setPosition({ x: ballPos.x + (MapMeasures.Yard * this.offensiveDistanceSpawnYardsHike * getSinal(player)), y: positionsOffense[i].y });
+        }
+
+        for (let i = 0; i < defensiveTeam.length; i++) {
+            const player = defensiveTeam[i];
+                
+            player.setPosition({ x: ballPos.x + (MapMeasures.Yard * this.defensiveDistanceSpawnYardsHike * getSinal(player)), y: positionsDefense[i].y });
         }
     }
 

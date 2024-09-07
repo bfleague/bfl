@@ -26,6 +26,7 @@ export class Down extends LandPlay {
     ballInitialPoss: Position;
     trespassingPenalty = 10;
     defenseTrespasserPenalty = 10;
+    holdingPenalty = -5;
     qbPassedScrimmageLinePenalty = -5;
     attackIllegalTouchPenalty = -5;
     maxPenaltiesInRedZone = 3;
@@ -35,6 +36,7 @@ export class Down extends LandPlay {
     illegalTouchPenalty = 10;
     firstDownDiscsIndex = [5, 6];
     qbCarriedBallTime = 0;
+    timeIllegalTouchDisabledStartMs = 500;
 
     qbScrimmageLineMaxPermitted = 8;
 
@@ -46,6 +48,8 @@ export class Down extends LandPlay {
     hikeTimeEnabled = true;
 
     invasion: Invasion;
+
+    downSetTime: number;
 
     constructor(room: Room, game: Game) {
         super(room, game);
@@ -174,6 +178,26 @@ export class Down extends LandPlay {
 
                             return;
                         }
+                    }
+
+                    const holdingPlayers = this.getHoldingPlayers(room);
+
+                    if (holdingPlayers) {    
+                        holdingPlayers.forEach(p => {
+                            this.game.matchStats.add(p, { faltas: 1 });
+                        });
+
+                        if (!this.game.conversion) {
+                            room.send({ message: translate("HOLDING", Utils.getPlayersNames(holdingPlayers), Math.abs(this.holdingPenalty)), color: Global.Color.Orange, style: "bold" });
+
+                            this.set({ room, increment: this.holdingPenalty });
+                        } else {
+                            room.send({ message: translate("HOLDING_CONVERSION", Utils.getPlayersNames(holdingPlayers)), color: Global.Color.Orange, style: "bold" });
+
+                            this.game.resetToKickoff(room);
+                        }
+        
+                        return;
                     }
 
                     /* Ultrapassagem ilegal na linha de scrimmage */
@@ -312,7 +336,15 @@ export class Down extends LandPlay {
         });
 
         room.on("playerBallKick", (player: Player) => {
-            if (this.game.mode !== this.mode || this.game.interceptAttemptPlayer || this.game.intercept) return;
+            if (this.game.interceptAttemptPlayer || this.game.intercept) return;
+
+            if (this.game.mode === this.waitingHikeMode && !this.game.qbKickedBall && player.getTeam() !== this.game.teamWithBall && Date.now() > this.downSetTime + this.timeIllegalTouchDisabledStartMs) {
+                this.playerTouchBallHike(room, player);
+
+                return;
+            } else if (this.game.mode !== this.mode) {
+                return;
+            }
 
             if (!this.game.qbKickedBall) {
                 if (player.id === this.game.quarterback?.id) {
@@ -520,6 +552,8 @@ export class Down extends LandPlay {
         
         this.setBallLine(room);
 
+        this.downSetTime = Date.now();
+
         if (!room.isGamePaused() && this.hikeTimeEnabled) {
             this.game.hikeTimeout = new Timer(() => {
                 if (!this.game.conversion) {
@@ -540,6 +574,7 @@ export class Down extends LandPlay {
         this.ballInitialPoss = null;
         this.sack = null;
         this.sackBallTouched = false;
+        this.downSetTime = null;
         this.invasion.clear();
     }
 
@@ -661,9 +696,10 @@ export class Down extends LandPlay {
         if (this.game.playerWithBall) return;
 
         const hikeTimeStatus = this.game.getHikeTimeStatus();
-        
+        const isWaitingHike = this.game.mode === this.waitingHikeMode;
+
         if (player.getTeam() !== this.game.teamWithBall) {
-            if (!hikeTimeStatus.isOver) {
+            if (isWaitingHike || !hikeTimeStatus.isOver) {
                 const formattedTime = this.game.getHikeTimeRemainingFormatted(hikeTimeStatus.time);
 
                 let penalty = this.illegalTouchPenalty;
@@ -672,19 +708,31 @@ export class Down extends LandPlay {
                     this.game.redZonePenalties++;
 
                     if (this.game.redZonePenalties >= this.maxPenaltiesInRedZone) {
-                        this.setRedZoneTouchdown(room, this.game.teamWithBall, [player], translate("ILLEGAL_TOUCH", player.name, formattedTime));
+                        const message = isWaitingHike ?
+                            translate("ILLEGAL_TOUCH_OF", player.name) :
+                            translate("ILLEGAL_TOUCH_OF_AT", player.name, formattedTime);
+                        
+                            this.setRedZoneTouchdown(room, this.game.teamWithBall, [player], message);
 
                         return;
                     } else {
                         penalty = this.game.getPenaltyValueInRedZone(this.illegalTouchPenalty);
 
-                        room.send({ message: translate("ILLEGAL_TOUCH_REDZONE", player.name, formattedTime, this.game.redZonePenalties, this.maxPenaltiesInRedZone, penalty), color: Global.Color.Orange, style: "bold" });
+                        const message = isWaitingHike ?
+                            translate("ILLEGAL_TOUCH_REDZONE_OF_PENALTY", player.name, this.game.redZonePenalties, this.maxPenaltiesInRedZone, penalty) :
+                            translate("ILLEGAL_TOUCH_REDZONE_OF_AT_PENALTY", player.name, formattedTime, this.game.redZonePenalties, this.maxPenaltiesInRedZone, penalty);
+
+                        room.send({ message, color: Global.Color.Orange, style: "bold" });
                     }
                 } else {
-                    room.send({ message: translate("ILLEGAL_TOUCH_OF_AT_PENALTY", player.name, formattedTime, penalty), color: Global.Color.Orange, style: "bold" });
+                    const message = isWaitingHike ?
+                        translate("ILLEGAL_TOUCH_OF_PENALTY", player.name, penalty) :
+                        translate("ILLEGAL_TOUCH_OF_AT_PENALTY", player.name, formattedTime, penalty);
+
+                    room.send({ message, color: Global.Color.Orange, style: "bold" });
                 }
 
-                this.game.matchStats.add(player, { faltas: 1 });
+                if (!isWaitingHike) this.game.matchStats.add(player, { faltas: 1 });
 
                 this.game.adjustGameTimeAfterDefensivePenalty(room);
         
@@ -820,12 +868,41 @@ export class Down extends LandPlay {
         );
     }
 
-    private didInterceptionFailed(room: Room) {
-        if (this.game.interceptAttemptPlayer && MathUtils.getBallSpeed(room.getBall()) < 0.1) {
+    private checkInterceptionFailed(room: Room) {
+        if (MathUtils.getBallSpeed(room.getBall()) < 0.1) {
             return true;
         }
 
         return false;
+    }
+
+    private getHoldingPlayers(room: Room) {
+        const isHikeTimeOver = this.game.getHikeTimeStatus().isOver;
+
+        if (this.game.playerWithBall || isHikeTimeOver || this.game.qbKickedBall) return;
+
+        for (const player of this.game.getTeamWithoutBall(room)) {
+            let ballLinePos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition).x;
+
+            if (
+                (this.game.teamWithBall === Team.Red && player.getX() > ballLinePos) ||
+                (this.game.teamWithBall === Team.Blue && player.getX() < ballLinePos)
+            ) continue;
+
+            const minimumVelocity = 0;
+
+            const holdingPlayers = this.game.getTeamWithBall(room).filter(attacker =>
+                attacker.id !== this.game.quarterback.id &&
+                attacker.distanceTo(player) < 1.5 &&
+                (player.getTeam() === Team.Blue ? player.getVelocityX() < 0 : player.getVelocityX() > 0) &&
+                (
+                    attacker.getTeam() === Team.Red && attacker.getX() > player.getX() && attacker.getVelocityX() < -minimumVelocity ||
+                    attacker.getTeam() === Team.Blue && attacker.getX() < player.getX() && attacker.getVelocityX() > minimumVelocity
+                )
+            );
+
+            return holdingPlayers.length > 0 ? holdingPlayers : undefined;
+        }
     }
 
     private getDefensePlayersTrespassing(room: Room) {
@@ -834,12 +911,6 @@ export class Down extends LandPlay {
         for (const player of this.game.getTeamWithoutBall(room)) {
             if (!this.game.qbKickedBall) {
                 let ballLinePos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition).x;
-
-                if (this.game.getTeamWithBall(room).filter(p => p.id !== this.game.quarterback.id).some(attacker => {
-                    if (attacker.distanceTo(player) < 1) return true;
-                })) {
-                    ballLinePos += player.getRadius() * (this.game.teamWithBall === Team.Red ? -1 : 1);
-                }
 
                 if (
                     ((this.game.teamWithBall === Team.Red && player.getX() < ballLinePos) ||

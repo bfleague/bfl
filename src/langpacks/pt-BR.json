@@ -65,7 +65,9 @@
     "TOOK_TO_LONG_TO_KICK_CONVERSION": "❌ Demorou demais pra chutar, perde a conversão!",
     "BALL_RECEIVED": "🏈 Bola recebida por %s",
     "ILLEGAL_TOUCH_OF_AT": "Toque ilegal de %s aos %s",
-    "ILLEGAL_TOUCH_REDZONE": "❌ Toque ilegal de %s na Red Zone aos %s • %s/%s para Touchdown Automático • %s jardas de penalidade",
+    "ILLEGAL_TOUCH_REDZONE_OF_AT_PENALTY": "❌ Toque ilegal de %s na Red Zone aos %s • %s/%s para Touchdown Automático • %s jardas de penalidade",
+    "ILLEGAL_TOUCH_REDZONE_OF_PENALTY": "❌ Toque ilegal de %s na Red Zone • %s/%s para Touchdown Automático • %s jardas de penalidade",
+    "ILLEGAL_TOUCH_OF_PENALTY": "❌ Toque ilegal de %s • %s jardas de penalidade",
     "ILLEGAL_TOUCH_OF_AT_PENALTY": "❌ Toque ilegal de %s aos %s • %s jardas de penalidade",
     "ILLEGAL_TOUCH_OF": "❌ Toque ilegal de %s",
     "INTERCEPTION_ATTEMPT_DETECTED": "🤖 Foi detectado uma tentativa de interceptação por %s • Contato com a bola foi desativado",
@@ -76,5 +78,7 @@
     "BALL_PASSED_SCRIMMAGE_LINE_CONVERSION": "❌ Bola passou ilegalmente da linha de scrimmage • Perde a conversão",
     "BALL_OUTSIDE_FIELD": "❌ Bola fora de campo • Perde a descida",
     "BALL_OUTSIDE_FIELD_CONVERSION": "❌ Bola fora de campo • Perde a conversão",
-    "INTERCEPTION_FAILED_SACK": "❌ Interceptação falhou"
+    "INTERCEPTION_FAILED_SACK": "❌ Interceptação falhou",
+    "HOLDING": "❌ Holding por %s • %s jardas de penalidade",
+    "HOLDING_CONVERSION": "❌ Holding por %s • Perde a conversão"
 }

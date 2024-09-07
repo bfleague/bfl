@@ -90,8 +90,12 @@ export class FieldGoal extends Tackleable {
             if (!this.game.qbKickedBall) {
                 const playerTouchingBall = this.getPlayerTouchingBall(room);
 
-                if (playerTouchingBall && playerTouchingBall.id !== this.fgKicker.id) {
-                    this.handleIllegalTouch(room, playerTouchingBall);
+                if (playerTouchingBall && playerTouchingBall.getTeam() === this.fgKicker.getTeam()) {
+                    if (playerTouchingBall.getTeam() === this.fgKicker.getTeam()) {
+                        this.handleIllegalTouch(room, playerTouchingBall);
+                    } else {
+                        this.handleTackle(room, { players: [playerTouchingBall], tackleCount: 1 });
+                    }
                     
                     return;
                 }
@@ -100,7 +104,11 @@ export class FieldGoal extends Tackleable {
 
                 const tackle = this.getTackle(room, this.fgKicker);
 
-                if (tackle.players.length > 0) this.handleTackle(room, tackle);
+                if (tackle.players.length > 0) {
+                    this.handleTackle(room, tackle);
+
+                    return;
+                }
 
                 if (this.didBallIlegallyMoveDuringFG(room)) {
                     this.handleIllegalBallMove(room);
@@ -338,13 +346,13 @@ export class FieldGoal extends Tackleable {
     private handleIllegalTouch(room: Room, player: Player) {
         this.fgFailed = true;
 
-        this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
-
         if (player.getTeam() !== this.game.teamWithBall) {
             this.scoreFieldGoal(room, this.game.teamWithBall);
 
             Utils.sendSoundTeamMessage(room, { message: translate("TOUCHED_BALL_FG_DEFENSE", this.game.getTeamName(this.game.teamWithBall), this.fgPoints, this.game.getScoreMessage()), color: Global.Color.LimeGreen, style: "bold" });
         } else {
+            this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
+
             Utils.sendSoundTeamMessage(room, { message: translate("TOUCHED_BALL_FG_OFFENSE", player.name), color: Global.Color.LimeGreen, style: "bold" });
 
             this.game.failedFielGoalTimeout = new Timer(() => {

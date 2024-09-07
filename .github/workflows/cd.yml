@@ -1,8 +1,8 @@
 name: Deploy
 
 env:
-  REGISTRY: registry.bflstats.fun
-  NAME: hockey
+  REGISTRY: registry.haxbrasil.com
+  NAME: bfl
   REC_CHANNEL_ID: 952383094130892810
   GUILD_ID: 952375559554490440
   ENABLE_LOG: true

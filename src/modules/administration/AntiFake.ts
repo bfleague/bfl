@@ -9,12 +9,6 @@ export default class AntiFake extends Module {
 
         room.addConfirmLevel(this.confirmationLevel);
 
-        room.on("playerJoin", (player) => {
-            if (player.name.toLowerCase().includes("ld")) {
-                setTimeout(() => player?.ban(), 3000);
-            }
-        }); 
-
         room.on("playerNeedsConfirmation", (player) => {
             const originalPlayer = room.getPlayers().find(p => p.ip === player.ip && player.id !== p.id);
 

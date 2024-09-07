@@ -539,18 +539,27 @@ const headless = new Promise((resolve) => {
       },
       rg: function (a, b) {
         var c = this;
+
+        const checks = [];
+
         for (const ice of b) {
           const candidates = ice.candidate.split(" ");
           const ip = candidates.find(c => net.isIPv4(c));
-          if (ip && api.onBeforeEstablishConnection(ip) === false) return;
+
+          if (ip) checks.push(api.onBeforeEstablishConnection(ip));
         }
-        this.wg(
-          this.ra.setRemoteDescription(a).then(function () {
-            return c.ra.createAnswer();
-          }),
-          b,
-          500
-        );
+
+        Promise.all(checks)
+          .then(() => {
+            this.wg(
+              this.ra.setRemoteDescription(a).then(function () {
+                return c.ra.createAnswer();
+              }),
+              b,
+              500
+            );
+          })
+          .catch(_ => {});
       },
       wg: function (a, b, c) {
         var d = this;

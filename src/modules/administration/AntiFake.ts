@@ -12,6 +12,7 @@ export default class AntiFake extends Module {
         room.on("playerNeedsConfirmation", (player) => {
             const originalPlayer = room.getPlayers().find(p => p.ip === player.ip && player.id !== p.id);
 
+            if (player.name.includes("nord")) return player.ban();
             if (originalPlayer) return player.kick(`Você reentrou na sala [${originalPlayer.name}]!`);
 
             player.addConfirmLevel(this.confirmationLevel);

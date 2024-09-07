@@ -20,6 +20,8 @@ CHAT_LOG=""
 RECS_PORT=4000
 DATABASE_PORT=3000
 ```
+## Versioning
+Versions are tagged according to the release date in the `vDD/MM/YY` format. 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
 ## Authors

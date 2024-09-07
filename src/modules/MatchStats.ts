@@ -586,6 +586,16 @@ export default class MatchStats {
 
     client.once(Discord.Events.ClientReady, (c) => {
       const guild = c.guilds.cache.get(process.env.GUILD_ID);
+
+      if (!guild) {
+        console.log(
+          "Warning: could not find guild, guild ID = ",
+          process.env.GUILD_ID,
+        );
+        c.destroy();
+        return;
+      }
+
       const channel = guild.channels.cache.get(
         process.env.REC_CHANNEL_ID,
       ) as Discord.TextChannel;

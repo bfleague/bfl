@@ -8,13 +8,13 @@ import * as Global from "../../Global";
 import { Kick } from "./Kick";
 
 import MapMeasures from "../../utils/MapMeasures";
-import Game from "../Game";
+import Game, { GameModes } from "../Game";
 import MathUtils from "../../utils/MathUtils";
 import StadiumUtils from "../../utils/StadiumUtils";
 
 export class Punt extends Kick {
     name = "punt";
-    mode = "punt";
+    mode = GameModes.Punt;
 
     playerLineLengthPuntPuntingTeam = 100;
     playerLineLengthPuntReceivingTeam = 200;
@@ -50,8 +50,10 @@ export class Punt extends Kick {
         let red = room.getPlayers().red();
         let blue = room.getPlayers().blue();
 
-        let puntingTeam = (forTeam === Team.Red ? red : blue);
-        let receivingTeam = forTeam === Team.Red ? blue : red;
+        const filterPlayerOutsideField = (p: Player) => Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
+
+        let puntingTeam = (forTeam === Team.Red ? red : blue).filter(filterPlayerOutsideField);
+        let receivingTeam = (forTeam === Team.Red ? blue : red).filter(filterPlayerOutsideField);
 
         this.game.teamWithBall = forTeam;
 

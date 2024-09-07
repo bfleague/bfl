@@ -4,7 +4,7 @@ import { Team } from "../../core/Global";
 import * as Global from "../../Global";
 
 import { Kick } from "./Kick";
-import Game from "../Game";
+import Game, { GameModes } from "../Game";
 
 import MapMeasures from "../../utils/MapMeasures";
 import MathUtils from "../../utils/MathUtils";
@@ -14,7 +14,7 @@ import Timer from "../../utils/Timer";
 import Utils from "../../utils/Utils";
 
 export class KickOff extends Kick {
-    mode = "kickOff";
+    mode = GameModes.Kickoff;
     name = "kick off";
 
     playerLineLengthKickoff = 200;
@@ -103,20 +103,35 @@ export class KickOff extends Kick {
         let red = room.getPlayers().red();
         let blue = room.getPlayers().blue();
 
-        for (let i = 0; i < red.length; i++) {
-            const positions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthKickoff }, { x: 0, y: -this.playerLineLengthKickoff }, red.length);
+        const filterPlayerOutsideField = (p: Player) => Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
+        const getSignal = (p: Player) => p.getTeam() === Team.Red ? -1 : 1;
 
-            const player = red[i];
+        let kickingTeam = (forTeam === Team.Red ? red : blue)
+            .filter(filterPlayerOutsideField);
+        let receivingTeam = (forTeam === Team.Red ? blue : red)
+            .filter(filterPlayerOutsideField);
+
+        const kickingPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthKickoff }, { x: 0, y: -this.playerLineLengthKickoff }, kickingTeam.length);
+        const receivingPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthKickoff }, { x: 0, y: -this.playerLineLengthKickoff }, receivingTeam.length);
+
+        for (let i = 0; i < kickingPositions.length; i++) {
+            const player = kickingTeam[i];
                 
-            player.setPosition({ x: room.getScores().time === 0 ? MapMeasures.PuntRedPositionX : MapMeasures.RedZoneRed[0].x, y: positions[i].y });
+            player.setPosition({
+                x: room.getScores().time === 0 ?
+                    Math.abs(MapMeasures.InnerField[0].x) * getSignal(player) :
+                    MapMeasures.KickoffKickingPositionX * getSignal(player),
+                y: kickingPositions[i].y
+            });
         }
 
-        for (let i = 0; i < blue.length; i++) {
-            const positions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthKickoff }, { x: 0, y: -this.playerLineLengthKickoff }, blue.length);
-
-            const player = blue[i];
+        for (let i = 0; i < receivingTeam.length; i++) {
+            const player = receivingTeam[i];
                 
-            player.setPosition({ x: room.getScores().time === 0 ? MapMeasures.PuntBluePositionX : MapMeasures.RedZoneBlue[0].x, y: positions[i].y });
+            player.setPosition({
+                x: MapMeasures.KickoffReceivingPositionX * getSignal(player),
+                y: receivingPositions[i].y
+            });
         }
 
         this.game.blockTeam(room, this.game.invertTeam(forTeam));

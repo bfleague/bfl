@@ -4,7 +4,7 @@ import { Team } from "../../core/Global";
 
 import * as Global from "../../Global";
 
-import Game from "../Game";
+import Game, { GameModes, PlayerWithBallState } from "../Game";
 import { LandPlay } from "./LandPlay";
 
 import MapMeasures from "../../utils/MapMeasures";
@@ -29,9 +29,9 @@ type SetHikeProperties = {
 
 export class Down extends LandPlay {
     name = "descida";
-    mode = "down";
+    mode = GameModes.Down;
 
-    waitingHikeMode = "waitingHike";
+    waitingHikeMode = GameModes.WaitingHike;
 
     ballInitialPoss: Position;
     trespassingPenalty = 10;
@@ -63,12 +63,17 @@ export class Down extends LandPlay {
 
     offensiveDistanceSpawnYardsHike = 12;
     defensiveDistanceSpawnYardsHike = 10;
+    cbDistanceSpawnYardsHike = 6;
 
-    playerLineLengthForEvenlyPositiong = 150;
+    playerLineLengthForEvenlyPositiong = 110;
+    playerCbPositionY = 100;
+    playerCbMinPositionY = 90;
 
     invasion: Invasion;
 
     downSetTime: number;
+
+    lastPlayerPositions: Map<number, number> = new Map();
 
     constructor(room: Room, game: Game) {
         super(room, game);
@@ -82,8 +87,7 @@ export class Down extends LandPlay {
             const hikeTimeFormatted = this.game.getHikeTimeRemainingFormatted(hikeTimeStatus.time);
 
             if (!this.game.interceptAttemptPlayer && this.game.quarterback) {
-                if (!this.game.playerWithBall && !this.game.qbKickedBall) {
-                    
+                if (!this.game.playerWithBall && !this.game.qbKickedBall) {                    
                     /* Bola se moveu */
                     if (!this.qbCarriedBallTime && this.ballInitialPoss &&
                         room.getBall().distanceTo(Object.assign(this.ballInitialPoss, { radius: room.getBall().getRadius() })) > 1
@@ -108,9 +112,11 @@ export class Down extends LandPlay {
 
                             return;
                         } else {
-                            this.game.setPlayerWithBall(room, this.game.quarterback, "qbRunner", true);
+                            this.game.setPlayerWithBall(room, this.game.quarterback, PlayerWithBallState.QbRunner, true);
 
                             room.send({ message: translate("QUARTERBACK_RUN", this.game.quarterback.name), color: Global.Color.DeepSkyBlue, style: "bold" });
+
+                            this.updatePlayersPosition(room);
 
                             this.game.matchStats.add(this.game.quarterback, { corridasQb: 1 });
 
@@ -120,9 +126,11 @@ export class Down extends LandPlay {
 
                     /* Corrida do QB */
                     if (this.qbIsAttemptingRun(room)) {
-                        this.game.setPlayerWithBall(room, this.game.quarterback, "qbRunner", true);
+                        this.game.setPlayerWithBall(room, this.game.quarterback, PlayerWithBallState.QbRunner, true);
 
                         room.send({ message: translate("QUARTERBACK_RUN", this.game.quarterback.name), color: Global.Color.DeepSkyBlue, style: "bold" });
+
+                        this.updatePlayersPosition(room);
 
                         this.game.matchStats.add(this.game.quarterback, { corridasQb: 1 });
 
@@ -179,7 +187,9 @@ export class Down extends LandPlay {
         
                             this.game.matchStats.add(run.player, { corridas: 1 });
 
-                            this.game.setPlayerWithBall(room, run.player, "runner", true);
+                            this.updatePlayersPosition(room);
+
+                            this.game.setPlayerWithBall(room, run.player, PlayerWithBallState.Runner, true);
 
                             run.player.setbCoeff(this.bCoeffRunner);
                             run.player.setInvMass(this.invMassRunner);
@@ -204,7 +214,7 @@ export class Down extends LandPlay {
 
                     const holdingPlayers = this.getHoldingPlayers(room);
 
-                    if (holdingPlayers) {    
+                    if (holdingPlayers) {
                         holdingPlayers.forEach(p => {
                             this.game.matchStats.add(p, { faltas: 1 });
                             this.game.customAvatarManager.setPlayerAvatar(p, "🤡", 3000);
@@ -230,6 +240,8 @@ export class Down extends LandPlay {
                         if (!hikeTimeStatus.isOver) {
                             let penalty = this.defenseTrespasserPenalty;
                 
+                            this.game.matchStats.add(trespassingDefender, { faltas: 1 });
+                            
                             if (StadiumUtils.isInRedZone(this.game.ballPosition, this.game.invertTeam(this.game.teamWithBall))) {
                                 this.game.redZonePenalties++;
     
@@ -248,13 +260,11 @@ export class Down extends LandPlay {
 
                             this.game.adjustGameTimeAfterDefensivePenalty(room);
     
-                            this.game.matchStats.add(trespassingDefender, { faltas: 1 });
-
                             this.set({ room, increment: penalty, countDown: false });
         
                             return;
                         } else {
-                            this.game.setPlayerWithBall(room, this.game.quarterback, "qbRunnerSacking", true);
+                            this.game.setPlayerWithBall(room, this.game.quarterback, PlayerWithBallState.QbRunnerSacking, true);
 
                             this.sack = true;
 
@@ -384,7 +394,7 @@ export class Down extends LandPlay {
         room.on("playerBallKick", (player: Player) => {
             if (this.game.interceptAttemptPlayer || this.game.intercept) return;
 
-            if (this.game.mode === this.waitingHikeMode && !this.game.qbKickedBall && player.getTeam() !== this.game.teamWithBall && Date.now() > this.downSetTime + this.timeIllegalTouchDisabledStartMs) {
+            if (this.game.mode === this.waitingHikeMode && !this.game.qbKickedBall && player.getTeam() !== this.game.teamWithBall && Date.now() > this.downSetTime + this.timeIllegalTouchDisabledStartMs) {                
                 this.playerTouchBallHike(room, player);
 
                 return;
@@ -393,6 +403,8 @@ export class Down extends LandPlay {
             }
 
             if (!this.game.qbKickedBall) {
+                this.updatePlayersPosition(room);
+
                 if (player.id === this.game.quarterback?.id) {
                     this.game.qbKickedBall = true;
 
@@ -600,11 +612,13 @@ export class Down extends LandPlay {
 
         this.setBallForHike(room, forTeam);
 
-        if (positionPlayersEvenly) {
-            this.resetPlayersPositionEvenly(room);
-        } else {
-            this.resetPlayersPosition(room);
-        }
+        // if (positionPlayersEvenly) {
+        //     this.resetPlayersPositionEvenly(room);
+        // } else {
+        //     this.resetPlayersPosition(room);
+        // }
+
+        this.resetPlayersPositionEvenly(room);
 
         this.game.mode = this.waitingHikeMode;
 
@@ -687,7 +701,7 @@ export class Down extends LandPlay {
     }
 
     public setReceiver(room: Room, player: Player) {
-        this.game.setPlayerWithBall(room, player, "receiver", false);
+        this.game.setPlayerWithBall(room, player, PlayerWithBallState.Receiver, false);
 
         this.game.matchStats.add(player, { recepcoes: 1 });
         this.game.matchStats.add(this.game.quarterback, { passesCompletos: 1 });
@@ -715,25 +729,69 @@ export class Down extends LandPlay {
     public resetPlayersPositionEvenly(room: Room) {
         const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition.team, this.game.ballPosition.yards);
 
-        const sortByYAxis = (players: Player[]) => players.sort((a, b) => b.getY() - a.getY()); 
         const getSinal = (player: Player) => player.getTeam() === Team.Red ? -1 : 1;
+        const isOutsideField = (y: number) => Math.abs(y) > Math.abs(MapMeasures.OuterField[0].y);
+        const setPosition = (player: Player, distanceX: number, y: number) => {
+            player.setPosition({
+                x: ballPos.x + (MapMeasures.Yard * distanceX * getSinal(player)),
+                y
+            });
 
-        const offensiveTeam = sortByYAxis(this.game.getTeamWithBall(room));
-        const defensiveTeam = sortByYAxis(this.game.getTeamWithoutBall(room));
+            player.setVelocityX(0);
+            player.setVelocityY(0);
+        };
+        const filterAndPositionOutsidePlayer = (player: Player) => {
+            if (!isOutsideField(player.getY())) return true;
 
-        const positionsOffense = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthForEvenlyPositiong }, { x: 0, y: -this.playerLineLengthForEvenlyPositiong }, offensiveTeam.length);
-        const positionsDefense = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthForEvenlyPositiong }, { x: 0, y: -this.playerLineLengthForEvenlyPositiong }, defensiveTeam.length);
+            setPosition(player, this.cbDistanceSpawnYardsHike, player.getY());
+
+            return false;
+        }
+
+        const offensiveTeam = this.game.getTeamWithBall(room)
+            .sort((a, b) => b.getY() - a.getY())
+            .filter(player => filterAndPositionOutsidePlayer(player));
+        
+        const defensiveTeam = this.game.getTeamWithoutBall(room)
+            .sort((a, b) =>
+                (this.lastPlayerPositions.get(b.id) ?? b.getY()) - (this.lastPlayerPositions.get(a.id) ?? a.getY())
+            )
+            .filter(player => filterAndPositionOutsidePlayer(player));
+
+        const hasCbs = defensiveTeam.length >= 3;
+
+        const positionsOffense = MathUtils.getPointsAlongLine(
+            { x: 0, y: this.playerLineLengthForEvenlyPositiong },
+            { x: 0, y: -this.playerLineLengthForEvenlyPositiong },
+            offensiveTeam.length
+        );
+        
+        const positionsDefense = MathUtils.getPointsAlongLine(
+            { x: 0, y: this.playerLineLengthForEvenlyPositiong },
+            { x: 0, y: -this.playerLineLengthForEvenlyPositiong },
+            defensiveTeam.length - (hasCbs ? 2 : 0)
+        );
 
         for (let i = 0; i < offensiveTeam.length; i++) {
             const player = offensiveTeam[i];
-                
-            player.setPosition({ x: ballPos.x + (MapMeasures.Yard * this.offensiveDistanceSpawnYardsHike * getSinal(player)), y: positionsOffense[i].y });
+            const position = positionsOffense[i];
+
+            setPosition(player, this.offensiveDistanceSpawnYardsHike, position.y);
+        }
+
+        if (defensiveTeam.length >= 3) {
+            const topCb = defensiveTeam.pop();
+            const bottomCb = defensiveTeam.shift();
+
+            setPosition(topCb, this.cbDistanceSpawnYardsHike, -this.playerCbPositionY);
+            setPosition(bottomCb, this.cbDistanceSpawnYardsHike, this.playerCbPositionY);
         }
 
         for (let i = 0; i < defensiveTeam.length; i++) {
             const player = defensiveTeam[i];
-                
-            player.setPosition({ x: ballPos.x + (MapMeasures.Yard * this.defensiveDistanceSpawnYardsHike * getSinal(player)), y: positionsDefense[i].y });
+            const position = positionsDefense[i];
+
+            setPosition(player, this.defensiveDistanceSpawnYardsHike, position.y);
         }
     }
 
@@ -781,7 +839,6 @@ export class Down extends LandPlay {
 
     private playerTouchBallHike(room: Room, player: Player) {
         if (this.game.playerWithBall) return;
-        if (!this.game.quarterback) return;
 
         const hikeTimeStatus = this.game.getHikeTimeStatus();
         const isWaitingHike = this.game.mode === this.waitingHikeMode;
@@ -826,13 +883,13 @@ export class Down extends LandPlay {
         
                 this.set({ room, increment: penalty, countDown: false });
             } else {
-                this.game.setPlayerWithBall(room, this.game.quarterback, "qbRunnerSacking", true);
+                this.game.setPlayerWithBall(room, this.game.quarterback, PlayerWithBallState.QbRunnerSacking, true);
 
                 this.sack = true;
 
                 room.send({ message: translate("SACK_ATTEMPT", player.name, this.game.quarterback.name), color: Global.Color.DeepSkyBlue, style: "bold" });
             }
-        } else {
+        } else if (this.game.quarterback) {
             room.send({ message: translate("ILLEGAL_TOUCH_OF", player.name), color: Global.Color.Orange, style: "bold" });
 
             this.game.matchStats.add(player, { faltas: 1 });
@@ -856,20 +913,28 @@ export class Down extends LandPlay {
         this.game.interceptionTimeout = new Timer(() => {
             const ballPath = MathUtils.getBallPathFromPosition(ballPos, room.getBall().getPosition(), 2000);
 
-            const multiplierRed = player.getTeam() === Team.Red ? 1.3 : 1.1;
-            const multiplierBlue = player.getTeam() === Team.Blue ? 1.3 : 1.1;
+            // const multiplierRed = player.getTeam() === Team.Red ? 1.3 : 1.1;
+            // const multiplierBlue = player.getTeam() === Team.Blue ? 1.3 : 1.1;
+
+            const multiplier = 1.1;
 
             let pointOfIntersection;
 
             if (ballSpeedX < 0) {
                 pointOfIntersection = MathUtils.getPointOfIntersection(
                     ballPath[0].x, ballPath[0].y, ballPath[1].x, ballPath[1].y,
-                    MapMeasures.RedGoalLine[0].x, MapMeasures.RedGoalLine[0].y * multiplierRed, MapMeasures.RedGoalLine[1].x, MapMeasures.RedGoalLine[1].y * multiplierRed
+                    MapMeasures.RedGoalLine[0].x,
+                    MapMeasures.RedGoalLine[0].y * multiplier,
+                    MapMeasures.RedGoalLine[1].x,
+                    MapMeasures.RedGoalLine[1].y * multiplier
                 );
             } else {
                 pointOfIntersection = MathUtils.getPointOfIntersection(
                     ballPath[0].x, ballPath[0].y, ballPath[1].x, ballPath[1].y,
-                    MapMeasures.BlueGoalLine[0].x, MapMeasures.BlueGoalLine[0].y * multiplierBlue, MapMeasures.BlueGoalLine[1].x, MapMeasures.BlueGoalLine[1].y * multiplierBlue
+                    MapMeasures.BlueGoalLine[0].x,
+                    MapMeasures.BlueGoalLine[0].y * multiplier,
+                    MapMeasures.BlueGoalLine[1].x,
+                    MapMeasures.BlueGoalLine[1].y * multiplier
                 );
             }
 
@@ -1046,6 +1111,12 @@ export class Down extends LandPlay {
                 return player;
             }
         }
+    }
+
+    private updatePlayersPosition(room: Room) {        
+        const defensiveTeam = this.game.getTeamWithoutBall(room);
+
+        this.lastPlayerPositions = new Map(defensiveTeam.map(p => [p.id, p.getY()]));
     }
 
     @Command({

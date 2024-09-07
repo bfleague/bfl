@@ -3,7 +3,7 @@ import { Team } from "../../core/Global";
 
 import * as Global from "../../Global";
 
-import Game from "../Game";
+import Game, { PlayerWithBallState } from "../Game";
 
 import MapMeasures from "../../utils/MapMeasures";
 import Player from "../../core/Player";
@@ -106,20 +106,20 @@ export abstract class LandPlay extends Tackleable {
 
             if (!this.game.conversion) {
                 switch (this.game.playerWithBallState) {
-                    case "receiver":
+                    case PlayerWithBallState.Receiver:
                         this.game.matchStats.add(this.game.quarterback, { passesPraTouchdown: 1 });
                         this.game.matchStats.add(this.game.playerWithBall, { touchdownRecebidos: 1 });
                         break;
-                    case "runner":
-                    case "qbRunner":
-                    case "qbRunnerSacking":
+                    case PlayerWithBallState.Runner:
+                    case PlayerWithBallState.QbRunner:
+                    case PlayerWithBallState.QbRunnerSacking:
                         this.game.matchStats.add(this.game.playerWithBall, { touchdownCorridos: 1 });
                         break;
-                    case "puntReturner":
-                    case "kickoffReturner":
+                    case PlayerWithBallState.PuntReturner:
+                    case PlayerWithBallState.KickoffReturner:
                         this.game.matchStats.add(this.game.playerWithBall, { touchdownRetornados: 1 });
                         break;
-                    case "intercepter":
+                    case PlayerWithBallState.Intercepter:
                         this.game.matchStats.add(this.game.playerWithBall, { pickSix: 1 });
                         break;
                     default:
@@ -249,7 +249,7 @@ export abstract class LandPlay extends Tackleable {
 
                 this.game.intercept = true;
 
-                this.game.setPlayerWithBall(room, this.game.interceptAttemptPlayer, "intercepter", true);
+                this.game.setPlayerWithBall(room, this.game.interceptAttemptPlayer, PlayerWithBallState.Intercepter, true);
 
                 this.game.interceptPlayer = this.game.interceptAttemptPlayer;
                 this.game.interceptAttemptPlayer = null;
@@ -358,7 +358,7 @@ export abstract class LandPlay extends Tackleable {
                 const fumble = (
                     tackle.players.length >= 2 &&
                     !this.game.conversion &&
-                    (this.game.playerWithBallState === "receiver" || this.game.playerWithBallState === "qbRunnerSacking") &&
+                    (this.game.playerWithBallState === PlayerWithBallState.Receiver || this.game.playerWithBallState === PlayerWithBallState.QbRunnerSacking) &&
                     (this.game.down.sack || this.game.playerWithBallSetTick + this.timeToFumbleSeconds * Global.TICKS_PER_SECOND >= this.game.tickCount)
                 );
 
@@ -377,7 +377,7 @@ export abstract class LandPlay extends Tackleable {
                         this.game.matchStats.add(this.game.quarterback, { sacksRecebidos: 1 });
                     }
 
-                    this.game.playerWithBallState = "sack";
+                    this.game.playerWithBallState = PlayerWithBallState.Sack;
                 } else {
                     if (fumble) {
                         room.send({ message: `😵 FUMBLE DE ${this.game.playerWithBall.name}!!! Forçado por ${Utils.getPlayersNames(tackle.players)}`, color: 0x00ffff, style: "bold" });
@@ -409,9 +409,14 @@ export abstract class LandPlay extends Tackleable {
                             forTeam: this.game.invertTeam(this.game.playerWithBall.getTeam()),
                         });
                     } else {
+                        const ballHolder = this.game.playerWithBall;
+
+                        const posX = ballHolder.getX() +
+                            ballHolder.getRadius() * (ballHolder.getTeam() === Team.Red ? 1 : -1);
+
                         this.game.down.set({
                             room,
-                            pos: StadiumUtils.getYardsFromXCoord(this.game.playerWithBall.getX()),
+                            pos: StadiumUtils.getYardsFromXCoord(posX),
                             forTeam: this.game.playerWithBall.getTeam(),
                             countDistanceFromNewPos: this.game.mode === this.game.down.mode && !this.game.intercept
                         });

@@ -7,6 +7,7 @@ import Game from "./Game";
 import * as Global from "../Global";
 import translate from "../utils/Translate";
 import Utils from "../utils/Utils";
+import Database from "../Database";
 
 require('dotenv').config();
 
@@ -35,6 +36,8 @@ interface Stats {
     fieldGoalJardas: number,
     fieldGoalCompletos: number,
     fieldGoalPerdidos: number,
+    extraPoints: number,
+    extraPointPerdidos: number,
 
     // Defense
     passesBloqueados: number,
@@ -56,7 +59,9 @@ interface Stats {
     stripSackRecebidos: number,
 
     // Misc
-    faltas: number
+    faltas: number,
+    invasoes: number,
+    invasoesAcumuladas: number
 }
 
 export const STAT_POINTS: Partial<Stats> = {
@@ -100,55 +105,64 @@ export const STAT_POINTS: Partial<Stats> = {
     fieldGoalJardas: 0.1
 };
 
-export const STAT_NAMES: Record<keyof Stats, [string, string, StatCategory]> = {
+export const STAT_NAMES: Record<keyof Stats, [string, string, StatCategory, number]> = {
     // Receiving
-    recepcoes: ["Recepções", "Rec", StatCategory.WideReceiver],
-    jardasRecebidas: ["Jardas Recebidas", "J Rec", StatCategory.WideReceiver],
-    jardasCorridas: ["Jardas Corridas", "J Run", StatCategory.WideReceiver],
-    touchdownRecebidos: ["Touchdowns Recebidos", "TD Rec", StatCategory.WideReceiver],
-    touchdownCorridos: ["Touchdowns Corridos", "TD Run", StatCategory.WideReceiver],
-    pickSix: ["Pick Six", "P Six", StatCategory.WideReceiver],
-    corridas: ["Corridas", "Run", StatCategory.WideReceiver],
-    fumbles: ["Fumbles", "Fum", StatCategory.WideReceiver],
+    recepcoes: ["Recepções", "Rec", StatCategory.WideReceiver, 1],
+    jardasRecebidas: ["Jardas Recebidas", "J Rec", StatCategory.WideReceiver, 2],
+    jardasCorridas: ["Jardas Corridas", "J Run", StatCategory.WideReceiver, 3],
+    touchdownRecebidos: ["Touchdowns Recebidos", "TD Rec", StatCategory.WideReceiver, 4],
+    touchdownCorridos: ["Touchdowns Corridos", "TD Run", StatCategory.WideReceiver, 5],
+    pickSix: ["Pick Six", "P Six", StatCategory.WideReceiver, 6],
+    corridas: ["Corridas", "Run", StatCategory.WideReceiver, 7],
+    fumbles: ["Fumbles", "Fum", StatCategory.WideReceiver, 8],
 
     // Passing
-    passesTentados: ["Passes Tentados", "Pass Ten", StatCategory.Quarterback],
-    passesCompletos: ["Passes Completos", "Pass Cmp", StatCategory.Quarterback],
-    jardasLancadas: ["Jardas Lançadas", "J Lanc", StatCategory.Quarterback],
-    passesPraTouchdown: ["Passes para Touchdown", "Pass TD", StatCategory.Quarterback],
-    interceptacoesLancadas: ["Interceptações Lançadas", "Int Lanc", StatCategory.Quarterback],
-    sacksRecebidos: ["Sacks Recebidos", "Sac Rec", StatCategory.Quarterback],
-    corridasQb: ["Corridas de Quarterback", "QB Run", StatCategory.Quarterback],
-    jardasPerdidasSack: ["Jardas Perdidas em Sack", "J Sac", StatCategory.Quarterback],
-    stripSackRecebidos: ["Strip Sacks Recebidos", "St Sac", StatCategory.WideReceiver],
+    passesTentados: ["Passes Tentados", "Pass Ten", StatCategory.Quarterback, 20],
+    passesCompletos: ["Passes Completos", "Pass Cmp", StatCategory.Quarterback, 21],
+    jardasLancadas: ["Jardas Lançadas", "J Lanc", StatCategory.Quarterback, 22],
+    passesPraTouchdown: ["Passes para Touchdown", "Pass TD", StatCategory.Quarterback, 23],
+    interceptacoesLancadas: ["Interceptações Lançadas", "Int Lanc", StatCategory.Quarterback, 24],
+    sacksRecebidos: ["Sacks Recebidos", "Sac Rec", StatCategory.Quarterback, 25],
+    corridasQb: ["Corridas de Quarterback", "QB Run", StatCategory.Quarterback, 26],
+    jardasPerdidasSack: ["Jardas Perdidas em Sack", "J Sac", StatCategory.Quarterback, 27],
+    stripSackRecebidos: ["Strip Sacks Recebidos", "St Sac", StatCategory.WideReceiver, 28],
 
     // Defense
-    passesBloqueados: ["Passes Bloqueados", "Pass Block", StatCategory.Defense],
-    tackles: ["Tackles", "Tackle", StatCategory.Defense],
-    sacks: ["Sacks", "Sack", StatCategory.Defense],
-    interceptacoes: ["Interceptações", "Int", StatCategory.Defense],
-    fumblesForcados: ["Fumbles Forçados", "Fum Forc", StatCategory.Defense],
+    passesBloqueados: ["Passes Bloqueados", "Pass Block", StatCategory.Defense, 40],
+    tackles: ["Tackles", "Tackle", StatCategory.Defense, 41],
+    sacks: ["Sacks", "Sack", StatCategory.Defense, 42],
+    interceptacoes: ["Interceptações", "Int", StatCategory.Defense, 43],
+    fumblesForcados: ["Fumbles Forçados", "Fum Forc", StatCategory.Defense, 44],
 
     // Misc
-    faltas: ["Faltas", "Faltas", StatCategory.Misc],
+    faltas: ["Faltas", "Faltas", StatCategory.Misc, 60],
+    invasoes: ["Invasões", "Inv", StatCategory.Misc, 61],
+    invasoesAcumuladas: ["Invasões acumuladas", "Inv Acc", StatCategory.Misc, 62],
 
     // Special Teams
-    retornos: ["Retornos", "Ret", StatCategory.SpecialTeams],
-    jardasRetornadas: ["Jardas Retornadas", "J Ret", StatCategory.SpecialTeams],
-    touchdownRetornados: ["Touchdowns Retornados", "TD Ret", StatCategory.SpecialTeams],
-    fieldGoalJardas: ["Jardas de Field Goal", "J FG", StatCategory.SpecialTeams],
-    fieldGoalCompletos: ["Field Goals Completos", "FG Cmp", StatCategory.SpecialTeams],
-    fieldGoalPerdidos: ["Field Goals Perdidos", "FG Perd", StatCategory.SpecialTeams],
+    retornos: ["Retornos", "Ret", StatCategory.SpecialTeams, 80],
+    jardasRetornadas: ["Jardas Retornadas", "J Ret", StatCategory.SpecialTeams, 81],
+    touchdownRetornados: ["Touchdowns Retornados", "TD Ret", StatCategory.SpecialTeams, 82],
+    fieldGoalJardas: ["Jardas de Field Goal", "J FG", StatCategory.SpecialTeams, 83],
+    fieldGoalCompletos: ["Field Goals Completos", "FG Cmp", StatCategory.SpecialTeams, 84],
+    fieldGoalPerdidos: ["Field Goals Perdidos", "FG Perd", StatCategory.SpecialTeams, 85],
+    extraPoints: ["Extra Points Tentados", "Ep Att", StatCategory.SpecialTeams, 86],
+    extraPointPerdidos: ["Extra Points Perdidos", "EP Perd", StatCategory.SpecialTeams, 87],
 };
 
+const IGNORE_STATS = ["invasoesAcumuladas", "extraPoints", "extraPointPerdidos"];
+
 function getId() {
-    return Math.random().toString(36).substr(2, 5).toUpperCase();
+    return Math.random().toString(36).substr(2, 7).toUpperCase();
 }
 
 export default class MatchStats {
     private list: { playerName: string, playerId: number, registered: boolean, stats: Partial<Stats> }[] = [];
+    private stats: [number, number, number, number][] = [];
     private id = getId();
     private room: Room;
+    private db = new Database();
+    private tick = 0;
 
     constructor(room: Room) {
         this.room = room;
@@ -198,6 +212,8 @@ export default class MatchStats {
         let miscCat: [string, number][] = [];
 
         Object.entries(playerStats).forEach(([statName, n]) => {
+            if (IGNORE_STATS.includes(statName)) return;
+
             const statInfo = STAT_NAMES[statName];
             const statCat = statInfo[2];
 
@@ -245,13 +261,26 @@ export default class MatchStats {
         if(miscCat.length) player.reply({ message: `🟡 𝐌𝐈𝐒𝐂 •${getStartMsg()} ${miscCatStr}`, style: "bold", color: 0xf2cc00, sound: 2 });
     }
 
-    public add(player: Player, stats: Partial<Stats>) {
+    public add(player: Player, stats?: Partial<Stats>) {
         if (!player) return;
 
         const p = this.list.find(p => p.playerId === player.id);
 
+        if (!stats) {
+            if (!p) this.list.push({
+                playerId: player.id,
+                playerName: player.name,
+                registered: player.roles.includes(Global.loggedRole),
+                stats: {}
+            });
+
+            return;
+        }
+
         if (p) {
             for (const [key, value] of Object.entries(stats)) {
+                this.stats.push([player.id, this.tick, STAT_NAMES[key][3], value]);
+
                 if (p.stats[key] != null) {
                     p.stats[key] += value;
                 } else {
@@ -266,6 +295,12 @@ export default class MatchStats {
     public clear() {
         this.list = [];
         this.id = getId();
+        this.tick = 0;
+        this.stats = [];
+    }
+
+    public setTick(t: number) {
+        this.tick = t;
     }
     
     public async sendToDiscord(recording: Uint8Array, game: Game, teamsHistory: TeamPlayersHistory) {
@@ -278,6 +313,7 @@ export default class MatchStats {
             return {
                 id: l.playerId,
                 name: l.playerName,
+                confirmed: l.registered,
                 points: this.calculatePointsPlayer(l.stats),
                 ...l.stats
             };
@@ -289,8 +325,11 @@ export default class MatchStats {
 
         const getNames = (p: typeof players) => p.map(p => `${p.name} #${p.id} (${stats.find(p2 => p2.id === p.id)?.points ?? 0})`);
 
-        const playersRed = getNames(players.filter(p => p.team === Team.Red));
-        const playersBlue = getNames(players.filter(p => p.team === Team.Blue));
+        const red = players.filter(p => p.team === Team.Red);
+        const blue = players.filter(p => p.team === Team.Blue);
+
+        const playersRed = getNames(red);
+        const playersBlue = getNames(blue);
 
         const statsCSV = Utils.objectsToCSV(stats, ["id", "name", "points", ...Object.keys(STAT_NAMES)]);
 
@@ -299,8 +338,24 @@ export default class MatchStats {
             new Discord.AttachmentBuilder(Buffer.from(statsCSV), { name: "stats.csv" })
         ];
 
+        this.db.addMatch(this.id, {
+            size: this.tick,
+            players: stats.map(l => ({
+                id: l.id,
+                name: l.name,
+                confirmed: l.confirmed,
+                points: l.points
+            })),
+            stats: this.stats,
+            teams: {
+                red: { name: redName, score: game.scoreRed, playersIds: red.map(p => p.id) },
+                blue: { name: blueName, score: game.scoreBlue, playersIds: blue.map(p => p.id) }
+            }
+        });
+
         const embed = new Discord.EmbedBuilder()
             .setTitle(`${redName} ${game.scoreRed} x ${game.scoreBlue} ${blueName}`)
+            .setDescription(`[Clique aqui para ver as stats](http://152.67.59.41:8000/match?id=${this.id})`)
             .setColor(0x0099FF)
             .addFields(
                 { name: "Red", value: playersRed.length ? playersRed.join("\n") : "-", inline: true },
@@ -309,7 +364,7 @@ export default class MatchStats {
 
         client.once(Discord.Events.ClientReady, c => {
             const guild = c.guilds.cache.get(process.env.GUILD_ID);
-            const channel = guild.channels.cache.get(process.env.RECS_CHANNEL_ID) as Discord.TextChannel;
+            const channel = guild.channels.cache.get(process.env.REC_CHANNEL_ID) as Discord.TextChannel;
             
             channel.send({ embeds: [embed], files }).then(() => {
                 this.room.send({message: translate("GAME_RECORDED", this.id), color: Color.LightPink, style: "bold" });
@@ -317,7 +372,8 @@ export default class MatchStats {
             });
         });
 
-        client.login(process.env.DISCORD_TOKEN)
+        client
+        .login(process.env.DISCORD_TOKEN)
         .catch(err => {
             console.log(`Warning: could not login to Discord: ${err}`);
             client.destroy();

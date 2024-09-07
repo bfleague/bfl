@@ -4,9 +4,8 @@
   "author": "gabrielbrop",
   "license": "MIT",
   "scripts": {
-    "build": "tsc",
-    "start": "tsc && node ./dist/Bot.js",
-    "start-perf": "tsc && node --prof ./dist/Bot.js"
+    "open": "tsc && node ./dist/Bot.js open",
+    "deploy": "./scripts/deploy.sh"
   },
   "dependencies": {
     "@abraham/reflection": "^0.8.0",
@@ -16,16 +15,20 @@
     "dotenv": "^16.3.1",
     "https-proxy-agent": "^7.0.0",
     "json5": "^2.2.3",
+    "lz4": "^0.6.5",
     "node-fetch": "^3.3.1",
     "node-fetch-commonjs": "^3.2.4",
     "pako": "^2.1.0",
     "perf_hooks": "^0.0.1",
     "typescript": "^5.0.4",
     "url": "^0.11.0",
-    "ws": "^8.13.0"
+    "ws": "^8.13.0",
+    "yargs": "^17.7.2"
   },
   "devDependencies": {
+    "@types/lz4": "^0.6.2",
     "@types/node": "^18.11.11",
-    "@types/ws": "^8.5.4"
+    "@types/ws": "^8.5.4",
+    "@types/yargs": "^17.0.24"
   }
 }

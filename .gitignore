@@ -3,3 +3,4 @@ node_modules
 processed*.txt
 blocked-ranges.bin
 dist
+deploy.sh

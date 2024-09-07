@@ -1,6 +1,7 @@
-// @ts-ignore
-import HaxballJS from "./core/Haxball.js";
-import readline from "readline";
+import yargs from 'yargs'
+import { hideBin } from 'yargs/helpers'
+
+import startHaxball from "./haxball/Haxball.js";
 
 import Room from "./core/Room";
 import { AFK } from "./modules/administration/AFK";
@@ -16,22 +17,44 @@ import AntiFake from "./modules/administration/AntiFake";
 import Log from "./modules/administration/Log";
 import Tutorial from "./modules/administration/Tutorial";
 
-const prod = true; //process.env.MODE === "production" ? true : false;
+yargs(hideBin(process.argv))
+    .command('open <token>', 'Open the room', {
+        geo: {
+            alias: "g",
+            type: "array"
+        },
+        test: {
+            alias: "t",
+            type: "boolean"
+        },
+        proxy: {
+            alias: "p",
+            type: "string"
+        },
+        closed: {
+            alias: "c",
+            type: "boolean"
+        }
+    }, (argv) => {
+        startHaxball(argv.proxy).then((HBInit: any) => {
+            run(HBInit, argv.token as string, argv.closed, argv.test, argv.geo as string[]);
+        });
+    })
+    .demandCommand(1)
+    .parse();
 
-function run(HBInit: any, token: string) {
-    console.log(`This process is pid ${process.pid}`);
-    
+function run(HBInit: any, token: string, isClosed?: boolean, testMode?: boolean, geo?: string[]) {
     const room = new Room(HBInit, {
-        public: false,
-        noPlayer: true,
+        roomName: ` 🔰 🏈 𝗕𝗙𝗟 • Futebol Americano 🏈`,
         maxPlayers: 20,
-        roomName: `🏈 Futebol Americano 🏈`,
+        public: !testMode && !isClosed,
+        geo: geo ? { code: geo[0], lat: parseFloat(geo[1]), lon: parseFloat(geo[2]) } : undefined,
         token
     });
 
     room.setPlayerChat(false);
 
-    if (prod) {
+    if (!testMode) {
         room.module(AntiFake);
     }
 
@@ -53,19 +76,3 @@ function run(HBInit: any, token: string) {
 
     console.log("https://github.com/haxfootballbrazil/hfb-bot");
 }
-
-HaxballJS.then((HBInit: any) => {
-    const io = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    if (process.argv[2]) {
-        run(HBInit, process.argv[2]);
-    } else {
-        io.question('Haxball headless token: ', token => {
-            run(HBInit, token);
-            io.close();
-        });    
-    }
-});

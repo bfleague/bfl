@@ -26,6 +26,27 @@ import { CustomAvatarManager } from "./CustomAvatarManager";
 
 const BALL_AVATAR = "🏈";
 
+export enum PlayerWithBallState {
+    Receiver = 1,
+    Runner = 2,
+    QbRunner = 3,
+    QbRunnerSacking = 4,
+    PuntReturner = 5,
+    KickoffReturner = 6,
+    Intercepter = 7,
+    Sack = 8
+}
+
+export enum GameModes {
+    Down = 1,
+    FieldGoal = 2,
+    Punt = 3,
+    Kickoff = 4,
+    ExtraPoint = 5,
+    Safety = 6,
+    WaitingHike = 7
+}
+
 class Game extends Module {
     public down: Down;
     public fieldGoal: FieldGoal;
@@ -38,12 +59,12 @@ class Game extends Module {
     public customTeams: CustomTeams;
     public customAvatarManager: CustomAvatarManager;
 
-    public mode: string;
+    public mode: GameModes;
 
     public teamWithBall: Team;
 
     public playerWithBall: Player;
-    public playerWithBallState?: "receiver" | "runner" | "qbRunner" | "qbRunnerSacking" | "puntReturner" | "kickoffReturner" | "intercepter" | "sack";
+    public playerWithBallState?: PlayerWithBallState;
     public playerWithBallTackleCount = 0;
     public playerWithBallInitialPosition: Position;
     public playerWithBallFinalPosition: Position;
@@ -175,6 +196,10 @@ class Game extends Module {
                 this.qbLeft(room);
             }
 
+            if (changedPlayer.getTeam() !== Team.Spectators) {
+                this.matchStats.add(changedPlayer);
+            }
+
             this.customAvatarManager.clearPlayerAvatar(changedPlayer.id);
 
             const playerHist = this.teamPlayersHistory.find(p => p.id === changedPlayer.id && p.timeLeft == null);
@@ -244,6 +269,8 @@ class Game extends Module {
             this.isStoppageTime = false;
             this.firstKickoff = true;
 
+            this.down.lastPlayerPositions = new Map();
+
             const mvp = this.matchStats.getMVP();
 
             this.matchStats.clear();
@@ -275,7 +302,7 @@ class Game extends Module {
         room.on("gameTick", () => {
             if (this.gameStopped) return;
 
-            this.tickCount++;
+            this.matchStats.setTick(++this.tickCount);
 
             this.customAvatarManager.run();
 
@@ -451,7 +478,9 @@ class Game extends Module {
 
         if (this.playerWithBall == null) {
             if (player.getTeam() !== this.teamWithBall) {
-                const state = this.mode === this.punt.mode ? "puntReturner" : "kickoffReturner"
+                const state = this.mode === this.punt.mode ?
+                    PlayerWithBallState.PuntReturner :
+                    PlayerWithBallState.KickoffReturner;
 
                 this.setPlayerWithBall(room, player, state, true);
 
@@ -498,7 +527,7 @@ class Game extends Module {
         }
     }
 
-    setPlayerWithBall(room: Room, player: Player, state: Game["playerWithBallState"], running: boolean) {
+    setPlayerWithBall(room: Room, player: Player, state: PlayerWithBallState, running: boolean) {
         this.playerWithBallInitialPosition = player.getPosition();
 
         if (this.playerWithBall) this.customAvatarManager.clearPlayerAvatar(this.playerWithBall.id);
@@ -529,27 +558,27 @@ class Game extends Module {
         let diff;
 
         switch (this.playerWithBallState) {
-            case "receiver":
+            case PlayerWithBallState.Receiver:
                 diff = StadiumUtils.getYardDifferenceBetweenPositions(StadiumUtils.getCoordinateFromYards(this.ballPosition), this.playerWithBallFinalPosition, this.playerWithBall.getTeam());
 
                 this.matchStats.add(this.playerWithBall, { jardasRecebidas: diff });
                 
                 if (this.quarterback) this.matchStats.add(this.quarterback, { jardasLancadas: diff });
                 break;
-            case "qbRunner":
-            case "qbRunnerSacking":
-            case "runner":
+            case PlayerWithBallState.QbRunner:
+            case PlayerWithBallState.QbRunnerSacking:
+            case PlayerWithBallState.Runner:
                 diff = StadiumUtils.getYardDifferenceBetweenPositions(StadiumUtils.getCoordinateFromYards(this.ballPosition), this.playerWithBallFinalPosition, this.playerWithBall.getTeam());
 
                 this.matchStats.add(this.playerWithBall, { jardasCorridas: diff });
                 break;
-            case "sack":
+            case PlayerWithBallState.Sack:
                 diff = StadiumUtils.getYardDifferenceBetweenPositions(StadiumUtils.getCoordinateFromYards(this.ballPosition), this.playerWithBallFinalPosition, this.playerWithBall.getTeam());
 
                 this.matchStats.add(this.playerWithBall, { jardasPerdidasSack: diff });
                 break;
-            case "kickoffReturner":
-            case "puntReturner":
+            case PlayerWithBallState.KickoffReturner:
+            case PlayerWithBallState.PuntReturner:
                 diff = StadiumUtils.getYardDifferenceBetweenPositions(this.playerWithBallInitialPosition, this.playerWithBallFinalPosition, this.playerWithBall.getTeam());
 
                 this.matchStats.add(this.playerWithBall, { jardasRetornadas: diff, retornos: 1 });

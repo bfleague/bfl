@@ -176,11 +176,17 @@ export default class Invasion extends DownPlay {
             room.send({ message: `⛔ Invasão de ${this.getInvasionPlayersString(room)} • ${penalty} jardas de penalidade`, color: Global.Color.Orange, style: "bold" });
         }
 
-        defendersCrowding.forEach(p => {
+        const sum = this.crowdingPlayersHistory.reduce((previous, current) => previous + current[1], 0);
+
+        for (const p of defendersCrowding) {
             p.reply({ message: `😡 Você não pode ficar no meio por mais que 3 segundos, a não ser que tenha jogadores do outro time também!`, color: Global.Color.Red, style: "bold", sound: 2 });
             
+            const acc = parseFloat((this.crowdingPlayersHistory.find(pl => pl[0] === p.id)[1] / sum).toFixed(2));
+
             this.game.matchStats.add(p, { faltas: 1 });
-        });
+            this.game.matchStats.add(p, { invasoes: 1 });
+            this.game.matchStats.add(p, { invasoesAcumuladas: acc });
+        };
 
         this.game.adjustGameTimeAfterDefensivePenalty(room);
 

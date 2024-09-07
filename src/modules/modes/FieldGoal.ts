@@ -5,7 +5,7 @@ import Command, { CommandInfo } from "../../core/Command";
 
 import * as Global from "../../Global";
 
-import Game from "../Game";
+import Game, { GameModes } from "../Game";
 
 import MapMeasures from "../../utils/MapMeasures";
 import MathUtils from "../../utils/MathUtils";
@@ -17,7 +17,7 @@ import { Tackle, Tackleable } from "./Tackleable";
 
 export class FieldGoal extends Tackleable {
     name = "field goal";
-    mode = "fieldGoal";
+    mode = GameModes.FieldGoal;
 
     fgPoints = 3;
     fgTimeLimit = 15 * 1000;
@@ -162,20 +162,24 @@ export class FieldGoal extends Tackleable {
         this.game.down.resetFirstDownLine(room);
         this.game.down.resetBallLine(room);
 
-        let kickingTeam = (forTeam === Team.Red ? red : blue);
-        let otherTeam = (forTeam === Team.Red ? blue : red);
-        let kickingTeamNoQB = kickingTeam.filter(p => p.id !== kicker.id);
+        const filterPlayerOutsideField = (p: Player) => Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
+
+        let kickingTeam = (forTeam === Team.Red ? red : blue)
+            .filter(p => p.id !== kicker.id)
+            .filter(filterPlayerOutsideField);
+        let otherTeam = (forTeam === Team.Red ? blue : red)
+            .filter(filterPlayerOutsideField);
 
         this.game.teamWithBall = forTeam;
 
         const xBackOffense = forTeam === Team.Blue ? Math.max(-this.maxPlayerBackDistanceFieldGoalOffense, ball.getX() - (this.yardsBackOffense * MapMeasures.Yard)) : Math.min(this.maxPlayerBackDistanceFieldGoalOffense, ball.getX() + (this.yardsBackOffense * MapMeasures.Yard));
         const xBackDefense = forTeam === Team.Blue ? Math.max(-this.maxPlayerBackDistanceFieldGoalDefense, ball.getX() - (this.yardsBackDefense * MapMeasures.Yard)) : Math.min(this.maxPlayerBackDistanceFieldGoalDefense, ball.getX() + (this.yardsBackDefense * MapMeasures.Yard));
 
-        const kickingTeamPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthFG }, { x: 0, y: -this.playerLineLengthFG }, kickingTeamNoQB.length);
+        const kickingTeamPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthFG }, { x: 0, y: -this.playerLineLengthFG }, kickingTeam.length);
         const defenseTeamPositions = MathUtils.getPointsAlongLine({ x: 0, y: this.playerLineLengthFG }, { x: 0, y: -this.playerLineLengthFG }, otherTeam.length);
 
-        for (let i = 0; i < kickingTeamNoQB.length; i++) {
-            const player = kickingTeamNoQB[i];
+        for (let i = 0; i < kickingTeam.length; i++) {
+            const player = kickingTeam[i];
 
             if (player.id === kicker.id) continue;
                 

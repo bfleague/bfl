@@ -15,7 +15,7 @@ export default class Register extends Module {
     private disableAfterInitialPingFailed = true;
     private disabled = false;
 
-    private playersWaitingConfirmation: { player: Player, password: string }[] = [];
+    private playersWaitingConfirmation: { player: Player, password: string, discord: string }[] = [];
 
     constructor(room: Room) {
         super();
@@ -52,6 +52,8 @@ export default class Register extends Module {
                 player.roles.push(Global.notRegistered, Global.bypassRegisterRole);
                 player.addConfirmLevel(this.confirmationLevel);
 
+                this.database.addLogin(player);
+
                 return;
             }
 
@@ -67,6 +69,11 @@ export default class Register extends Module {
                         player.reply({ message: `✅ Você foi logado automaticamente!`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
                         
                         player.roles.push(Global.loggedRole);
+                        player.addConfirmLevel(this.confirmationLevel);
+
+                        this.database.addLogin(player, req.message.discord);
+
+                        return;
                     } else {
                         player.reply({
                             message: `Não foi possível verificar seu login. Você tem ${Utils.getFormattedSeconds(this.kickTime / 1000)} para se logar.\nPor favor, digite sua senha abaixo (somente a senha, sem !).\nEsqueceu sua senha? Entre no nosso Discord para alterá-la.\nDiscord: ${process.env.DISCORD_INVITE}`,
@@ -77,11 +84,16 @@ export default class Register extends Module {
 
                         player.canUseCommands = false;
 
-                        this.playersWaitingConfirmation.push({ player, password: req.message.password });
+                        this.playersWaitingConfirmation.push({
+                            player, password:
+                            req.message.password,
+                            discord: req.message.discord
+                        });
 
                         setTimeout(() => {
                             if (!player.isConfirmed()) {
                                 player?.kick("Não se logou a tempo!");
+                                this.database.addLogin(player);
                             }
                         }, this.kickTime);
 
@@ -100,6 +112,8 @@ export default class Register extends Module {
                     player.roles.push(Global.notRegistered);
                 }
 
+                this.database.addLogin(player);
+
                 player.addConfirmLevel(this.confirmationLevel);
             }).catch(err => {
                 console.error(err);
@@ -108,6 +122,8 @@ export default class Register extends Module {
                 
                 player.roles.push(Global.notRegistered);
                 player.addConfirmLevel(this.confirmationLevel);
+
+                this.database.addLogin(player);
             });
         });
 
@@ -125,7 +141,7 @@ export default class Register extends Module {
             } else {
                 setTimeout(() => {
                     this.removeFromWaitingList(player);
-
+                    
                     for (const p of room.getPlayers()) {
                         if (player.id === p.id) continue;
         
@@ -137,6 +153,8 @@ export default class Register extends Module {
                     player.roles.push(Global.loggedRole);
                     player.addConfirmLevel(this.confirmationLevel);
                     player.canUseCommands = true;
+
+                    this.database.addLogin(player, info.discord);
 
                     if (player.auth) this.database.updateAuth(player.name, player.auth);
                 }, 0);

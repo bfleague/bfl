@@ -7,13 +7,13 @@ import * as Global from "../../Global";
 import { Kick } from "./Kick";
 
 import MapMeasures from "../../utils/MapMeasures";
-import Game from "../Game";
+import Game, { GameModes } from "../Game";
 import MathUtils from "../../utils/MathUtils";
 import StadiumUtils from "../../utils/StadiumUtils";
 
 export class Safety extends Kick {
     name = "safety";
-    mode = "safety";
+    mode = GameModes.Safety;
 
     playerLineLengthSafetyTeam = 100;
     playerLineLengthReceivingTeam = 200;

@@ -10,7 +10,9 @@ export default abstract class AbstractDisc {
     protected abstract setDiscObject(properties: DiscPropertiesObject): void;
 
     public distanceTo(disc: AbstractDisc | { x: number, y: number, radius: number }): number | null {
-        if (!disc) return null;
+        const discA = this.getDiscObject();
+
+        if (!disc || !discA) return null;
 
         let discB: Partial<{ x: number, y: number, radius: number }> = {};
 
@@ -22,8 +24,6 @@ export default abstract class AbstractDisc {
         } else {
             discB = disc;
         }
-
-        const discA = this.getDiscObject();
 
         const dx = discA.x - discB.x;
         const dy = discA.y - discB.y;

@@ -31,6 +31,7 @@ const MapMeasures = {
         { x: 930, y: -60 },
         { x: 930, y: 60 }
     ],
+    GoalPostRadius: 4,
     HashesHeight: {
         y1: -80,
         y2: 80
@@ -42,6 +43,8 @@ const MapMeasures = {
     BlueEndZoneLineCenter: { x: 775, y: 0 },
     PuntRedPositionX: -980,
     PuntBluePositionX: 980,
+    KickoffKickingPositionX: 465,
+    KickoffReceivingPositionX: 775,
     Yard: 15.5,
     HashSubdivision: 31,
     YardsBetween0MarkAndGoalLine: 10

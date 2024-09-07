@@ -4,7 +4,7 @@ import { Team } from "../../core/Global";
 
 import * as Global from "../../Global";
 
-import Game from "../Game";
+import Game, { GameModes } from "../Game";
 import { Mode } from "./Mode";
 
 import MapMeasures from "../../utils/MapMeasures";
@@ -15,7 +15,7 @@ import Utils from "../../utils/Utils";
 
 export class ExtraPoint extends Mode {
     name = "extra point";
-    mode = "extraPoint";
+    mode = GameModes.ExtraPoint;
 
     epPoints = 1;
     conversionPoints = 2;
@@ -50,6 +50,8 @@ export class ExtraPoint extends Mode {
             if (!this.game.qbKickedBall) {
                 this.game.qbKickedBall = true;
                 this.epKicker = player;
+
+                this.game.matchStats.add(this.epKicker, { extraPoints: 1 });
 
                 this.game.setBallUnmoveable(room);
                 this.game.lockBall(room);
@@ -241,6 +243,8 @@ export class ExtraPoint extends Mode {
     
     private handleMissedExtraPointBallWrongDirection(room: Room) {
         room.send({ message: `🤖 Detectado Extra Point falho • Kickoff`, color: Global.Color.Yellow, style: "bold" });
+
+        this.game.matchStats.add(this.epKicker, { extraPointPerdidos: 1 });
 
         this.game.mode = null;
 

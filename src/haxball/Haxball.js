@@ -544,53 +544,53 @@ function startHaxball(proxy) {
         rg: function (a, b) {
           var c = this;
 
-          const checks = [];
-          const blockedLocations = [];
+          // const checks = [];
+          // const blockedLocations = [];
 
-          const onBeforeEstablishConnection = (ip) => {
-            return new Promise((resolve, reject) => {
-              if (!net.isIPv4(ip)) resolve();
+          // const onBeforeEstablishConnection = (ip) => {
+          //   return new Promise((resolve, reject) => {
+          //     if (!net.isIPv4(ip)) resolve();
 
-              const findAndCache = async (ip, ipCache) => {
-                const found = ipCache.find((i) => i.ip === ip);
-                if (found) return found;
+          //     const findAndCache = async (ip, ipCache) => {
+          //       const found = ipCache.find((i) => i.ip === ip);
+          //       if (found) return found;
 
-                const request = await fetch(`https://ipapi.co/${ip}/json/`);
-                const response = await request.json();
+          //       const request = await fetch(`https://ipapi.co/${ip}/json/`);
+          //       const response = await request.json();
 
-                const loc = {
-                  ip: response.ip,
-                  org: response.org?.toUpperCase(),
-                  city: response.city?.toUpperCase(),
-                };
-                ipCache.push(loc);
+          //       const loc = {
+          //         ip: response.ip,
+          //         org: response.org?.toUpperCase(),
+          //         city: response.city?.toUpperCase(),
+          //       };
+          //       ipCache.push(loc);
 
-                return loc;
-              };
+          //       return loc;
+          //     };
 
-              findAndCache(ip, ipCache)
-                .then((loc) => {
-                  const isBlocked = !!blockedLocations.find(
-                    (l) => l.org === loc.org && l.city === loc.city,
-                  );
+          //     findAndCache(ip, ipCache)
+          //       .then((loc) => {
+          //         const isBlocked = !!blockedLocations.find(
+          //           (l) => l.org === loc.org && l.city === loc.city,
+          //         );
 
-                  if (isBlocked) reject();
+          //         if (isBlocked) reject();
 
-                  resolve();
-                })
-                .catch((err) => {
-                  console.error(err);
-                  resolve();
-                });
-            });
-          };
+          //         resolve();
+          //       })
+          //       .catch((err) => {
+          //         console.error(err);
+          //         resolve();
+          //       });
+          //   });
+          // };
 
-          for (const ice of b) {
-            const candidates = ice.candidate.split(" ");
-            const ip = candidates.find((c) => net.isIPv4(c));
+          // for (const ice of b) {
+          //   const candidates = ice.candidate.split(" ");
+          //   const ip = candidates.find((c) => net.isIPv4(c));
 
-            if (ip) checks.push(onBeforeEstablishConnection(ip));
-          }
+          //   if (ip) checks.push(onBeforeEstablishConnection(ip));
+          // }
 
           Promise.all(checks)
             .then(() => {

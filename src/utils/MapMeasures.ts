@@ -32,9 +32,10 @@ const MapMeasures = {
         { x: 930, y: 60 }
     ],
     HashesHeight: {
-        y1: -70,
-        y2: 70
+        y1: -80,
+        y2: 80
     },
+    SingleHashHeight: 20,
     RedEndZoneStartPositionX: -775,
     BlueEndZoneStartPositionX: 775,
     RedEndZoneLineCenter: { x: -775, y: 0 },

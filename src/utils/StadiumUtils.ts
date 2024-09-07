@@ -124,6 +124,6 @@ export default class StadiumUtils {
         const a = [goalLine[0].x, goalLine[0].y];
         const b = [goalLine[1].x, goalLine[1].y];
 
-        return MathUtils.lineCircleCollide(a, b, [ball.getX(), ball.getY()], ball.getRadius());
+        return MathUtils.lineCircleCollide(a, b, [ball.getX(), ball.getY()], Math.max(ball.getRadius(), ball.getVelocity()));
     }
 }

@@ -458,7 +458,24 @@
         { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "FF0000", "cGroup": [] },
         { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "FF0000", "cGroup": [] },
         { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "FF0000", "cGroup": [] },
-        { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "FF0000", "cGroup": [] }
+        { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "FF0000", "cGroup": [] },
+
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+        { "radius" : 0, "invMass" : 1, "pos" : [0,0 ], "color" : "transparent", "cGroup": [] },
+
+        { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "f5f5f5", "cGroup": [] },
+        { "radius" : 1, "invMass" : 1, "pos" : [9999,9999 ], "color" : "f5f5f5", "cGroup": [] }
+
 	],
 
 	"playerPhysics" : {
@@ -498,7 +515,14 @@
         { "d0" : 25, "d1" : 26, "color" : "FF0000", "length" : [0,99999] },
         { "d0" : 27, "d1" : 28, "color" : "FF0000", "length" : [0,99999] },
         { "d0" : 29, "d1" : 30, "color" : "FF0000", "length" : [0,99999] },
-        { "d0" : 31, "d1" : 32, "color" : "FF0000", "length" : [0,99999] }
+        { "d0" : 31, "d1" : 32, "color" : "FF0000", "length" : [0,99999] },
+
+        { "d0" : 37, "d1" : 38, "color" : "f5f5f5", "length" : [0,99999] },
+        { "d0" : 39, "d1" : 40, "color" : "f5f5f5", "length" : [0,99999] },
+        { "d0" : 41, "d1" : 42, "color" : "f5f5f5", "length" : [0,99999] },
+        { "d0" : 43, "d1" : 44, "color" : "f5f5f5", "length" : [0,99999] },
+        { "d0" : 45, "d1" : 46, "color" : "f5f5f5", "length" : [0,99999] },
+        { "d0" : 47, "d1" : 48, "color" : "f5f5f5", "length" : [0,99999] }
 	],
 
 	"redSpawnPoints" : [],

@@ -212,14 +212,20 @@ export abstract class LandPlay extends Tackleable {
 
             return;
         } else {
+            const ball = room.getBall();
+
             const ballWithinGoalLine = (
-                StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.interceptAttemptPlayer?.getTeam())
+                StadiumUtils.ballWithinGoalLine(ball, this.game.interceptAttemptPlayer?.getTeam())
                 ||
-                StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.invertTeam(this.game.interceptAttemptPlayer?.getTeam()))
+                StadiumUtils.ballWithinGoalLine(ball, this.game.invertTeam(this.game.interceptAttemptPlayer?.getTeam()))
             );
 
-            if ((this.game.interceptAttemptPlayer || this.game.intercept) && ballWithinGoalLine) {
+            const ballOutsideField = StadiumUtils.isOutOfMap(ball.getPosition(), ball.getRadius() * 2);
+
+            if ((this.game.interceptAttemptPlayer || this.game.intercept) && ballWithinGoalLine && !ballOutsideField) {
                 room.send({ message: `🏈 INTERCEPTAÇÃO de ${this.game.interceptAttemptPlayer.name}!!! • Bola para o ${this.game.getTeamName(this.game.interceptAttemptPlayer.getTeam())}`, color: 0x00ffff, style: "bold" });
+
+                this.game.setBallDamping(room, Global.BallDamping.Default);
 
                 if (this.game.down.sack) {
                     this.game.down.qbPassedInSack();

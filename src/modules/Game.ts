@@ -568,6 +568,10 @@ class Game extends Module {
         return team === Team.Red ? Team.Blue : Team.Red;
     }
 
+    setBallDamping(room: Room, damping: Global.BallDamping) {
+        room.getBall().setDamping(damping);
+    }
+
     lockBall(room: Room) {
         room.getBall()?.setInvMass(0.000001);
     }
@@ -683,10 +687,7 @@ class Game extends Module {
             this.unlockBall(room);
             this.setBallKickable(room);
             this.unghostAll(room);
-
-            const ball = room.getBall();
-
-            ball.setDamping(0.99);
+            this.setBallDamping(room, Global.BallDamping.Default);
         }
 
         this.down.reset();

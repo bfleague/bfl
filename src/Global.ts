@@ -18,6 +18,12 @@ export const adminAccountRole = "adminAccount";
 
 export const statsVersion = "1";
 
+export enum BallDamping {
+    Default = 0.99,
+    High = 1.002,
+    Highest = 1.006
+}
+
 export enum Color {
     AliceBlue = 0xf0f8ff,
     AntiqueWhite = 0xfaebd7,

@@ -16,6 +16,8 @@ import { DownPlay } from "./DownPlay";
 
 const TICKS_PER_SECOND = 60;
 
+type Line = { x1: number, y1: number, x2: number, y2: number };
+
 export default class Invasion extends DownPlay {
     invasionPenalty = 10;
     invasionTimeSeconds = 3;
@@ -37,14 +39,29 @@ export default class Invasion extends DownPlay {
     ];
     invasionDiscsIndexes = [
         33, 34, 35, 36
-    ]
+    ];
+    innerInvasionLinesIndexes = [
+        [37, 38],
+        [39, 40],
+        [41, 42],
+        [43, 44],
+        [45, 46],
+        [47, 48],
+    ];
+    innerInvasionDiscsIndexes = [
+        49, 50
+    ];
 
-    invasionHorizontalDistanceYards = 10;
+    outerInvasionWidthYards = 9;
     invasionLinesTimeout: Timer;
+    
+    innerInvasionWidthYards = 2;
+    innerInvasionHeightYards = 4;
 
     playerRadius = 15;
 
     crowdingPlayers: [number, number][] = []; // id, tick
+    crowdingPlayersHistory: [number, number][] = []; // id, tick
 
     constructor(room: Room, game: Game) {
         super(game);
@@ -68,6 +85,7 @@ export default class Invasion extends DownPlay {
 
     public clear() {
         this.crowdingPlayers.length = 0;
+        this.crowdingPlayersHistory.length = 0;
     }
 
     public handle(room: Room) {
@@ -90,15 +108,38 @@ export default class Invasion extends DownPlay {
 
         this.crowdingPlayers = this.crowdingPlayers.map(p => {
             if (!crowdingDefendersIds.includes(p[0])) return;
-                
+            
             oldCrowdersIds.push(p[0]);
 
             p[1]++;
-                
+
+            if (this.isInnerInvasionValid()) {
+                const player = room.getPlayer(p[0]);
+            
+                if (player && this.isInsideInnerInvasion(player)) {
+                    p[1]++;
+                }
+            }
+
+            const crowdingPlayerHistoryIndex = this.crowdingPlayersHistory.findIndex(a => a[0] === p[0]);
+            if (crowdingPlayerHistoryIndex !== -1) this.crowdingPlayersHistory[crowdingPlayerHistoryIndex][1]++;
+            
             return p;
         }).filter(p => p);
 
-        crowdingDefendersIds.forEach(id => !oldCrowdersIds.includes(id) && this.crowdingPlayers.push([id, 1]));
+        crowdingDefendersIds.forEach(id => {
+            if (!oldCrowdersIds.includes(id)) {
+                this.crowdingPlayers.push([id, 1]);
+
+                const playerHistoryIndex = this.crowdingPlayersHistory.findIndex(p => p[0] === id);
+             
+                if (playerHistoryIndex === -1) {
+                    this.crowdingPlayersHistory.push([id, 1]);
+                } else {
+                    this.crowdingPlayersHistory[playerHistoryIndex][1]++;
+                }
+            }
+        });
 
         // Check crowding time
 
@@ -131,10 +172,10 @@ export default class Invasion extends DownPlay {
             } else {
                 penalty = this.game.getPenaltyValueInRedZone(this.invasionPenalty);
 
-                room.send({ message: `⛔ Invasão de ${Utils.getPlayersNames(this.game.invasionPlayers)} na Red Zone • ${this.game.redZonePenalties}/${this.game.down.maxPenaltiesInRedZone} para Touchdown Automático • ${penalty} jardas de penalidade`, color: Global.Color.Orange, style: "bold" });
+                room.send({ message: `⛔ Invasão de ${this.getInvasionPlayersString(room)} na Red Zone • ${this.game.redZonePenalties}/${this.game.down.maxPenaltiesInRedZone} para Touchdown Automático • ${penalty} jardas de penalidade`, color: Global.Color.Orange, style: "bold" });
             }
         } else {
-            room.send({ message: `⛔ Invasão de ${Utils.getPlayersNames(this.game.invasionPlayers)} • ${penalty} jardas de penalidade`, color: Global.Color.Orange, style: "bold" });
+            room.send({ message: `⛔ Invasão de ${this.getInvasionPlayersString(room)} • ${penalty} jardas de penalidade`, color: Global.Color.Orange, style: "bold" });
         }
 
         defendersCrowding.forEach(p => {
@@ -152,6 +193,51 @@ export default class Invasion extends DownPlay {
         return true;
     }
 
+    public isInnerInvasionValid() {
+        return this.game.ballPosition.yards > 5;
+    }
+
+    public isInsideInnerInvasion(player: Player) {
+        const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition);
+
+        const circleX = player.getX();
+        const circleY = player.getY();
+        const circleR = player.getRadius();
+
+        const rectW = this.innerInvasionWidthYards * MapMeasures.Yard;
+        const rectH = this.innerInvasionHeightYards * MapMeasures.Yard;
+
+        const rectY = (this.innerInvasionHeightYards / 2) * MapMeasures.Yard * -1;
+        const rectX = this.game.teamWithBall === Team.Red ? ballPos.x :
+            Math.max(ballPos.x - rectW, MapMeasures.RedZoneRed[0].x);
+
+        const distX = Math.abs(circleX - rectX - rectW / 2);
+        const distY = Math.abs(circleY - rectY - rectH / 2);
+
+        if (distX > (rectW / 2 + circleR)) return false;
+        if (distY > (rectH / 2 + circleR)) return false;
+
+        if (distX <= (rectW / 2)) return true;
+        if (distY <= (rectH / 2)) return true;
+
+        const dx = distX - rectW / 2;
+        const dy = distY - rectH / 2;
+
+        return (dx * dx + dy * dy <= (circleR * circleR));
+    }
+
+    private getInvasionPlayersString(room: Room) {
+        const sum = this.crowdingPlayersHistory.reduce((previous, current) => previous + current[1], 0);
+
+        return Utils.getPlayersNames(this.crowdingPlayersHistory.sort((a, b) => b[1] - a[1]).map(p => {
+            const player = room.getPlayer(p[0]);
+
+            if (!player) return;
+
+            return { name: `${player.name} (${((p[1] / sum) * 100).toFixed(1)}%)` };
+        }).filter(p => p != null));
+    }
+
     private handleInvasionLines(room: Room, callback: Function) {
         this.game.mode = null;
 
@@ -165,7 +251,16 @@ export default class Invasion extends DownPlay {
                 d1.setPosition(d2.getPosition());
             }
 
-            for (let i = 0; i < 4; i++) room.getDisc(this.invasionDiscsIndexes[i]).setPosition({ x: 9999, y: 9999 });
+            for (const index of this.innerInvasionLinesIndexes) {
+                const d1 = room.getDisc(index[0]);
+                const d2 = room.getDisc(index[1]);
+
+                d1.setPosition(d2.getPosition());
+            }
+
+            for (const index of [...this.invasionDiscsIndexes, ...this.innerInvasionDiscsIndexes]) {
+                room.getDisc(index).setPosition({ x: 9999, y: 9999 });
+            }
 
             callback();
 
@@ -181,6 +276,20 @@ export default class Invasion extends DownPlay {
         return { crowdingPlayers, defendersCrowding, attackersCrowding };
     }
 
+    private getOuterBoxWidth() {
+        const ballPos = this.game.getBallStartPos();
+
+        const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
+
+        const distanceToEndzone = this.game.teamWithBall === Team.Blue ?
+            Math.abs(Math.abs(ballPos.x) - Math.abs(MapMeasures.RedZoneRed[0].x + MapMeasures.Yard)) :
+            Math.abs(Math.abs(ballPos.x) - Math.abs(MapMeasures.RedZoneBlue[0].x - MapMeasures.Yard));
+        
+        const rectW = Math.min(rectMaxW, distanceToEndzone);
+
+        return rectW;
+    }
+
     private getCrowdingPlayers(room: Room) {
         const crowdingPlayers = [];
 
@@ -189,93 +298,96 @@ export default class Invasion extends DownPlay {
 
             const ballPos = this.game.getBallStartPos();
 
-            const y1 = MapMeasures.HashesHeight.y1;
-            const y2 = MapMeasures.HashesHeight.y2;
+            const circleX = player.getX();
+            const circleY = player.getY();
+            const circleR = player.getRadius();
+    
+            const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
 
-            const x1 = ballPos.x + (this.invasionHorizontalDistanceYards * MapMeasures.Yard * (this.game.teamWithBall === Team.Blue ? -1 : 1));
-            const x2 = ballPos.x + (this.playerRadius * (this.game.teamWithBall === Team.Blue ? 1 : -1));
+            const rectLimitRed = MapMeasures.RedZoneRed[0].x + MapMeasures.Yard;
 
-            const x = player.getX();
-            const y = player.getY();
-
-            if (
-                (this.game.teamWithBall === Team.Blue && (x > Math.max(x1, MapMeasures.RedZoneRed[0].x) && x < x2) && (y > y1 && y < y2))
-                ||
-                (this.game.teamWithBall === Team.Red && (x < Math.min(x1, MapMeasures.RedZoneBlue[0].x) && x > x2) && (y > y1 && y < y2))
-            ) {
+            const rectY = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
+            const rectX = this.game.teamWithBall === Team.Red ? ballPos.x :
+                Math.max(ballPos.x - rectMaxW, rectLimitRed);
+                
+            const rectW = this.getOuterBoxWidth();
+            const rectH = MapMeasures.HashesHeight.y2 * 2 - MapMeasures.SingleHashHeight * 2;
+    
+            const distX = Math.abs(circleX - rectX - rectW / 2);
+            const distY = Math.abs(circleY - rectY - rectH / 2);
+    
+            if (distX > (rectW / 2 + circleR)) continue;
+            if (distY > (rectH / 2 + circleR)) continue;
+    
+            if (distX <= (rectW / 2) || distY <= (rectH / 2)) {
                 crowdingPlayers.push(player);
+            } else {
+                const dx = distX - rectW / 2;
+                const dy = distY - rectH / 2;
+        
+                if (dx * dx + dy * dy <= (circleR * circleR)) {
+                    crowdingPlayers.push(player);
+                }
             }
         }
 
         return crowdingPlayers;
     }
 
-    private setInvasionLines(room: Room) {
-        const ballPos = this.game.getBallStartPos();
-
-        let maxHorizontalX;
-
-        if (this.game.teamWithBall === Team.Blue) {
-            maxHorizontalX = Math.max(
-                MapMeasures.RedZoneRed[0].x,
-                ballPos.x - (this.invasionHorizontalDistanceYards * MapMeasures.Yard)
-            );
-        } else {
-            maxHorizontalX = Math.min(
-                MapMeasures.RedZoneBlue[0].x,
-                ballPos.x + (this.invasionHorizontalDistanceYards * MapMeasures.Yard)
-            );
-        }
-
-        const numberOfPoints = 2 * 3;
-        const behindBallPosX = ballPos.x + ((this.game.teamWithBall === Team.Red ? -1 : 1) * 0 * MapMeasures.Yard);
-
-        const topLine = MathUtils.getPointsAlongLine(
+    private arrangeLines(room: Room, measures: {
+        topLine?: Line,
+        bottomLine?: Line,
+        frontLine?: Line,
+        backLine?: Line,
+        invasionLinesIndexes: number[][],
+        numberOfPoints: number
+    }) {
+        const topLine = !measures.topLine ? [] : MathUtils.getPointsAlongLine(
             {
-                x: behindBallPosX,
-                y: MapMeasures.HashesHeight.y1
+                x: measures.topLine.x1,
+                y: measures.topLine.y1
             },
             {
-                x: maxHorizontalX,
-                y: MapMeasures.HashesHeight.y1
+                x: measures.topLine.x2,
+                y: measures.topLine.y2
             },
-            numberOfPoints
+            measures.numberOfPoints
         );
 
-        const bottomLine = MathUtils.getPointsAlongLine(
+        const bottomLine = !measures.bottomLine ? [] : MathUtils.getPointsAlongLine(
             {
-                x: behindBallPosX,
-                y: MapMeasures.HashesHeight.y2
+                x: measures.bottomLine.x1,
+                y: measures.bottomLine.y1
             },
             {
-                x: maxHorizontalX,
-                y: MapMeasures.HashesHeight.y2
+                x: measures.bottomLine.x2,
+                y: measures.bottomLine.y2
             },
-            numberOfPoints
+            measures.numberOfPoints
         );
 
-        const frontLine = MathUtils.getPointsAlongLine(
+        const frontLine = !measures.frontLine ? [] : MathUtils.getPointsAlongLine(
             {
-                x: maxHorizontalX,
-                y: MapMeasures.HashesHeight.y1
+                x: measures.frontLine.x1,
+                y: measures.frontLine.y1
             },
             {
-                x: maxHorizontalX,
-                y: MapMeasures.HashesHeight.y2
+                x: measures.frontLine.x2,
+                y: measures.frontLine.y2
             },
-            numberOfPoints
+            measures.numberOfPoints
         );
 
-        const backLine = MathUtils.getPointsAlongLine(
+        const backLine = !measures.backLine ? [] : MathUtils.getPointsAlongLine(
             {
-                x: behindBallPosX, // test
-                y: MapMeasures.HashesHeight.y1
+                x: measures.backLine.x1,
+                y: measures.backLine.y1
             },
             {
-                x: behindBallPosX,
-                y: MapMeasures.HashesHeight.y2
+                x: measures.backLine.x2,
+                y: measures.backLine.y2
             },
-            numberOfPoints
+            measures.numberOfPoints
         );
 
         const halfRectangle = [...topLine, ...bottomLine, ...frontLine, ...backLine];
@@ -284,13 +396,8 @@ export default class Invasion extends DownPlay {
         let invasionLineIndex = 0;
         let resetDiscs: Disc[] = [];
 
-        room.getDisc(this.invasionDiscsIndexes[0]).setPosition({ x: behindBallPosX, y: MapMeasures.HashesHeight.y1 });
-        room.getDisc(this.invasionDiscsIndexes[1]).setPosition({ x: maxHorizontalX, y: MapMeasures.HashesHeight.y1 });
-        room.getDisc(this.invasionDiscsIndexes[2]).setPosition({ x: behindBallPosX, y: MapMeasures.HashesHeight.y2 });
-        room.getDisc(this.invasionDiscsIndexes[3]).setPosition({ x: maxHorizontalX, y: MapMeasures.HashesHeight.y2 });
-
         for (let i = 0; i < halfRectangle.length; i++) {
-            const discIndex = this.invasionLinesIndexes[invasionLineIndex][i % 2 === 0 ? 0 : 1];
+            const discIndex = measures.invasionLinesIndexes[invasionLineIndex][i % 2 === 0 ? 0 : 1];
 
             const disc = room.getDisc(discIndex);
             const point = halfRectangle[i];
@@ -305,6 +412,90 @@ export default class Invasion extends DownPlay {
             } else {
                 count++;
             }
+        }
+    }
+
+    private setInvasionLines(room: Room) {
+        const ballPos = this.game.getBallStartPos();
+        const scrimmagePos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition);
+
+        let maxHorizontalX = this.game.teamWithBall === Team.Blue ?
+            ballPos.x - this.getOuterBoxWidth() :
+            ballPos.x + this.getOuterBoxWidth();
+
+        const signal = (this.game.teamWithBall === Team.Red ? -1 : 1);
+
+        const numberOfPoints = 2 * 3;
+        const behindBallPosX = ballPos.x + (signal * 0 * MapMeasures.Yard);
+
+        const hashHeightY1 = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
+        const hashHeightY2 = MapMeasures.HashesHeight.y2 - MapMeasures.SingleHashHeight;
+
+        room.getDisc(this.invasionDiscsIndexes[0]).setPosition({ x: behindBallPosX, y: hashHeightY1 });
+        room.getDisc(this.invasionDiscsIndexes[1]).setPosition({ x: maxHorizontalX, y: hashHeightY1 });
+        room.getDisc(this.invasionDiscsIndexes[2]).setPosition({ x: behindBallPosX, y: hashHeightY2 });
+        room.getDisc(this.invasionDiscsIndexes[3]).setPosition({ x: maxHorizontalX, y: hashHeightY2 });
+
+        this.arrangeLines(room, {
+            topLine: {
+                x1: behindBallPosX,
+                y1: hashHeightY1,
+                x2: maxHorizontalX,
+                y2: hashHeightY1
+            },
+            bottomLine: {
+                x1: behindBallPosX,
+                y1: hashHeightY2,
+                x2: maxHorizontalX,
+                y2: hashHeightY2
+            },
+            frontLine: {
+                x1: maxHorizontalX,
+                y1: hashHeightY1,
+                x2: maxHorizontalX,
+                y2: hashHeightY2
+            },
+            backLine: {
+                x1: behindBallPosX,
+                y1: hashHeightY1,
+                x2: behindBallPosX,
+                y2: hashHeightY2
+            },
+            invasionLinesIndexes: this.invasionLinesIndexes,
+            numberOfPoints
+        });
+
+        if (this.isInnerInvasionValid()) {
+            const innerTopLineY = (this.innerInvasionHeightYards / 2) * MapMeasures.Yard * -1;
+            const innerBottomLineY = -innerTopLineY;
+            const innerFrontX = scrimmagePos.x + (this.innerInvasionWidthYards * MapMeasures.Yard * -signal);
+            const innerBottomX = ballPos.x;
+
+            room.getDisc(this.innerInvasionDiscsIndexes[0]).setPosition({ x: innerFrontX, y: innerTopLineY });
+            room.getDisc(this.innerInvasionDiscsIndexes[1]).setPosition({ x: innerFrontX, y: innerBottomLineY });
+
+            this.arrangeLines(room, {
+                topLine: {
+                    x1: innerBottomX,
+                    y1: innerTopLineY,
+                    x2: innerFrontX,
+                    y2: innerTopLineY
+                },
+                bottomLine: {
+                    x1: innerBottomX,
+                    y1: innerBottomLineY,
+                    x2: innerFrontX,
+                    y2: innerBottomLineY
+                },
+                frontLine: {
+                    x1: innerFrontX,
+                    y1: innerTopLineY,
+                    x2: innerFrontX,
+                    y2: innerBottomLineY
+                },
+                invasionLinesIndexes: this.innerInvasionLinesIndexes,
+                numberOfPoints: 2 * 2
+            });
         }
 
         room.pause();

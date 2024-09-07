@@ -36,6 +36,8 @@ export class Down extends LandPlay {
     illegalTouchPenalty = 10;
     firstDownDiscsIndex = [5, 6];
     qbCarriedBallTime = 0;
+    minimumIntVelocity = 3;
+    maximumHighestDampingIntVelocity = 6;
     timeIllegalTouchDisabledStartMs = 500;
 
     qbScrimmageLineMaxPermitted = 8;
@@ -311,20 +313,30 @@ export class Down extends LandPlay {
                 }
             }
 
-            /* Interceptação falhou */
-            if (this.didInterceptionFailed(room)) {
-                if (!this.sack) {
-                    room.send({ message: translate("INTERCEPTION_FAILED", this.game.interceptAttemptPlayer.name, this.game.interceptAttemptPlayer.name), color: Global.Color.Orange, style: "bold" });
-
-                    this.game.blockPass(room, this.game.interceptAttemptPlayer, false);
-
-                    this.game.interceptAttemptPlayer = null;
+            /* Interceptação */
+            if (this.game.interceptAttemptPlayer) {
+                if (this.checkInterceptionFailed(room)) {
+                    this.game.setBallDamping(room, Global.BallDamping.Default);
+                    
+                    if (!this.sack) {
+                        room.send({ message: translate("INTERCEPTION_FAILED", this.game.interceptAttemptPlayer.name, this.game.interceptAttemptPlayer.name), color: Global.Color.Orange, style: "bold" });
+    
+                        this.game.blockPass(room, this.game.interceptAttemptPlayer, false);
+    
+                        this.game.interceptAttemptPlayer = null;
+                    } else {
+                        room.send({ message: translate("INTERCEPTION_FAILED_SACK", this.game.interceptAttemptPlayer.name, this.game.interceptAttemptPlayer.name), color: Global.Color.Orange, style: "bold" });
+    
+                        this.sackBallTouched = true;
+    
+                        this.game.interceptAttemptPlayer = null;
+                    }
                 } else {
-                    room.send({ message: translate("INTERCEPTION_FAILED_SACK", this.game.interceptAttemptPlayer.name, this.game.interceptAttemptPlayer.name), color: Global.Color.Orange, style: "bold" });
-
-                    this.sackBallTouched = true;
-
-                    this.game.interceptAttemptPlayer = null;
+                    const ball = room.getBall();
+    
+                    if (ball.getDamping() === Global.BallDamping.Highest && ball.getVelocity() > this.maximumHighestDampingIntVelocity) {
+                        this.game.setBallDamping(room, Global.BallDamping.High);
+                    }
                 }
             }
         });
@@ -789,17 +801,13 @@ export class Down extends LandPlay {
                 try {
                     if (pointOfIntersection === false) throw "Missed interception";
 
-                    const maxDistance = room.getBall().distanceTo({ ...pointOfIntersection, radius: 1 });
-                    const speed = room.getBall().getVelocity();
-
-                    const acceleration = 0.01;
-                    const tolerance = 100;
-
-                    const predictedTravalledDistance = (speed / acceleration) + tolerance;
-
-                    if (predictedTravalledDistance < maxDistance) throw "Too far";
-
                     room.send({ message: translate("INTERCEPTION_ATTEMPT_DETECTED", player.name), color: Global.Color.Yellow, style: "bold" });
+                
+                    if (room.getBall().getVelocity() < this.minimumIntVelocity) {
+                        this.game.setBallDamping(room, Global.BallDamping.Highest);
+                    } else {
+                        this.game.setBallDamping(room, Global.BallDamping.High);
+                    }
                 } catch(err) {
                     this.game.interceptAttemptPlayer = null;
                     

@@ -29,7 +29,7 @@ module.exports = env => ({
     },
     plugins: [
         new webpack.DefinePlugin({
-            "process.env": JSON.stringify({ ...process.env, mode: env.mode })
+            "process.env": JSON.stringify({ ...process.env, MODE: env.mode })
         })
     ]
 });

@@ -150,8 +150,7 @@ export abstract class LandPlay extends Tackleable {
         }
 
         for (const player of players) {
-            player.setAvatar("🤡");
-            setTimeout((player) => this.game.clearAvatar(player), this.clownEmojiTime, player);
+            this.game.customAvatarManager.setPlayerAvatar(player, "🤡", this.clownEmojiTime);
         }
     }
 
@@ -294,8 +293,6 @@ export abstract class LandPlay extends Tackleable {
 
             this.game.resetToKickoff(room);
         }
-
-        this.game.clearAvatar(player);
     }
 
     private setTouchback(room: Room, forTeam: Team, message: string, player?: Player, pos?: Global.FieldPosition) {
@@ -315,8 +312,6 @@ export abstract class LandPlay extends Tackleable {
         } else {
             this.game.resetToKickoff(room);
         }
-
-        if (player) this.game.clearAvatar(player);
     }
 
     protected handleTackle(room: Room, tackle: Tackle) {
@@ -346,11 +341,10 @@ export abstract class LandPlay extends Tackleable {
                     } else {
                         this.setSafety(room, this.game.playerWithBall, tackle.players);
                     }
-                } else {
-                    this.game.clearAvatar(this.game.playerWithBall);
-                
-                    tackle.players.forEach(p => p.setAvatar("💪"));
-                    setTimeout(() => tackle.players.forEach(p => this.game.clearAvatar(p)), 3000);
+                } else {                
+                    tackle.players.forEach(p => {
+                        this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
+                    });
 
                     if (this.game.down.sack && this.game.quarterback && this.game.isPlayerBehindLineOfScrimmage(this.game.quarterback)) {
                         room.send({ message: `💪 ${this.game.playerWithBall.name} foi sackado por ${Utils.getPlayersNames(tackle.players)}`, color: Global.Color.Yellow, style: "bold" });
@@ -399,13 +393,10 @@ export abstract class LandPlay extends Tackleable {
             Utils.sendSoundTeamMessage(room, { message: `🙌 ${this.game.intercept ? "RETORNO DE INTERCEPTAÇÃO" : "CONVERSÃO"} de ${this.game.playerWithBall.name}!!! • +${this.game.extraPoint.conversionPoints} pontos para o ${teamName} • ${this.game.getScoreMessage()}`, color: Global.Color.LimeGreen, style: "bold" });
         }
 
-        this.game.playerWithBall.setAvatar("🔥");
-        setTimeout((player) => this.game.clearAvatar(player), 5000, this.game.playerWithBall);
+        this.game.customAvatarManager.setPlayerAvatar(this.game.playerWithBall, "🔥", 3000);
     }
 
     private handlePlayerWithBallOutsideField(room: Room) {
-        this.game.clearAvatar(this.game.playerWithBall);
-
         const playerPos = this.game.playerWithBall.getPosition();
 
         if (

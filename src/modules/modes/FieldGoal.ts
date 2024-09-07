@@ -241,14 +241,13 @@ export class FieldGoal extends Tackleable {
 
     protected handleTackle(room: Room, tackle: Tackle) {
         this.fgFailed = true;
-        this.fgKicker.setAvatar("❌");
-        setTimeout((player) => this.game.clearAvatar(player), 2000, this.fgKicker);
+        this.game.customAvatarManager.setPlayerAvatar(this.fgKicker, "❌", 3000);
 
         this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
         tackle.players.forEach(p => this.game.matchStats.add(p, { tackles: 1, sacks: 1 }));
 
         tackle.players.forEach(p => {
-            p.setAvatar("💪");
+            this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
         });
 
         const remainingTime = Utils.getFormattedSeconds(parseInt(((this.fgTimeLimit - this.game.fieldGoalTimeout.getRemainingTime()) / 1000).toFixed(1)));
@@ -332,8 +331,7 @@ export class FieldGoal extends Tackleable {
     private handleIllegalTouch(room: Room, player: Player) {
         this.fgFailed = true;
 
-        player.setAvatar("🤡");
-        setTimeout((player) => this.game.clearAvatar(player), 2000, player);
+        this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
 
         if (player.getTeam() !== this.game.teamWithBall) {
             this.scoreFieldGoal(room, this.game.teamWithBall);

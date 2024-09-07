@@ -22,6 +22,9 @@ import { ExtraPoint } from "./modes/ExtraPoint";
 import translate from "../utils/Translate";
 import { Safety } from "./modes/Safety";
 import MapMeasures from "../utils/MapMeasures";
+import { CustomAvatarManager } from "./CustomAvatarManager";
+
+const BALL_AVATAR = "🏈";
 
 class Game extends Module {
     public down: Down;
@@ -33,6 +36,7 @@ class Game extends Module {
     
     public gameCommands: GameCommands;
     public customTeams: CustomTeams;
+    public customAvatarManager: CustomAvatarManager;
 
     public mode: string;
 
@@ -130,6 +134,7 @@ class Game extends Module {
 
         this.gameCommands = room.module(GameCommands, this) as GameCommands;
         this.customTeams = room.module(CustomTeams, this) as CustomTeams;
+        this.customAvatarManager = new CustomAvatarManager(room);
 
         room.on("playerBallKick", (player: Player) => {
             this.setBallMoveable(room);
@@ -163,7 +168,7 @@ class Game extends Module {
                 this.qbLeft(room);
             }
 
-            this.clearAvatar(changedPlayer);
+            this.customAvatarManager.clearPlayerAvatar(changedPlayer.id);
 
             const playerHist = this.teamPlayersHistory.find(p => p.id === changedPlayer.id && p.timeLeft == null);
 
@@ -182,6 +187,8 @@ class Game extends Module {
 
         room.on("gameStop", (byPlayer: Player) => {
             this.mode = null;
+
+            this.customAvatarManager.clearAll();
 
             const rec = room.stopRecording();
 
@@ -238,10 +245,14 @@ class Game extends Module {
             this.teamPlayersHistory = [...room.getPlayers().teams().map(p => {
                 return { id: p.id, name: p.name, timeJoin: 0, auth: p.auth, registered: p.roles.includes(Global.loggedRole), team: p.getTeam() };
             })];
+
+            room.getPlayers().forEach(p => this.customAvatarManager.clearPlayerAvatar(p.id));
         });
 
         room.on("gameTick", () => {
             if (this.gameStopped) return;
+
+            this.customAvatarManager.run();
 
             this.gameTime = room.getScores().time;
 
@@ -467,7 +478,8 @@ class Game extends Module {
     setPlayerWithBall(room: Room, player: Player, state: Game["playerWithBallState"], running: boolean) {
         this.playerWithBallInitialPosition = player.getPosition();
 
-        player.setAvatar("🏈");
+        if (this.playerWithBall) this.customAvatarManager.clearPlayerAvatar(this.playerWithBall.id);
+        this.customAvatarManager.setPlayerAvatar(player, BALL_AVATAR);
 
         this.unlockBall(room);
         this.setBallMoveable(room);
@@ -479,7 +491,10 @@ class Game extends Module {
     }
 
     clearPlayerWithBall() {
-        this.clearAvatar(this.playerWithBall);
+        if (this.playerWithBall && this.customAvatarManager.getPlayer(this.playerWithBall)?.avatar === BALL_AVATAR) {
+            this.customAvatarManager.clearPlayerAvatar(this.playerWithBall.id);
+        }
+
         this.playerWithBall = null;
         this.playerWithBallState = null;
         this.playerWithBallInitialPosition = null;
@@ -524,7 +539,7 @@ class Game extends Module {
 
         this.unlockBall(room);
 
-        player.setAvatar("🚧");
+        this.customAvatarManager.setPlayerAvatar(player, "🚧", 3000);
 
         this.matchStats.add(player, { passesBloqueados: 1 });
 
@@ -534,11 +549,9 @@ class Game extends Module {
             this.mode = null;
             this.kickOffReset = new Timer(() => {
                 this.kickOff.set({ room });
-                this.clearAvatar(player);
             }, 3000);
         } else {
             setTimeout(() => room.isGameInProgress() && this.down.set({ room }), 1500);
-            setTimeout(() => this.clearAvatar(player), 4000);
         }
     }
 
@@ -654,16 +667,6 @@ class Game extends Module {
         }
     }
 
-    clearAvatar(player: Player) {
-        player?.setAvatar(player.name.replace(/[^\w\s]/gi, '').slice(0, 2));
-    }
-
-    clearAvatars(room: Room) {
-        room.getPlayers().teams().forEach(p => {
-            this.clearAvatar(p);
-        });
-    }
-
     addToStoppage(timeMs: number) {
         if (!this.isStoppageTime) {
             this.stoppageTimeMs += timeMs;
@@ -677,8 +680,6 @@ class Game extends Module {
     resetPlay(room: Room) {
         this.redZonePenalties = 0;
         this.down.goalMode = false;
-
-        this.clearAvatars(room);
     }
  
     reset(room: Room) {

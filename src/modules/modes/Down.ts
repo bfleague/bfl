@@ -190,6 +190,7 @@ export class Down extends LandPlay {
                     if (holdingPlayers) {    
                         holdingPlayers.forEach(p => {
                             this.game.matchStats.add(p, { faltas: 1 });
+                            this.game.customAvatarManager.setPlayerAvatar(p, "🤡", 3000);
                         });
 
                         if (!this.game.conversion) {
@@ -367,7 +368,6 @@ export class Down extends LandPlay {
 
                     this.game.matchStats.add(this.game.quarterback, { passesTentados: 1 });
                 } else {
-                    this.game.clearAvatar(this.game.quarterback);
                     this.playerTouchBallHike(room, player);
                 }
             } else if (
@@ -637,7 +637,6 @@ export class Down extends LandPlay {
 
     public qbPassedInSack() {
         if (this.game.playerWithBall?.id === this.game.quarterback.id && this.sack) {
-            this.game.clearAvatar(this.game.quarterback);
             this.sack = false;
         }
     }

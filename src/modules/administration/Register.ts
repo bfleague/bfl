@@ -47,7 +47,7 @@ export default class Register extends Module {
         room.on("playerNeedsConfirmation", (player) => {
             if (this.disabled) {
                 player.reply({ message: `👋 E aí, ${player.name}! Seja bem-vindo!`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
-                player.reply({ message: `👾 Discord: ${Global.discord}`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
+                player.reply({ message: `👾 Discord: ${process.env.DISCORD_INVITE}`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
 
                 player.roles.push(Global.notRegistered, Global.bypassRegisterRole);
                 player.addConfirmLevel(this.confirmationLevel);
@@ -63,13 +63,13 @@ export default class Register extends Module {
 
                     if (req.message.auth === player.auth) {
                         player.reply({ message: `👋 E aí, ${player.name}! Seja bem-vindo de volta à BFL!`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
-                        player.reply({ message: `👾 Discord: ${Global.discord}`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
+                        player.reply({ message: `👾 Discord: ${process.env.DISCORD_INVITE}`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
                         player.reply({ message: `✅ Você foi logado automaticamente!`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
                         
                         player.roles.push(Global.loggedRole);
                     } else {
                         player.reply({
-                            message: `Não foi possível verificar seu login. Você tem ${Utils.getFormattedSeconds(this.kickTime / 1000)} para se logar.\nPor favor, digite sua senha abaixo (somente a senha, sem !).\nEsqueceu sua senha? Entre no nosso Discord para alterá-la.\nDiscord: ${Global.discord}`,
+                            message: `Não foi possível verificar seu login. Você tem ${Utils.getFormattedSeconds(this.kickTime / 1000)} para se logar.\nPor favor, digite sua senha abaixo (somente a senha, sem !).\nEsqueceu sua senha? Entre no nosso Discord para alterá-la.\nDiscord: ${process.env.DISCORD_INVITE}`,
                             color: Global.Color.Tomato,
                             sound: 2,
                             style: "bold"
@@ -89,7 +89,7 @@ export default class Register extends Module {
                     }
                 } else {
                     player.reply({ message: `👋 E aí, ${player.name}! Seja bem-vindo!`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
-                    player.reply({ message: `👾 Discord: ${Global.discord}`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
+                    player.reply({ message: `👾 Discord: ${process.env.DISCORD_INVITE}`, color: Global.Color.LimeGreen, style: "bold", sound: 2 });
                 }
                 
                 if (req.type === ResponseType.InternalError) {
@@ -181,6 +181,6 @@ export default class Register extends Module {
         aliases: ["comoregistra"]
     })
     comoRegistarCommand($: CommandInfo, room: Room) {
-        $.caller.reply({ message: `🔐 Entre no nosso Discord para registrar-se: ${Global.discord}`, sound: 2, color: Global.Color.LimeGreen, style: "bold" });
+        $.caller.reply({ message: `🔐 Entre no nosso Discord para registrar-se: ${process.env.DISCORD_INVITE}`, sound: 2, color: Global.Color.LimeGreen, style: "bold" });
     }
 }

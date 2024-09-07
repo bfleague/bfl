@@ -10,7 +10,7 @@ class Discord extends Module {
         name: "discord"
     })
     discordCommand($: CommandInfo, room: Room) {
-        $.caller.reply({ message: `👾 Discord: ${Global.discord}`, sound: 2, color: Color.LightGreen, style: "bold" });
+        $.caller.reply({ message: `👾 Discord: ${process.env.DISCORD_INVITE}`, sound: 2, color: Color.LightGreen, style: "bold" });
     }
 }
 

@@ -2,7 +2,7 @@ import * as wrtc from "@koush/wrtc";
 import fetch from "node-fetch-commonjs";
 import WebSocket from "ws";
 import url from "url";
-import HttpsProxyAgent from "https-proxy-agent";
+import * as HttpsProxyAgent from "https-proxy-agent";
 import JSON5 from "json5";
 import pako from "pako";
 import { Crypto } from "@peculiar/webcrypto";
@@ -11,8 +11,9 @@ import * as net from "net";
 
 const crypto = new Crypto();
 
-var proxyAgent;
+var proxyAgent = process.env.proxy ? new HttpsProxyAgent.HttpsProxyAgent(url.parse(process.env.proxy)) : null;
 var debug = false;
+var ipCache = [];
 
 const headless = new Promise((resolve) => {
   let blockedPlayersId = [];
@@ -541,12 +542,43 @@ const headless = new Promise((resolve) => {
         var c = this;
 
         const checks = [];
+        const blockedLocations = [{ org: "TIM SA", city: "BRASÍLIA" }];
+
+        const onBeforeEstablishConnection = (ip) => {
+          return new Promise((resolve, reject) => {
+              if (!net.isIPv4(ip)) resolve();
+  
+              const findAndCache = async (ip, ipCache) => {
+                  const found = ipCache.find(i => i.ip === ip);
+                  if (found) return found;
+
+                  const request = await fetch(`https://ipapi.co/${ip}/json/`);
+                  const response = await request.json();
+  
+                  const loc = { ip: response.ip, org: response.org?.toUpperCase(), city: response.city?.toUpperCase() };
+                  ipCache.push(loc);
+  
+                  return loc;
+              };
+  
+              findAndCache(ip, ipCache).then(loc => {
+                  const isBlocked = !!blockedLocations.find(l => l.org === loc.org && l.city === loc.city);
+          
+                  if (isBlocked) reject();
+
+                  resolve();
+              }).catch(err => {
+                console.error(err)
+                resolve();
+              });
+          });
+        };
 
         for (const ice of b) {
           const candidates = ice.candidate.split(" ");
           const ip = candidates.find(c => net.isIPv4(c));
 
-          if (ip) checks.push(api.onBeforeEstablishConnection(ip));
+          if (ip) checks.push(onBeforeEstablishConnection(ip));
         }
 
         Promise.all(checks)
@@ -2090,9 +2122,10 @@ const headless = new Promise((resolve) => {
       if (y.tf) throw new l("Can't init twice");
       y.tf = !0;
 
-      proxyAgent = m("proxy", null)
-        ? new HttpsProxyAgent(url.parse(m("proxy", null)))
-        : null;
+      // proxyAgent = m("proxy", null)
+      //   ? new HttpsProxyAgent(url.parse(m("proxy", null)))
+      //   : null;
+      console.log(m("proxy", null))
       debug = m("debug", null) == true;
 
       var q = !m("public", !1),

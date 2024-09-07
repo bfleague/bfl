@@ -24,7 +24,7 @@ function run(HBInit: any, token: string) {
     const room = new Room(HBInit, {
         public: false,
         noPlayer: true,
-        maxPlayers: 25,
+        maxPlayers: 20,
         roomName: `🏈 Futebol Americano 🏈`,
         token
     });

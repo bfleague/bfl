@@ -781,6 +781,7 @@ export class Down extends LandPlay {
 
     private playerTouchBallHike(room: Room, player: Player) {
         if (this.game.playerWithBall) return;
+        if (!this.game.quarterback) return;
 
         const hikeTimeStatus = this.game.getHikeTimeStatus();
         const isWaitingHike = this.game.mode === this.waitingHikeMode;

@@ -10,7 +10,7 @@ export enum DEFAULT_PORTS {
 
 export const TICKS_PER_SECOND = 60;
 
-export const version = "07/12/2022";
+export const version = "10/12/2022";
 export const discord = "discord.gg/6E6bZymqTt";
 
 export const loggedRole = "loggedIn";

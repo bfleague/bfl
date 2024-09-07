@@ -3,10 +3,10 @@ name: Deploy
 env:
   REGISTRY: registry.haxbrasil.com
   NAME: bfl
-  REC_CHANNEL_ID: 952383094130892810
-  GUILD_ID: 952375559554490440
-  ENABLE_LOG: true
-  DISCORD_INVITE: https://discord.gg/6Fq5hhxU8e
+  REC_CHANNEL_ID: "952383094130892810"
+  GUILD_ID: "952375559554490440"
+  ENABLE_LOG: "true"
+  DISCORD_INVITE: "https://discord.gg/6Fq5hhxU8e"
 
 on:
   push:

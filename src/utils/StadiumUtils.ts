@@ -5,12 +5,6 @@ import * as Global from "../Global";
 import MathUtils from "./MathUtils";
 import Disc from "../core/Disc";
 
-function getClosestNumber(arr: number[], num: number) {
-    return arr.reduce((prev, curr) => {
-        return (Math.abs(curr - num) < Math.abs(prev - num) ? curr : prev);
-    });
-}
-
 export default class StadiumUtils {
     static addYardsToFieldPosition(pos: Global.FieldPosition, yards: number, teamAdvancing: Team, negativeYards = false) {
         const newPos = { ...pos };
@@ -96,19 +90,13 @@ export default class StadiumUtils {
     }
 
     static getYardsFromXCoord(x: number): Global.FieldPosition {
-        let yards: { yard: number, xPos: number }[] = [];
-        let yardCount = 1;
-    
-        for (let i = MapMeasures.RedEndZoneLineCenter.x + MapMeasures.Yard; yardCount < 100; i += MapMeasures.Yard) {
-            yards.push({ yard: yardCount++, xPos: i });
-        }
-    
-        let point = yards.find(z => z.xPos === getClosestNumber(yards.map(y => y.xPos), x));
-    
-        if (point.yard <= 50) {
-            return { team: Team.Red, yards: point.yard };
+        const startX = MapMeasures.RedEndZoneLineCenter.x + MapMeasures.Yard;
+        const yardCount = Math.floor((x - startX) / MapMeasures.Yard) + 1;
+
+        if (yardCount <= 50) {
+            return { team: Team.Red, yards: Math.max(yardCount, 1) };
         } else {
-            return { team: Team.Blue, yards: 50 - (point.yard - 50) }
+            return { team: Team.Blue, yards: Math.max(50 - (yardCount - 50), 1) };
         }
     }
 

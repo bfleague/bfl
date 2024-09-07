@@ -1,5 +1,5 @@
 {
-	"name" : "BFL x4",
+	"name" : "HFB",
 
 	"canBeStored": false,
 
@@ -263,16 +263,16 @@
 		{ "v0" : 0, "v1" : 1, "vis" : false, "bCoef" : 0.1, "cMask" : ["red","blue" ], "cGroup" : [] },
 		{ "v0" : 2, "v1" : 3, "color" : "ffea00", "cMask" : [ ] },
 		{ "v0" : 4, "v1" : 5, "color" : "FFFFFF", "cMask" : [ ] },
-		{ "v0" : 6, "v1" : 7, "color" : "FF0000", "cMask" : [ ] },
+		{ "v0" : 6, "v1" : 7, "color" : "d0312d", "cMask" : [ ] },
 		{ "v0" : 8, "v1" : 9, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 10, "v1" : 11, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 12, "v1" : 13, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 14, "v1" : 15, "color" : "FFFFFF", "cMask" : [ ] },
-		{ "v0" : 16, "v1" : 17, "color" : "FF0000", "cMask" : [ ] },
+		{ "v0" : 16, "v1" : 17, "color" : "d0312d", "cMask" : [ ] },
 		{ "v0" : 18, "v1" : 19, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 20, "v1" : 21, "color" : "ffea00", "cMask" : [ ] },
 		{ "v0" : 22, "v1" : 23, "vis" : false, "color" : "FF", "cMask" : ["ball" ] },
-		{ "v0" : 24, "v1" : 25, "vis" : false, "color" : "FF0000", "cMask" : ["ball" ] },
+		{ "v0" : 24, "v1" : 25, "vis" : false, "color" : "d0312d", "cMask" : ["ball" ] },
 		{ "v0" : 26, "v1" : 27, "vis" : false, "color" : "ffea00", "bCoef" : 0.1, "cMask" : ["red","blue" ], "cGroup" : [] },
 		{ "v0" : 28, "v1" : 29, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 30, "v1" : 31, "color" : "FFFFFF", "cMask" : [ ] },
@@ -372,7 +372,7 @@
 		{ "v0" : 220, "v1" : 221, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 222, "v1" : 223, "color" : "FFFFFF", "cMask" : [ ] },
 		{ "v0" : 224, "v1" : 225, "color" : "FFFFFF", "cMask" : [ ] },
-		{ "v0" : 231, "v1" : 232, "color" : "4FF", "cMask" : [ ] },
+		{ "v0" : 231, "v1" : 232, "color" : "acde97", "cMask" : [ ] },
 		{ "v0" : 233, "v1" : 234, "vis" : false, "color" : "ffea00", "bCoef" : 0.1, "cMask" : ["red","blue" ], "cGroup" : [] },
 		{ "v0" : 235, "v1" : 236, "color" : "C7E6BD", "cMask" : [ ] },
 		{ "v0" : 237, "v1" : 238, "color" : "FFFFFF", "cMask" : [ ] },
@@ -499,8 +499,8 @@
 	"traits" : {},
 
 	"joints" : [
-		{ "d0" : 5, "d1" : 6, "color" : "ffa200", "length" : [0,99999] },
-        { "d0" : 7, "d1" : 8, "color" : "acde97", "length" : [0,99999] },
+		{ "d0" : 5, "d1" : 6, "color" : "ff9912", "length" : [0,99999] },
+        { "d0" : 7, "d1" : 8, "color" : "3e67cf", "length" : [0,99999] },
 
         { "d0" : 9, "d1" : 10, "color" : "FF0000", "length" : [0,99999] },
         { "d0" : 11, "d1" : 12, "color" : "FF0000", "length" : [0,99999] },

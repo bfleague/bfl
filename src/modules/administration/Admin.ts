@@ -13,7 +13,7 @@ export class Admin extends Module {
     players = new PlayerList();
     bans: BanList = [];
     blackBanneds: string[] = [];
-    restrictNonRegisteredPlayers = !!window["CustomSettings"]?.nivel;
+    restrictNonRegisteredPlayers = false;
 
     constructor(room: Room) { 
         super();
@@ -73,6 +73,36 @@ export class Admin extends Module {
                 player.setAdmin(true);
             }
         }
+    }
+
+    @Command({
+        name: "trancar"
+    })
+    trancarCommand($: CommandInfo, room: Room) {
+        if (this.isAdmin($.caller)) {
+            room.setPassword("hfb");
+
+            return false;
+        }
+        
+        $.caller.reply({ message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`, color: Global.Color.Tomato, style: "bold" });
+
+        return false;
+    }
+
+    @Command({
+        name: "destrancar"
+    })
+    destrancarCommand($: CommandInfo, room: Room) {
+        if (this.isAdmin($.caller)) {
+            room.clearPassword();
+
+            return false;
+        }
+        
+        $.caller.reply({ message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`, color: Global.Color.Tomato, style: "bold" });
+
+        return false;
     }
 
     @Command({

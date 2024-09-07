@@ -22,7 +22,7 @@ export default class Timer {
 
         clearTimeout(this.timerId);
 
-        this.timerId = window.setTimeout(this.callback, this.remaining, ...this.args);
+        this.timerId = setTimeout(this.callback, this.remaining, ...this.args);
     }
 
     public pause() {
@@ -30,7 +30,7 @@ export default class Timer {
 
         this.paused = true;
 
-        window.clearTimeout(this.timerId);
+        clearTimeout(this.timerId);
 
         this.remaining -= Date.now() - this.start;
     }
@@ -38,7 +38,7 @@ export default class Timer {
     public stop() {
         this.paused = false;
 
-        window.clearTimeout(this.timerId);
+        clearTimeout(this.timerId);
     }
 
     public getRemainingTime() {        

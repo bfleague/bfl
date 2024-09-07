@@ -27,7 +27,8 @@ export enum EventNames {
     onPlayerActivity = "playerActivity",
     onStadiumChange = "stadiumChange",
     onRoomLink = "roomLink",
-    onKickRateLimitSet = "kickRateLimitSet"
+    onKickRateLimitSet = "kickRateLimitSet",
+    onBeforeEstablishConnection = "onBeforeEstablishConnection"
 }
 
 interface IModule {
@@ -54,6 +55,7 @@ declare interface Room {
     on(event: `${EventNames.onStadiumChange}`, listener: (newStadiumName: string, byPlayer: Player) => void): this;
     on(event: `${EventNames.onRoomLink}`, listener: (url: string) => void): this;
     on(event: `${EventNames.onKickRateLimitSet}`, listener: (min: number, rate: number, burst: number, byPlayer: Player) => void): this;
+    on(event: `${EventNames.onBeforeEstablishConnection}`, listener: (ip: string) => boolean): this;
     on(event: "playerNeedsConfirmation", listener: (player: Player) => void): this;
     on(event: "newPlayerTouchBall", listener: (player: Player, before?: Player) => void): this;
     on(event: "gameStartTicking", listener: (player: Player, before?: Player) => void): this;
@@ -82,12 +84,12 @@ class Room extends EventEmitter {
     public prefix: string = "!";
     public readonly CollisionFlags;
 
-    constructor(config: RoomConfigObject) {
+    constructor(HBInit: Function, config: RoomConfigObject) {
         super();
 
         if (config.noPlayer == null) config.noPlayer = true;
 
-        this._room = window.HBInit(config);
+        this._room = HBInit(config);
 
         this.CollisionFlags = this._room.CollisionFlags;
 
@@ -237,7 +239,7 @@ class Room extends EventEmitter {
                 args = args.map((a: any) => {
                     if (PlayerList.isPlayerObject(a)) {                        
                         if (val === EventNames.onPlayerLeave) {
-                            return players.get(a.id).disable(a);
+                            return players.get(a.id)?.disable(a);
                         } else if (val === EventNames.onPlayerKicked) {
                             const p = players.get(a.id) ?? this._deletedPlayers.get(a.id) ?? a;
 

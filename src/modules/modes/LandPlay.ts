@@ -13,8 +13,8 @@ import Utils from "../../utils/Utils";
 import { Tackle, Tackleable } from "./Tackleable";
 
 export abstract class LandPlay extends Tackleable {
-    touchesToTackleRunner = 5;
-    touchesToTackleQBRunner = 3;
+    touchesToTackleRunner = 2;
+    touchesToTackleQBRunner = 1;
 
     safetyPoints = 2;
     touchdownPoints = 6;

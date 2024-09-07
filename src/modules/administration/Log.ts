@@ -206,7 +206,9 @@ class Log extends Module {
         room.on("playerChat", (player: Player, message: string) => {
             if (player.roles.length === 0) return;
 
-            this.msgs.push(`\` ${player.name.padStart((player.name.length + 11)/2).padEnd(11)} \` ${message}`);
+            const msg = message.startsWith(";") ? "[Team chat]" : message;
+
+            this.msgs.push(`\` ${player.name.padStart((player.name.length + 11)/2).padEnd(11)} \` ${msg}`);
         });
 
         room.on("playerJoin", (player) => {
@@ -225,6 +227,10 @@ class Log extends Module {
         room.on("playerLeave", (player) => {
             this.sendContentWebhook(this.chatLogURL, `${player.name} saiu da sala`);
         });
+
+        //room.getNative()["onBeforeEstablishConnection"] = (ip: string) => {
+            //if (ip === "") return false;
+        //};
     }
 }
 

@@ -121,7 +121,7 @@ class Game extends Module {
     constructor(room: Room) {
         super();
 
-        this.matchStats = new MatchStats(room, Number(process.env.RECS_PORT ?? Global.DEFAULT_PORTS.RECS));
+        this.matchStats = new MatchStats(room);
 
         this.run(room);
     }
@@ -714,6 +714,7 @@ class Game extends Module {
             this.setBallKickable(room);
             this.unghostAll(room);
             this.setBallDamping(room, Global.BallDamping.Default);
+            this.playerWithBall?.setbCoeff(0.5);
         }
 
         this.down.reset();

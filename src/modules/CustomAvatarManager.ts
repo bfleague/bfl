@@ -10,7 +10,8 @@ export class CustomAvatarManager {
     }
 
     private setPlayerDefaultAvatar(player: Player) {
-        player.setAvatar(player.name.replace(/[^\w\s]/gi, '').slice(0, 2));
+        //player.setAvatar(player.name.replace(/[^\w\s]/gi, '').slice(0, 2));
+        player.clearAvatar();
     }
  
     clearAll() {

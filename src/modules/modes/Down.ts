@@ -49,6 +49,8 @@ export class Down extends LandPlay {
     minimumIntVelocity = 3;
     maximumHighestDampingIntVelocity = 6;
     timeIllegalTouchDisabledStartMs = 500;
+    bCoeffRunner = 1.5;
+    invMassRunner = 0.25;
 
     qbScrimmageLineMaxPermitted = 8;
 
@@ -84,7 +86,7 @@ export class Down extends LandPlay {
                     
                     /* Bola se moveu */
                     if (!this.qbCarriedBallTime && this.ballInitialPoss &&
-                        room.getBall().distanceTo({ ...this.ballInitialPoss, radius: room.getBall().getRadius() }) > 1
+                        room.getBall().distanceTo(Object.assign(this.ballInitialPoss, { radius: room.getBall().getRadius() })) > 1
                     ) {
                         this.qbCarriedBallTime = Date.now();
                     }
@@ -178,6 +180,9 @@ export class Down extends LandPlay {
                             this.game.matchStats.add(run.player, { corridas: 1 });
 
                             this.game.setPlayerWithBall(room, run.player, "runner", true);
+
+                            run.player.setbCoeff(this.bCoeffRunner);
+                            run.player.setInvMass(this.invMassRunner);
                 
                             return;
                         } else {
@@ -917,7 +922,7 @@ export class Down extends LandPlay {
         )
         ||
         (
-            ball.distanceTo({ ...ballPos, radius: ball.getRadius() }) > this.hikeMaxDistanceMoveBall
+            ball.distanceTo(Object.assign(ballPos, { radius: ball.getRadius() })) > this.hikeMaxDistanceMoveBall
         );
     }
 

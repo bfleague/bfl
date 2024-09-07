@@ -11,7 +11,7 @@ export default class Register extends Module {
     private database = new Database();
     private confirmationLevel = "CONFIRMED";
     private kickTime = 30000;
-    private restrictNonRegisteredPlayers = !!window["CustomSettings"]?.nivel;
+    private restrictNonRegisteredPlayers = false;
     private disableAfterInitialPingFailed = true;
     private disabled = false;
 

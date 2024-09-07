@@ -1,3 +1,4 @@
+import * as Discord from "discord.js";
 import { Team } from "../core/Global";
 import Player from "../core/Player";
 import Room from "../core/Room";
@@ -5,6 +6,9 @@ import { Color, TeamPlayersHistory } from "../Global";
 import Game from "./Game";
 import * as Global from "../Global";
 import translate from "../utils/Translate";
+import Utils from "../utils/Utils";
+
+require('dotenv').config();
 
 enum StatCategory {
     Quarterback,
@@ -144,43 +148,10 @@ function getId() {
 export default class MatchStats {
     private list: { playerName: string, playerId: number, registered: boolean, stats: Partial<Stats> }[] = [];
     private id = getId();
-    private wsConnection: WebSocket;
-    private firstConnectionAttempt = true;
+    private room: Room;
 
-    constructor(room: Room, port: number) {
-        this.connectWs(port, room);
-    }
-
-    private connectWs(port: number, room: Room) {
-        this.wsConnection = new WebSocket(`ws://localhost:${port}`);
-
-        this.wsConnection.onmessage = (e) => {
-            try {
-                let data = JSON.parse(e.data);
-
-                if (data.id) {
-                    room.send({ message: translate("GAME_RECORDED", data.id), color: Color.LightPink, style: "bold" });
-                }
-            } catch (err) {};
-        };
-
-        this.wsConnection.onopen = (e) => {
-            this.firstConnectionAttempt = false;
-        }
-
-        this.wsConnection.onclose = (e) => {
-            if (!this.firstConnectionAttempt) {
-                setTimeout(() => this.connectWs(port, room), 10000);
-            } else {
-                console.error("Could not connect to the recordings socket! The recordings feature will not work.");
-                console.log("%cAttention: Could not connect to the recordings socket. The integration will be disabled.", "font-size: 20px; color: red;");
-            }
-        };
-
-        this.wsConnection.onerror = (err) => {
-            console.error('Socket encountered error: ', err, 'Closing socket');
-            this.wsConnection.close();
-        };
+    constructor(room: Room) {
+        this.room = room;
     }
 
     public calculatePointsPlayer(stats: Partial<Stats>): number;
@@ -298,33 +269,58 @@ export default class MatchStats {
     }
     
     public async sendToDiscord(recording: Uint8Array, game: Game, teamsHistory: TeamPlayersHistory) {
-        const info = new TextEncoder().encode(JSON.stringify({
-            version: Global.version,
-            redName: game.getCustomTeamName(Team.Red),
-            redGoals: game.scoreRed,
-            blueName: game.getCustomTeamName(Team.Blue),
-            blueGoals: game.scoreBlue,
-            teamsHistory,
-            id: this.id,
-            stats: this.list.map(l => {
-                return {
-                    ...l,
-                    points: this.calculatePointsPlayer(l.stats)
-                };
-            })
-        }));
+        const client = new Discord.Client({ intents: [Discord.GatewayIntentBits.Guilds] });
 
-		let blob = new Blob([this.createBinaryString(info.length), info, recording]);
-		let arrayBuffer = blob.arrayBuffer();
+        const redName = game.getCustomTeamName(Team.Red);
+        const blueName = game.getCustomTeamName(Team.Blue);
 
-        arrayBuffer.then(buffer => {
-            this.wsConnection.send(buffer);
+        const stats = this.list.map(l => {
+            return {
+                id: l.playerId,
+                name: l.playerName,
+                points: this.calculatePointsPlayer(l.stats),
+                ...l.stats
+            };
+        });
+
+        const players = teamsHistory.filter((p, i, self) =>
+            self.findIndex(v => v.id === p.id) === i
+        );
+
+        const getNames = (p: typeof players) => p.map(p => `${p.name} #${p.id} (${stats.find(p2 => p2.id === p.id)?.points ?? 0})`);
+
+        const playersRed = getNames(players.filter(p => p.team === Team.Red));
+        const playersBlue = getNames(players.filter(p => p.team === Team.Blue));
+
+        const statsCSV = Utils.objectsToCSV(stats, ["id", "name", "points", ...Object.keys(STAT_NAMES)]);
+
+        const files = [
+            new Discord.AttachmentBuilder(Buffer.from(recording), { name: `${this.id}.hbr2` }),
+            new Discord.AttachmentBuilder(Buffer.from(statsCSV), { name: "stats.csv" })
+        ];
+
+        const embed = new Discord.EmbedBuilder()
+            .setTitle(`${redName} ${game.scoreRed} x ${game.scoreBlue} ${blueName}`)
+            .setColor(0x0099FF)
+            .addFields(
+                { name: "Red", value: playersRed.length ? playersRed.join("\n") : "-", inline: true },
+                { name: "Blue", value: playersBlue.length ? playersBlue.join("\n") : "-", inline: true }
+            );
+
+        client.once(Discord.Events.ClientReady, c => {
+            const guild = c.guilds.cache.get(process.env.GUILD_ID);
+            const channel = guild.channels.cache.get(process.env.RECS_CHANNEL_ID) as Discord.TextChannel;
+            
+            channel.send({ embeds: [embed], files }).then(() => {
+                this.room.send({message: translate("GAME_RECORDED", this.id), color: Color.LightPink, style: "bold" });
+                c.destroy();
+            });
+        });
+
+        client.login(process.env.DISCORD_TOKEN)
+        .catch(err => {
+            console.log(`Warning: could not login to Discord: ${err}`);
+            client.destroy();
         });
     }
-
-    private createBinaryString (nMask: number) {
-		for (var nFlag = 0, nShifted = nMask, sMask = ""; nFlag < 32;
-			 nFlag++, sMask += String(nShifted >>> 31), nShifted <<= 1);
-		return sMask;
-	}
 }

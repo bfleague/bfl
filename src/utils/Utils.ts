@@ -51,4 +51,22 @@ export default class Utils {
             }
         });
     }
+
+    static objectsToCSV(arr: any[], order: string[]): string {
+        let csv: string[] = [];
+
+        csv.push(order.join(","));
+
+        for (const row of arr) {
+            const r: string[] = [];
+
+            for (const elemName of order) {
+                r.push(row[elemName] ?? "");
+            }
+
+            csv.push(r.join(","));
+        }
+
+        return csv.join("\n");
+    }
 }

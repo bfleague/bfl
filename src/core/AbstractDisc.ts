@@ -12,36 +12,27 @@ export default abstract class AbstractDisc {
     public distanceTo(disc: AbstractDisc | { x: number, y: number, radius: number }): number | null {
         if (!disc) return null;
 
-        let discX, discY, discRadius;
+        let discB: Partial<{ x: number, y: number, radius: number }> = {};
 
         if (disc instanceof AbstractDisc) {
-            discX = disc.getX();
-            discY = disc.getY();
-            discRadius = disc.getRadius();
+            const discProps = disc.getDiscObject();
+            discB.x = discProps.x;
+            discB.y = discProps.y;
+            discB.radius = discProps.radius;
         } else {
-            discX = disc.x;
-            discY = disc.y;
-            discRadius = disc.radius;
+            discB = disc;
         }
 
-        if (isNaN(parseInt(this.getX() + "")) || isNaN(parseInt(this.getY() + ""))) return null;
-        if (isNaN(parseInt(discX + "")) || isNaN(parseInt(discY + ""))) return null;
-        if (isNaN(parseInt(this.getRadius() + "")) || isNaN(parseInt(discX + ""))) return null;
+        const discA = this.getDiscObject();
 
-        const x1 = this.getX() as number;
-        const y1 = this.getY() as number;
-        const r1 = this.getRadius() as number;
-
-        const x2 = discX as number;
-        const y2 = discY as number;
-        const r2 = discRadius as number;
-
-        const dx = x1 - x2;
-        const dy = y1 - y2;
+        const dx = discA.x - discB.x;
+        const dy = discA.y - discB.y;
 
         const c = Math.sqrt(dx * dx + dy * dy);
-		
-		return Math.max(0, c - r1 - r2);
+
+        const res = Math.max(0, c - discA.radius - discB.radius);
+        
+        return res;
     }
 
     public isCollidingWith(disc: AbstractDisc): boolean {

@@ -10,8 +10,6 @@ export default class AntiFake extends Module {
   constructor(room: Room) {
     super();
 
-    this.blockedLocations.push({ org: "TIM SA", city: "BRASÍLIA" });
-
     room.addConfirmLevel(this.confirmationLevel);
 
     room.on("playerNeedsConfirmation", (player) => {

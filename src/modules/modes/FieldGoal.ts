@@ -26,8 +26,8 @@ export class FieldGoal extends Tackleable {
     maxPlayerBackDistanceFieldGoalOffense = 1000;
     maxPlayerBackDistanceFieldGoalDefense = 900;
     maxTimeFGMoveBallPenalty = 1 * 1000;
-    yardsBackOffense = 20;
-    yardsBackDefense = 30;
+    yardsBackOffense = 10;
+    yardsBackDefense = 15;
     fgMaxDistanceMoveBall = 8.5;
     maxDistanceYardsFG = 47 + 10;
     playerLineLengthFG = 100;

@@ -89,7 +89,7 @@ export class Admin extends Module {
         name: "limparbans"
     })
     limparbansCommand($: CommandInfo, room: Room) {
-        if (!this.adminsAuth.includes($.caller.auth)) {
+        if (!this.adminsAuth.includes($.caller.auth) && (!$.caller.roles.includes(Global.bypassRegisterRole) || !$.caller.isAdmin())) {
             $.caller.reply({ message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`, color: Global.Color.Tomato, style: "bold" });
             
             return false;

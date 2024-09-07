@@ -84,13 +84,11 @@ export class Down extends LandPlay {
           if (
             !this.qbCarriedBallTime &&
             this.ballInitialPoss &&
-            room
-              .getBall()
-              .distanceTo(
-                Object.assign(this.ballInitialPoss, {
-                  radius: room.getBall().getRadius(),
-                }),
-              ) > 1
+            room.getBall().distanceTo(
+              Object.assign(this.ballInitialPoss, {
+                radius: room.getBall().getRadius(),
+              }),
+            ) > 1
           ) {
             this.qbCarriedBallTime = Date.now();
           }
@@ -445,7 +443,7 @@ export class Down extends LandPlay {
               if (
                 !StadiumUtils.isOutOfMap(
                   wideReceiverCatchingBall.getPosition(),
-                  -wideReceiverCatchingBall.getRadius(),
+                  0,
                 )
               ) {
                 this.qbPassedInSack();
@@ -619,9 +617,7 @@ export class Down extends LandPlay {
             }
           }
         } else {
-          if (
-            !StadiumUtils.isOutOfMap(player.getPosition(), -player.getRadius())
-          ) {
+          if (!StadiumUtils.isOutOfMap(player.getPosition(), 0)) {
             if (this.sack) this.qbPassedInSack();
 
             this.setReceiver(room, player);

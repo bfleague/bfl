@@ -55,10 +55,7 @@ export abstract class LandPlay extends Tackleable {
         }
 
         if (
-          StadiumUtils.isOutOfMap(
-            this.game.playerWithBall.getPosition(),
-            -this.game.playerWithBall.getRadius(),
-          )
+          StadiumUtils.isOutOfMap(this.game.playerWithBall.getPosition(), 0)
         ) {
           this.handlePlayerWithBallOutsideField(room);
         } else {

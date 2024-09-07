@@ -134,7 +134,7 @@ export const STAT_NAMES: Record<keyof Stats, [string, string, StatCategory]> = {
     touchdownRetornados: ["Touchdowns Retornados", "TD Ret", StatCategory.SpecialTeams],
     fieldGoalJardas: ["Jardas de Field Goal", "J FG", StatCategory.SpecialTeams],
     fieldGoalCompletos: ["Field Goals Completos", "FG Cmp", StatCategory.SpecialTeams],
-    fieldGoalPerdidos: ["Field Goals Completos", "FG Perd", StatCategory.SpecialTeams],
+    fieldGoalPerdidos: ["Field Goals Perdidos", "FG Perd", StatCategory.SpecialTeams],
 };
 
 function getId() {

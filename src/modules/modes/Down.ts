@@ -41,7 +41,7 @@ export class Down extends LandPlay {
   attackIllegalTouchPenalty = -5;
   maxPenaltiesInRedZone = 3;
   hikeMaxDistanceMoveBall = 8.5;
-  hikeTimeLimit = 15 * 1000;
+  hikeTimeLimit = 10 * 1000;
   distanceToHike = 50;
   illegalTouchPenalty = 10;
   firstDownDiscsIndex = [5, 6];

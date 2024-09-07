@@ -111,6 +111,13 @@ class Game extends Module {
 
     public matchStats: MatchStats;
 
+    public tickCount = 0;
+
+    public firstTackleTick: number;
+    public timeToSendTackleMessageSeconds = 0.5;
+
+    public playerWithBallSetTick: number;
+
     constructor(room: Room) {
         super();
 
@@ -203,6 +210,20 @@ class Game extends Module {
                 }));
             }
 
+            if (this.scoreBlue !== this.scoreRed) {
+                const teamWon = this.scoreBlue > this.scoreRed ? Team.Blue : Team.Red;
+
+                if (byPlayer) {
+                    room.send({ message: translate("GAME_STOPPED_BY", byPlayer.name, this.scoreRed, this.scoreBlue), color: Global.Color.LimeGreen, style: "bold", sound: 2 });
+                } else {
+                    room.send({ message: translate("GAME_WIN", this.getCustomTeamName(teamWon), this.scoreRed, this.scoreBlue), color: Global.Color.LimeGreen, style: "bold", sound: 2 });
+                }
+
+                this.customTeams.setTeamToMaintainUniform(teamWon);
+            } else {
+                this.customTeams.setTeamToMaintainUniform(null);
+            }
+
             this.teamPlayersHistory = [];
 
             this.gameTime = null;
@@ -214,6 +235,8 @@ class Game extends Module {
             this.scoreRed = 0;
 
             this.stoppageTimeMs = 0;
+
+            this.tickCount = 0;
 
             this.overtime = false;
             this.gameStopped = false;
@@ -252,6 +275,8 @@ class Game extends Module {
         room.on("gameTick", () => {
             if (this.gameStopped) return;
 
+            this.tickCount++;
+
             this.customAvatarManager.run();
 
             this.gameTime = room.getScores().time;
@@ -282,10 +307,7 @@ class Game extends Module {
 
                     const losingPlayers = room.getPlayers().filter(p => p.getTeam() === teamLost);
 
-                    this.customTeams.setTeamToMaintainUniform(teamWon);
-
                     room.stop();
-                    room.send({ message: translate("GAME_WIN", this.getCustomTeamName(teamWon), this.scoreRed, this.scoreBlue), color: Global.Color.LimeGreen, style: "bold", sound: 2 });
 
                     setTimeout(() => {
                         losingPlayers.forEach(p => {
@@ -486,6 +508,8 @@ class Game extends Module {
 
         this.playerWithBall = player;
         this.playerWithBallState = state;
+
+        this.playerWithBallSetTick = this.tickCount;
         
         if (running) this.running = running;
     }
@@ -717,7 +741,9 @@ class Game extends Module {
         this.down.defenderBlockingBall = null;
 
         this.invasionPlayers = [];
-        
+
+        this.playerWithBallSetTick = null;
+        this.firstTackleTick = null;
         this.interceptPlayer = null;
         this.intercept = false;
         this.conversion = false;

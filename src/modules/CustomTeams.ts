@@ -17,37 +17,72 @@ type CustomTeam = {
 }
 
 class CustomTeams extends Module {
-    private teamList = teams;
+    private teamList: CustomTeam[];
     private teams: { red: CustomTeam, blue: CustomTeam };
     private maintainTeam: Team;
 
     constructor(room: Room) {
         super();
 
+        this.teamList = Object.entries(teams).map(([name, uniform]) => {
+            const uniformColor = uniform.color.replace("/colors red ", "").split(" ");
+
+            const toColor = (str: string) => Number("0x" + str);
+
+            return {
+                name,
+                category: uniform.category,
+                angle: Number(uniformColor[0]),
+                textColor: toColor(uniformColor[1]),
+                colors: [uniformColor[2], uniformColor[3], uniformColor[4]].map(c => toColor(c))
+            };
+        });
+
         this.setNextGameTeams();
 
-        room.on("gameStop", () => this.setNextGameTeams());
-        room.on("gameStart", () => this.setUniforms(room));
+        room.on("gameStart", () => {
+            this.setNextGameTeams();
+            this.setUniforms(room);
+            room.send({ message: `​🏈​ ${this.teams.red.name} x ${this.teams.blue.name}`, color: Global.Color.LimeGreen, style: "bold" });
+        });
     }
 
     private setNextGameTeams() {
-        const randomTeamSelection = this.getRandomTeams(2);
+        const maintainTeam = this.maintainTeam ? (this.maintainTeam === Team.Red ? this.teams.red : this.teams.blue) : null;
+        const randomTeamSelection = this.getRandomTeams(2, maintainTeam?.category);
 
         this.teams = {
-            red: this.maintainTeam === Team.Red ? this.teams.red : randomTeamSelection[0],
-            blue: this.maintainTeam === Team.Blue ? this.teams.red : randomTeamSelection[1]
+            red: this.maintainTeam === Team.Red ? maintainTeam : randomTeamSelection[0],
+            blue: this.maintainTeam === Team.Blue ? maintainTeam : randomTeamSelection[1]
         };
 
         this.maintainTeam = null;
     }
 
-    private getRandomTeams(count: number) {
-        return this.teamList.sort(() => Math.random() - Math.random()).slice(0, count);
+    private getRandomTeams(count: number, categoryFilter?: string) {
+        return this.teamList.filter(t => t.category !== categoryFilter)
+            .sort(() => Math.random() - Math.random()).reduce((acc, current) => {
+                if (!acc.some(obj => obj.label === current.category)) acc.push(current);
+                return acc;
+            }, [])
+            .slice(0, count);
     }
 
     private setUniforms(room: Room) {
         room.setTeamColors(Team.Red, this.teams.red);
         room.setTeamColors(Team.Blue, this.teams.blue);
+    }
+
+    public swapTeams(room: Room) {
+        const red = JSON.parse(JSON.stringify(this.teams.red));
+        const blue = JSON.parse(JSON.stringify(this.teams.blue));
+
+        this.teams.red = blue;
+        this.teams.blue = red;
+
+        if (this.maintainTeam) this.maintainTeam = this.maintainTeam === Team.Red ? Team.Blue : Team.Red;
+
+        this.setUniforms(room);
     }
 
     public getTeams() {

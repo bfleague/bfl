@@ -1,5 +1,6 @@
 {
     "GAME_WIN": "🎉 Vitória do %s! Red %s • %s Blue",
+    "GAME_STOPPED_BY": "🔚 Jogo encerrado por %s! Red %s • %s Blue",
     "OVERTIME": "🕒 Overtime! O primeiro time a pontuar vence",
     "LAST_PLAY": "🕒 Última jogada! Jogo acabará em instantes caso não ocorra uma falta defensiva",
     "CANNOT_CHANGE_MAP": "⚠️ Você não pode alterar o mapa!",

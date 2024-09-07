@@ -760,6 +760,8 @@ class GameCommands extends Module {
             return false;
         }
 
+        this.game.customTeams.swapTeams(room);
+
         const red = room.getPlayers().red();
         const blue = room.getPlayers().blue();
 

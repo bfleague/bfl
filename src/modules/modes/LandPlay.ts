@@ -46,7 +46,7 @@ export abstract class LandPlay extends Tackleable {
                     this.wasPlayerWithBallOutsideOfRedZone = this.game.playerWithBall.id;
                 }
 
-                if (StadiumUtils.isOutOfMap(this.game.playerWithBall.getPosition())) {
+                if (StadiumUtils.isOutOfMap(this.game.playerWithBall.getPosition(), -this.game.playerWithBall.getRadius())) {
                     this.handlePlayerWithBallOutsideField(room);
                 } else {
                     if (this.hasPlayerPassedEndZoneLine(this.game.playerWithBall, this.game.invertTeam(this.game.playerWithBall.getTeam()))) {
@@ -69,9 +69,9 @@ export abstract class LandPlay extends Tackleable {
             }
             
             if (!this.game.playerWithBall || (this.game.down.sack && !this.game.down.sackBallTouched)) {
-                const ballPos = room.getBall().getPosition();
+                const ball = room.getBall();
 
-                if (StadiumUtils.isOutOfMap(ballPos) && this.game.qbKickedBall) this.handleFailedPass(room);
+                if (StadiumUtils.isOutOfMap(ball.getPosition(), ball.getRadius()) && this.game.qbKickedBall) this.handleFailedPass(room);
             }
         });
     }
@@ -225,14 +225,14 @@ export abstract class LandPlay extends Tackleable {
             const ball = room.getBall();
 
             const ballWithinGoalLine = (
-                StadiumUtils.ballWithinGoalLine(ball, this.game.interceptAttemptPlayer?.getTeam())
+                StadiumUtils.ballWithinGoalLine(ball, Team.Red)
                 ||
-                StadiumUtils.ballWithinGoalLine(ball, this.game.invertTeam(this.game.interceptAttemptPlayer?.getTeam()))
+                StadiumUtils.ballWithinGoalLine(ball, Team.Blue)
             );
 
-            const ballOutsideField = StadiumUtils.isOutOfMap(ball.getPosition(), ball.getRadius() * 2);
+            const ballOutsideField = StadiumUtils.isOutOfMap(ball.getPosition(), ball.getRadius());
 
-            if ((this.game.interceptAttemptPlayer || this.game.intercept) && ballWithinGoalLine && !ballOutsideField) {
+            if ((this.game.interceptAttemptPlayer || this.game.intercept) && ballWithinGoalLine) {
                 room.send({ message: `🏈 INTERCEPTAÇÃO de ${this.game.interceptAttemptPlayer.name}!!! • Bola para o ${this.game.getTeamName(this.game.interceptAttemptPlayer.getTeam())}`, color: 0x00ffff, style: "bold" });
 
                 this.game.setBallDamping(room, Global.BallDamping.Default);
@@ -259,7 +259,7 @@ export abstract class LandPlay extends Tackleable {
                 this.game.teamWithBall = this.game.invertTeam(this.game.teamWithBall);
 
                 return;
-            } else {
+            } else if (ballOutsideField) {
                 if (this.game.down.sack || this.game.down.sackBallTouched) return;
 
                 if (this.game.interceptAttemptPlayer) {

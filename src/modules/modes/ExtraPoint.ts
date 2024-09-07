@@ -197,7 +197,7 @@ export class ExtraPoint extends Mode {
     }
 
     private didBallPassedGoalLine(room: Room) {
-        return StadiumUtils.isOutOfMap(room.getBall().getPosition()) && StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.invertTeam(this.game.teamWithBall));
+        return StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.invertTeam(this.game.teamWithBall));
     }
 
     private detectFailedExtraPoint(room: Room, player: Player, ballPos: { x: number, y: number }) {

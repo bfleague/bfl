@@ -271,7 +271,8 @@ export class Down extends LandPlay {
                 } else if (this.game.qbKickedBall) {
                     if (!this.game.playerWithBall || this.sack && !this.sackBallTouched) {
                         /* Bola fora de campo no sack */
-                        if (this.sack && StadiumUtils.isOutOfMap(room.getBall().getPosition())) {
+                        const ball = room.getBall();
+                        if (this.sack && StadiumUtils.isOutOfMap(ball.getPosition(), -ball.getRadius())) {
                             this.sackBallTouched = true;
 
                             return;
@@ -284,12 +285,24 @@ export class Down extends LandPlay {
                             wideReceiverCatchingBall &&
                             !this.game.blockedPass &&
                             !this.game.intercept &&
-                            !this.game.interceptAttemptPlayer
-                            && !((wideReceiverCatchingBall.id === this.game.quarterback.id) && this.sack)
+                            !this.game.interceptAttemptPlayer &&
+                            !((wideReceiverCatchingBall.id === this.game.quarterback.id) && this.sack)
                         ) {
-                            this.qbPassedInSack();
+                            if (!StadiumUtils.isOutOfMap(wideReceiverCatchingBall.getPosition(), -wideReceiverCatchingBall.getRadius())) {
+                                this.qbPassedInSack();
                             
-                            this.setReceiver(room, wideReceiverCatchingBall);
+                                this.setReceiver(room, wideReceiverCatchingBall);
+                            } else {                            
+                                if (!this.game.conversion) {
+                                    room.send({ message: translate("❌ Recepção fora de campo • Perde a descida"), color: Global.Color.Orange, style: "bold" });
+                    
+                                    this.set({ room });
+                                } else {
+                                    room.send({ message: translate("❌ Recepção fora de campo • Perde a conversão"), color: Global.Color.Orange, style: "bold" });
+                
+                                    this.game.resetToKickoff(room);
+                                }
+                            }
 
                             return;
                         }
@@ -402,9 +415,21 @@ export class Down extends LandPlay {
                         }
                     }
                 } else {
-                    if (this.sack) this.qbPassedInSack();
+                    if (!StadiumUtils.isOutOfMap(player.getPosition(), -player.getRadius())) {
+                        if (this.sack) this.qbPassedInSack();
 
-                    this.setReceiver(room, player);
+                        this.setReceiver(room, player);
+                    } else {                            
+                        if (!this.game.conversion) {
+                            room.send({ message: "❌ Recepção fora de campo • Perde a descida", color: Global.Color.Orange, style: "bold" });
+            
+                            this.set({ room });
+                        } else {
+                            room.send({ message: "❌ Recepção fora de campo • Perde a conversão", color: Global.Color.Orange, style: "bold" });
+        
+                            this.game.resetToKickoff(room);
+                        }
+                    }
                 }
             }
         });
@@ -872,7 +897,7 @@ export class Down extends LandPlay {
     }
 
     private isBallOutsideField(room: Room) {
-        return StadiumUtils.isOutOfMap(room.getBall().getPosition(), room.getBall().getRadius() * 2);
+        return StadiumUtils.isOutOfMap(room.getBall().getPosition(), -room.getBall().getRadius());
     }
 
     private hasQBBallPassedScrimmageLine(room: Room) {

@@ -307,7 +307,7 @@ export class FieldGoal extends Tackleable {
     }
 
     private didBallPassedGoalLine(room: Room) {
-        return StadiumUtils.isOutOfMap(room.getBall().getPosition()) && StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.invertTeam(this.game.teamWithBall));
+        return StadiumUtils.ballWithinGoalLine(room.getBall(), this.game.invertTeam(this.game.teamWithBall));
     }
 
     private detectFailedFieldGoal(room: Room, player: Player, ballPos: { x: number, y: number }) {

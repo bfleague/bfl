@@ -66,7 +66,7 @@ export default class StadiumUtils {
         }
     }
 
-    static isOutOfMap(pos: { x: number, y: number }, tolerance = 0) {
+    static isOutOfMap(pos: { x: number, y: number }, tolerance: number) {
         return pos.y < -Math.abs(MapMeasures.OuterField[0].y) - tolerance ||
             pos.y > Math.abs(MapMeasures.OuterField[0].y) + tolerance ||
             pos.x < -Math.abs(MapMeasures.OuterField[0].x) - tolerance ||
@@ -109,9 +109,9 @@ export default class StadiumUtils {
             goalLine = MapMeasures.BlueGoalLine;
         }
 
-        const a = [goalLine[0].x, goalLine[0].y];
-        const b = [goalLine[1].x, goalLine[1].y];
+        const ballPos = ball.getPosition();
 
-        return MathUtils.lineCircleCollide(a, b, [ball.getX(), ball.getY()], Math.max(ball.getRadius(), ball.getVelocity()));
+        return Math.abs(ballPos.x) > Math.abs(goalLine[0].x) &&
+            ballPos.y > goalLine[0].y && ballPos.y < goalLine[1].y;
     }
 }

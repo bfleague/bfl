@@ -485,7 +485,7 @@
 	},
 	
 	"ballPhysics" : {
-		"radius" : 7.125,
+		"radius" : 6.25,
         "bCoef": 0.5,
 		"cMask" : [ "red", "blue", "wall" ],
 		"color" : "631515",

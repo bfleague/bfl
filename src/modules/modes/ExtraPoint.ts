@@ -38,7 +38,8 @@ export class ExtraPoint extends Mode {
         room.on("playerBallKick", (player: Player) => {
             if (this.game.mode !== this.mode) return;
 
-            this.game.extraPointTimeout.stop();
+            this.game.extraPointTimeout?.stop();
+            this.game.extraPointTimeout = null;
 
             if (player.getTeam() !== this.game.teamWithBall) {
                 this.handleIllegalTouchByEnemyTeam(room);

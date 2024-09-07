@@ -28,7 +28,7 @@
     "TOUCHED_BALL_FG_SAME_TEAM": "❌ Dois toques na bola pelo time que chutou • Ilegal • FG falhou",
     "TOUCHED_BALL_FG_DEFENSE": "🙌 Toque ilegal da equipe adversária durante o Field Goal • FG automático para o %s • +%s pontos • %s",
     "TOUCHED_BALL_FG_OFFENSE": "🙌 Toque ilegal de %s durante o Field Goal • FG falhou",
-    "TACKLED_QB_FG": "💪 Chutador %s derrubado por %s faltando %s • FG falhou",
+    "TACKLED_QB_FG": "💪 Chutador %s derrubado por %s • FG falhou",
     "DETECTED_FAILED_FG": "🤖 Detectado Field Goal falho • Bola para o outro time",
     "FAILED_FG_BALL_STOPPED": "🥅 Errou Field Goal • Bola parou antes de chegar no gol",
     "KICKER_TOO_FAR_FROM_BALL": "🥅 Field Goal falho • Chutador se afastou demais da bola",

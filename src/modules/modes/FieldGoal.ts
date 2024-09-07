@@ -265,9 +265,7 @@ export class FieldGoal extends Tackleable {
             this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
         });
 
-        const remainingTime = Utils.getFormattedSeconds(parseInt(((this.fgTimeLimit - this.game.fieldGoalTimeout.getRemainingTime()) / 1000).toFixed(1)));
-
-        Utils.sendSoundTeamMessage(room, { message: translate("TACKLED_QB_FG", this.fgKicker.name, Utils.getPlayersNames(tackle.players), remainingTime), color: Global.Color.LimeGreen, style: "bold" });
+        Utils.sendSoundTeamMessage(room, { message: translate("TACKLED_QB_FG", this.fgKicker.name, Utils.getPlayersNames(tackle.players)), color: Global.Color.LimeGreen, style: "bold" });
 
         this.game.failedFielGoalTimeout = new Timer(() => {
             this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
@@ -346,21 +344,19 @@ export class FieldGoal extends Tackleable {
     private handleIllegalTouch(room: Room, player: Player) {
         this.fgFailed = true;
 
-        if (player.getTeam() !== this.game.teamWithBall) {
-            this.scoreFieldGoal(room, this.game.teamWithBall);
+        if (player.getTeam() === this.game.teamWithBall) {
+            this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
 
             Utils.sendSoundTeamMessage(room, { message: translate("TOUCHED_BALL_FG_DEFENSE", this.game.getTeamName(this.game.teamWithBall), this.fgPoints, this.game.getScoreMessage()), color: Global.Color.LimeGreen, style: "bold" });
         } else {
-            this.game.customAvatarManager.setPlayerAvatar(player, "🤡", 3000);
-
-            Utils.sendSoundTeamMessage(room, { message: translate("TOUCHED_BALL_FG_OFFENSE", player.name), color: Global.Color.LimeGreen, style: "bold" });
-
-            this.game.failedFielGoalTimeout = new Timer(() => {
-                this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
-    
-                return;
-            }, 2000);
+            Utils.sendSoundTeamMessage(room, { message: translate("TACKLED_QB_FG", this.fgKicker.name, player.name), color: Global.Color.LimeGreen, style: "bold" });
         }
+
+        this.game.failedFielGoalTimeout = new Timer(() => {
+            this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) });
+
+            return;
+        }, 2000);
     }
 
     private handleSuccessfulFieldGoal(room: Room) {

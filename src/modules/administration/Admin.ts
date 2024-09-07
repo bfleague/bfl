@@ -1,5 +1,6 @@
 import Command, { CommandInfo } from "../../core/Command";
 import Module from "../../core/Module";
+import Player from "../../core/Player";
 import PlayerList from "../../core/PlayerList";
 import Room from "../../core/Room";
 import * as Global from "../../Global";
@@ -60,6 +61,10 @@ export class Admin extends Module {
         });
     }
 
+    private isAdmin(player: Player) {
+        return this.adminsAuth.includes(player.auth) || (player.roles.includes(Global.bypassRegisterRole) && player.isAdmin());
+    }
+
     private updateAdmins(room: Room) {
         if (!room.getPlayers().find(p => p.isAdmin() && !p.settings.afk)) {
             const player = room.getPlayers().filter(p => !p.isAdmin() && !p.settings.afk && (this.restrictNonRegisteredPlayers ? p.roles.includes(Global.loggedRole) : true))[0];
@@ -74,7 +79,7 @@ export class Admin extends Module {
         name: "admin"
     })
     adminCommand($: CommandInfo, room: Room) {
-        if (this.adminsAuth.includes($.caller.auth)) {
+        if (this.isAdmin($.caller)) {
             $.caller.setAdmin(!$.caller.isAdmin());
 
             return false;
@@ -89,7 +94,7 @@ export class Admin extends Module {
         name: "limparbans"
     })
     limparbansCommand($: CommandInfo, room: Room) {
-        if (!this.adminsAuth.includes($.caller.auth) && (!$.caller.roles.includes(Global.bypassRegisterRole) || !$.caller.isAdmin())) {
+        if (!this.isAdmin($.caller)) {
             $.caller.reply({ message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`, color: Global.Color.Tomato, style: "bold" });
             
             return false;
@@ -111,7 +116,7 @@ export class Admin extends Module {
         name: "desbanir",
     })
     desbanirCommand($: CommandInfo, room: Room) {
-        if (!this.adminsAuth.includes($.caller.auth)) {
+        if (!this.isAdmin($.caller)) {
             $.caller.reply({ message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`, color: Global.Color.Tomato, style: "bold" });
             
             return false;
@@ -150,7 +155,7 @@ export class Admin extends Module {
         name: "banidos"
     })
     banidosCommand($: CommandInfo, room: Room) {
-        if (!this.adminsAuth.includes($.caller.auth)) {
+        if (!this.isAdmin($.caller)) {
             $.caller.reply({ message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`, color: Global.Color.Tomato, style: "bold" });
             
             return false;

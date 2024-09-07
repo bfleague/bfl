@@ -25,6 +25,8 @@ export abstract class LandPlay extends Tackleable {
 
     wasPlayerWithBallOutsideOfRedZone: number | false = false;
 
+    touchbackYardLine = 25;
+
     constructor(room: Room, game: Game) {
         super(game);
 
@@ -182,13 +184,13 @@ export abstract class LandPlay extends Tackleable {
 
             const ballPos = room.getBall().getPosition();
 
-            if (this.mode === this.game.safety.mode) {
-                yards = this.game.safety.safetyYardLine;
-                team = this.game.invertTeam(this.game.teamWithBall);
-                teamPos = this.game.teamWithBall;
-            } else if (this.mode === this.game.punt.mode) {
+            const name = this.name[0].toLocaleUpperCase() + this.name.slice(1);
+
+            if (this.mode === this.game.safety.mode || this.mode === this.game.punt.mode) {
                 if (ballPos.x > MapMeasures.EndZoneBlue[1].x || ballPos.x < MapMeasures.EndZoneRed[1].x) {
-                    this.setTouchback(room, this.game.invertTeam(this.game.teamWithBall), `Punt chutado para a end zone`);
+                    const team = ballPos.x > MapMeasures.EndZoneBlue[1].x ? Team.Blue : Team.Red;
+
+                    this.setTouchback(room, this.game.invertTeam(this.game.teamWithBall), `${name} chutado para a end zone`, null, { team, yards: this.touchbackYardLine });
 
                     return;
                 }
@@ -206,7 +208,7 @@ export abstract class LandPlay extends Tackleable {
                 teamPos = team;
             }
 
-            room.send({ message: `❌ ${this.name[0].toLocaleUpperCase() + this.name.slice(1)} chutado para fora de campo •` + (msg ?? `Bola na linha de ${yards} jardas`), color: Global.Color.Orange, style: "bold" });
+            room.send({ message: `❌ ${name} chutado para fora de campo • ` + (msg ?? `Bola na linha de ${yards} jardas`), color: Global.Color.Orange, style: "bold" });
 
             this.game.down.set({ room, pos: { team: teamPos, yards }, forTeam: team, countDistanceFromNewPos: false });
 
@@ -296,7 +298,7 @@ export abstract class LandPlay extends Tackleable {
         this.game.clearAvatar(player);
     }
 
-    private setTouchback(room: Room, forTeam: Team, message: string, player?: Player) {
+    private setTouchback(room: Room, forTeam: Team, message: string, player?: Player, pos?: Global.FieldPosition) {
         room.send({ message: `🔙 ${message} • Touchback • ${this.game.conversion ? "Conversão falhou" : "Bola na linha de 25"}`, color: Global.Color.Yellow, style: "bold" });
 
         this.game.playerWithBallFinalPosition = this.game.playerWithBall?.getPosition();
@@ -306,7 +308,7 @@ export abstract class LandPlay extends Tackleable {
         if (!this.game.conversion) {
             this.game.down.set({
                 room,
-                pos: { team: forTeam, yards: 25 },
+                pos: pos ?? { team: forTeam, yards: this.touchbackYardLine },
                 forTeam: forTeam,
                 countDistanceFromNewPos: false
             });

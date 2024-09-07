@@ -36,13 +36,13 @@ jobs:
       - name: Create env file
         run: |
           echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
-          echo "DISCORD_TOKEN=${{ env.REC_CHANNEL_ID }}" > .env
-          echo "DISCORD_TOKEN=${{ env.GUILD_ID }}" > .env
-          echo "DISCORD_TOKEN=${{ env.ENABLE_LOG }}" > .env
-          echo "DISCORD_TOKEN=${{ secrets.UNSAFE_CONNECTION_LOG }}" > .env
-          echo "DISCORD_TOKEN=${{ secrets.SAFE_CONNECTION_LOG }}" > .env
-          echo "DISCORD_TOKEN=${{ secrets.CHAT_LOG }}" > .env
-          echo "DISCORD_TOKEN=${{ env.DISCORD_INVITE }}" > .env
+          echo "REC_CHANNEL_ID=${{ env.REC_CHANNEL_ID }}" > .env
+          echo "GUILD_ID=${{ env.GUILD_ID }}" > .env
+          echo "ENABLE_LOG=${{ env.ENABLE_LOG }}" > .env
+          echo "UNSAFE_CONNECTION_LOG=${{ secrets.UNSAFE_CONNECTION_LOG }}" > .env
+          echo "SAFE_CONNECTION_LOG=${{ secrets.SAFE_CONNECTION_LOG }}" > .env
+          echo "CHAT_LOG=${{ secrets.CHAT_LOG }}" > .env
+          echo "DISCORD_INVITE=${{ env.DISCORD_INVITE }}" > .env
 
       - name: Build Docker image
         run: |

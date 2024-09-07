@@ -11,7 +11,7 @@ const net = require("net");
 
 function startHaxball(proxy) {
   var proxyAgent = proxy
-    ? new HttpsProxyAgent.HttpsProxyAgent(url.parse("http://" + proxy))
+    ? new HttpsProxyAgent.HttpsProxyAgent(url.parse(proxy))
     : null;
   var debug = false;
   var ipCache = [];
@@ -545,11 +545,7 @@ function startHaxball(proxy) {
           var c = this;
 
           const checks = [];
-          const blockedLocations = [
-            { org: "TIM SA", city: "BRASÍLIA" },
-            { org: "TELEFONICA BRASIL S.A", city: "SALVADOR" },
-            { org: "RIO CLARO", city: "SAO PAULO" },
-          ];
+          const blockedLocations = [];
 
           const onBeforeEstablishConnection = (ip) => {
             return new Promise((resolve, reject) => {

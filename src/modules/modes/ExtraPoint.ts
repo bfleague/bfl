@@ -139,7 +139,7 @@ export class ExtraPoint extends Mode {
             const blue = room.getPlayers().blue();
 
             let kickingTeam = (forTeam === Team.Red ? red : blue);
-            let otherTeam = (forTeam === Team.Red ? blue : red);
+            let otherTeam = (forTeam === Team.Red ? blue : red).sort((a, b) => b.getY() - a.getY());
 
             this.game.teamWithBall = forTeam;
 

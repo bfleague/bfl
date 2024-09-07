@@ -49,6 +49,9 @@ export class Down extends LandPlay {
     goalMode = false;
     hikeTimeEnabled = true;
 
+    offensiveDistanceSpawnYardsHike = 10;
+    defensiveDistanceSpawnYardsHike = 10;
+
     invasion: Invasion;
 
     downSetTime: number;
@@ -651,14 +654,17 @@ export class Down extends LandPlay {
     public resetPlayersPosition(room: Room) {
         const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition.team, this.game.ballPosition.yards);
 
-        const players = room.getPlayers().teams();
+        const offensiveTeam = this.game.getTeamWithBall(room);
+        const defensiveTeam = this.game.getTeamWithoutBall(room);
 
-        for (const player of players) {
-            if (player.getTeam() === Team.Red) {
-                player.setX(ballPos.x - MapMeasures.Yard * 10);
-            } else {
-                player.setX(ballPos.x + MapMeasures.Yard * 10);
-            }
+        const getSinal = (player: Player) => player.getTeam() === Team.Red ? -1 : 1;
+
+        for (const player of offensiveTeam) {
+            player.setX(ballPos.x + (MapMeasures.Yard * this.offensiveDistanceSpawnYardsHike * getSinal(player)));
+        }
+
+        for (const player of defensiveTeam) {
+            player.setX(ballPos.x + (MapMeasures.Yard * this.defensiveDistanceSpawnYardsHike * getSinal(player)));
         }
     }
 

@@ -15,7 +15,7 @@ import AntiFake from "./modules/administration/AntiFake";
 import Log from "./modules/administration/Log";
 import Tutorial from "./modules/administration/Tutorial";
 
-const prod = true;//process.env.MODE === "production" ? true : false;
+const prod = true; //process.env.MODE === "production" ? true : false;
 
 HaxballJS.then((HBInit: any) => {
     console.log(`This process is pid ${process.pid}`); 
@@ -50,7 +50,5 @@ HaxballJS.then((HBInit: any) => {
 
     room.on("roomLink", (link) => console.log(link));
 
-    console.log("%chttps://github.com/bfleague/bfl-bot", "font-size: 16px;");
-
-    //window["room"] = room;
+    console.log("https://github.com/haxfootballbrazil/hfb-bot");
 });

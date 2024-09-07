@@ -17,6 +17,6 @@ SAFE_CONNECTION_LOG="LINK_WEBHOOK_SAFE"
 CHAT_LOG="LINK_WEBHOOK_CHAT"
 ```
 ### Logging
-Para ativar o log, garanta que ENABLE_LOG esteja definido como `true`. Então preencha as outras 3 variáveis, UNSAFE_CONNECTION_LOG, SAFE_CONNECTION_LOG e CHAT_LOG, com o link do webhook para o log de IPs, IPs criptografados (seguro) e chat, respectivamente.
+Para ativar o log, garanta que `ENABLE_LOG` esteja definido como `true`. Então preencha as outras 3 variáveis, `UNSAFE_CONNECTION_LOG`, `SAFE_CONNECTION_LOG` e `CHAT_LOG`, com o link do webhook para o log de IPs, IPs criptografados (seguro) e chat, respectivamente.
 ### Recs
-Declare as variáveis DISCORD_TOKEN, RECS_CHANNEL_ID e GUILD_ID com o token de Discord do bot, o ID do canal de recs e o ID do servidor do Discord, respectivamente.
+Declare as variáveis `DISCORD_TOKEN`, `RECS_CHANNEL_ID` e `GUILD_ID` com o token de Discord do bot, o ID do canal de recs e o ID do servidor do Discord, respectivamente.

@@ -32,6 +32,7 @@ export class FieldGoal extends Tackleable {
     maxDistanceYardsFG = 47 + 10;
     playerLineLengthFG = 100;
     kickerY = 30;
+    maxDistanceKickerToBallYards = 10;
 
     fgFailed = false;
     disabledBallTouch = false;
@@ -104,6 +105,12 @@ export class FieldGoal extends Tackleable {
                 if (this.didBallIlegallyMoveDuringFG(room)) {
                     this.handleIllegalBallMove(room);
                     
+                    return;
+                }
+
+                if (this.fgKicker.distanceTo(room.getBall()) > this.maxDistanceKickerToBallYards * MapMeasures.Yard) {
+                    this.handleKickerTooFarFromBall(room);
+
                     return;
                 }
             } else {
@@ -379,6 +386,16 @@ export class FieldGoal extends Tackleable {
         this.game.mode = null;
 
         room.send({ message: translate("FAILED_FG_BALL_STOPPED"), color: Global.Color.Yellow, style: "bold" });
+
+        this.game.failedFielGoalTimeout = new Timer(() => this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) }), 1000);
+    }
+
+    private handleKickerTooFarFromBall(room: Room) {
+        this.game.matchStats.add(this.fgKicker, { fieldGoalPerdidos: 1 });
+
+        this.game.mode = null;
+
+        room.send({ message: translate("KICKER_TOO_FAR_FROM_BALL", this.fgKicker.name), color: Global.Color.Yellow, style: "bold" });
 
         this.game.failedFielGoalTimeout = new Timer(() => this.game.down.set({ room, forTeam: this.game.invertTeam(this.game.teamWithBall) }), 1000);
     }

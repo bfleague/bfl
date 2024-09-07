@@ -8,7 +8,7 @@ export enum DEFAULT_PORTS {
     DATABASE = 3000
 };
 
-export const version = "1.1";
+export const version = "03/12/2022";
 export const discord = "discord.gg/6E6bZymqTt";
 
 export const loggedRole = "loggedIn";

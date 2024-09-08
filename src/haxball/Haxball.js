@@ -1,4 +1,4 @@
-const wrtc = require("@roamhq/wrtc");
+const wrtc = require("@koush/wrtc");
 const XMLHttpRequest = require("xhr2");
 const WebSocket = require("ws");
 const url = require("url");

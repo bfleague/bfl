@@ -81,6 +81,10 @@ declare global {
      * **Warning! events will have null as the byPlayer argument when the event is caused by the host, so make sure to check for null values!**
      */
     noPlayer?: boolean;
+    /**
+     * Proxy for Haxball.js.
+     */
+    proxy?: string;
   }
 
   /**

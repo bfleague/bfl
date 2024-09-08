@@ -9,8 +9,8 @@
   },
   "dependencies": {
     "@abraham/reflection": "^0.8.0",
-    "@koush/wrtc": "^0.5.3",
     "@peculiar/webcrypto": "^1.4.3",
+    "@roamhq/wrtc": "^0.8.0",
     "discord.js": "^14.11.0",
     "dotenv": "^16.3.1",
     "https-proxy-agent": "^7.0.0",
@@ -23,6 +23,7 @@
     "typescript": "^5.0.4",
     "url": "^0.11.0",
     "ws": "^8.13.0",
+    "xhr2": "^0.2.1",
     "yargs": "^17.7.2"
   },
   "devDependencies": {

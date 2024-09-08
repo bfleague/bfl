@@ -1,7 +1,7 @@
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import startHaxball from "./haxball/Haxball.js";
+import Haxball from "./haxball/Haxball.js";
 
 import Room from "./core/Room";
 import { AFK } from "./modules/administration/AFK";
@@ -40,13 +40,14 @@ yargs(hideBin(process.argv))
       },
     },
     (argv) => {
-      startHaxball(argv.proxy).then((HBInit: any) => {
+      Haxball.then((HBInit: any) => {
         run(
           HBInit,
           argv.token as string,
           argv.closed,
           argv.test,
           argv.geo as string[],
+          argv.proxy,
         );
       });
     },
@@ -60,6 +61,7 @@ function run(
   isClosed?: boolean,
   testMode?: boolean,
   geo?: string[],
+  proxy?: string,
 ) {
   const room = new Room(HBInit, {
     roomName: ` 🔰 🏈 𝗕𝗙𝗟 • Futebol Americano 🏈`,
@@ -69,6 +71,7 @@ function run(
       ? { code: geo[0], lat: parseFloat(geo[1]), lon: parseFloat(geo[2]) }
       : undefined,
     token,
+    proxy,
   });
 
   room.setPlayerChat(false);

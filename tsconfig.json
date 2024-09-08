@@ -10,6 +10,7 @@
     "resolveJsonModule": true,
     "ignoreDeprecations": "5.0",
     "allowJs": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "skipLibCheck": true
   }
 }

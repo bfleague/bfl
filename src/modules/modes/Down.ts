@@ -49,8 +49,8 @@ export class Down extends LandPlay {
   minimumIntVelocity = 3;
   maximumHighestDampingIntVelocity = 6;
   timeIllegalTouchDisabledStartMs = 500;
-  bCoeffRunner = 1.5;
-  invMassRunner = 0.25;
+  // bCoeffRunner = 1.5;
+  // invMassRunner = 0.25;
 
   qbScrimmageLineMaxPermitted = 8;
 
@@ -251,8 +251,8 @@ export class Down extends LandPlay {
                 true,
               );
 
-              run.player.setbCoeff(this.bCoeffRunner);
-              run.player.setInvMass(this.invMassRunner);
+              // run.player.setbCoeff(this.bCoeffRunner);
+              // run.player.setInvMass(this.invMassRunner);
 
               return;
             } else {

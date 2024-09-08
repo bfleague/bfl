@@ -208,7 +208,7 @@ const onHBLoaded = function (cb) {
 
       // Manually added for proxy support by @mertushka
       proxyAgent = k("proxy", null)
-        ? new HttpsProxyAgent(url.parse(k("proxy", null)))
+        ? new HttpsProxyAgent.HttpsProxyAgent(url.parse(k("proxy", null)))
         : null;
       debug = k("debug", null) == true;
 

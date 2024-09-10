@@ -13,7 +13,7 @@ export default class Register extends Module {
   private kickTime = 30000;
   private restrictNonRegisteredPlayers = false;
   private disableAfterInitialPingFailed = true;
-  private disabled = false;
+  private disabled = true;
 
   private playersWaitingConfirmation: {
     player: Player;

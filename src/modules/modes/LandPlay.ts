@@ -409,7 +409,9 @@ export abstract class LandPlay extends Tackleable {
     tacklers?: Player[],
     message?: string,
   ) {
-    this.game.incrementScore({ [player.getTeam()]: this.safetyPoints });
+    this.game.incrementScore({
+      [player.getTeam() === Team.Red ? Team.Blue : Team.Red]: this.safetyPoints,
+    });
 
     this.game.playerWithBallFinalPosition = player.getPosition();
 

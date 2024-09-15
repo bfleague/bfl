@@ -128,40 +128,42 @@ export default class Register extends Module {
 
       if (!playerIsWaiting) return;
 
-      Global.api.confirmPlayerByPassword(player.name, message).match(
-        () => {
-          this.removeFromWaitingList(player);
+      Global.api
+        .confirmPlayerByPassword(player.name, message, player.auth)
+        .match(
+          () => {
+            this.removeFromWaitingList(player);
 
-          for (const p of room.getPlayers()) {
-            if (player.id === p.id) continue;
+            for (const p of room.getPlayers()) {
+              if (player.id === p.id) continue;
 
-            p.reply({
-              message: `✅ ${player.name} se logou com sucesso!`,
+              p.reply({
+                message: `✅ ${player.name} se logou com sucesso!`,
+                color: Global.Color.LimeGreen,
+                style: "bold",
+              });
+            }
+
+            player.reply({
+              message: `✅ Você se logou com sucesso! Seja bem-vindo de volta, ${player.name}.`,
               color: Global.Color.LimeGreen,
+              sound: 2,
               style: "bold",
             });
-          }
 
-          player.reply({
-            message: `✅ Você se logou com sucesso! Seja bem-vindo de volta, ${player.name}.`,
-            color: Global.Color.LimeGreen,
-            sound: 2,
-            style: "bold",
-          });
-
-          player.roles.push(Global.loggedRole);
-          player.addConfirmLevel(this.confirmationLevel);
-          player.canUseCommands = true;
-        },
-        () => {
-          player.reply({
-            message: `❌ Senha incorreta! Tente novamente.`,
-            color: Global.Color.Tomato,
-            sound: 2,
-            style: "bold",
-          });
-        },
-      );
+            player.roles.push(Global.loggedRole);
+            player.addConfirmLevel(this.confirmationLevel);
+            player.canUseCommands = true;
+          },
+          () => {
+            player.reply({
+              message: `❌ Senha incorreta! Tente novamente.`,
+              color: Global.Color.Tomato,
+              sound: 2,
+              style: "bold",
+            });
+          },
+        );
 
       return false;
     });

@@ -14,7 +14,6 @@ type BanList = {
 }[];
 
 export class Admin extends Module {
-  adminsAuth: string[] = [];
   players = new PlayerList();
   bans: BanList = [];
   blackBanneds: string[] = [];
@@ -34,21 +33,22 @@ export class Admin extends Module {
     room.on("playerAdminChange", (changedPlayer, byPlayer) => {
       if (!changedPlayer.auth) return;
 
-      if (
+      const playerIsRestricted =
         this.restrictNonRegisteredPlayers &&
-        !changedPlayer.roles.includes(Global.loggedRole)
-      ) {
+        !changedPlayer.roles.includes(Global.loggedRole);
+
+      if (playerIsRestricted) {
         changedPlayer.setAdmin(false);
-      } else if (
-        this.adminsAuth.includes(changedPlayer.auth) &&
-        !changedPlayer.isAdmin() &&
-        byPlayer &&
-        byPlayer.id !== changedPlayer.id
-      ) {
-        changedPlayer.setAdmin(true);
-      } else {
-        this.updateAdmins(room);
       }
+
+      const playerCannotRemoveAdminFromAdmin =
+        this.isAdmin(changedPlayer) && byPlayer && !this.isAdmin(byPlayer);
+
+      if (playerCannotRemoveAdminFromAdmin) {
+        changedPlayer.setAdmin(true);
+      }
+
+      this.updateAdmins(room);
     });
 
     room.on("afk", () => {
@@ -60,7 +60,7 @@ export class Admin extends Module {
 
       if (
         byPlayer &&
-        !this.adminsAuth.includes(byPlayer.auth) &&
+        !this.isAdmin(byPlayer) &&
         kickedPlayer.roles.includes(Global.loggedRole)
       ) {
         byPlayer.kick(
@@ -77,17 +77,11 @@ export class Admin extends Module {
         });
       }
     });
-
-    room.on("playerJoin", (player) => {
-      if (player.roles.includes(Global.adminAccountRole)) {
-        this.adminsAuth.push(player.auth);
-      }
-    });
   }
 
   private isAdmin(player: Player) {
     return (
-      this.adminsAuth.includes(player.auth) ||
+      player.roles.includes(Global.adminAccountRole) ||
       (player.roles.includes(Global.bypassRegisterRole) && player.isAdmin())
     );
   }
@@ -172,9 +166,9 @@ export class Admin extends Module {
     name: "limparbans",
   })
   limparbansCommand($: CommandInfo, room: Room) {
-    if (!this.isAdmin($.caller)) {
+    if (!$.caller.isAdmin()) {
       $.caller.reply({
-        message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`,
+        message: `⚠️ Somente administradores podem utilizar esse comando!`,
         color: Global.Color.Tomato,
         style: "bold",
       });
@@ -206,9 +200,9 @@ export class Admin extends Module {
     name: "desbanir",
   })
   desbanirCommand($: CommandInfo, room: Room) {
-    if (!this.isAdmin($.caller)) {
+    if (!$.caller.isAdmin()) {
       $.caller.reply({
-        message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`,
+        message: `⚠️ Somente administradores podem utilizar esse comando!`,
         color: Global.Color.Tomato,
         style: "bold",
       });
@@ -259,9 +253,9 @@ export class Admin extends Module {
     name: "banidos",
   })
   banidosCommand($: CommandInfo, room: Room) {
-    if (!this.isAdmin($.caller)) {
+    if (!$.caller.isAdmin()) {
       $.caller.reply({
-        message: `⚠️ Somente administradores oficiais podem utilizar esse comando!`,
+        message: `⚠️ Somente administradores podem utilizar esse comando!`,
         color: Global.Color.Tomato,
         style: "bold",
       });

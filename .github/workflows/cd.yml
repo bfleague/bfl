@@ -48,7 +48,7 @@ jobs:
 
       - name: Set up npm token
         run: |
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
           echo "@haxbrasil:registry=https://npm.pkg.github.com" >> ~/.npmrc
 
       - name: Build Docker image

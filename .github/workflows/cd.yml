@@ -47,7 +47,6 @@ jobs:
           echo "API_URL=${{ secrets.API_URL }}" >> .env
 
       - name: Set up npm token
-        uses: actions/checkout@v2
         run: |
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
           echo "@haxbrasil:registry=https://npm.pkg.github.com" >> ~/.npmrc

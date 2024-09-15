@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@abraham/reflection": "^0.8.0",
+    "@haxbrasil/lib": "^1.1.2",
     "@koush/wrtc": "^0.5.3",
     "@peculiar/webcrypto": "^1.4.3",
     "discord.js": "^14.11.0",

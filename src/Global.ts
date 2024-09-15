@@ -1,4 +1,6 @@
 import { Team } from "./core/Global";
+import { RoomAPI } from "@haxbrasil/lib";
+import "dotenv/config";
 
 export type FieldPosition = { team: Team; yards: number };
 export type TeamPlayersHistory = {
@@ -26,6 +28,8 @@ export const bypassRegisterRole = "bypassRegisterRole";
 export const adminAccountRole = "adminAccount";
 
 export const statsVersion = "1";
+
+export const api = new RoomAPI(process.env.AUTH_KEY, process.env.API_URL);
 
 export enum BallDamping {
   Default = 0.99,

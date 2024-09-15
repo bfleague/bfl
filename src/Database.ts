@@ -9,7 +9,7 @@ export enum ResponseType {
 
 type Response = { type: ResponseType; message?: any };
 
-export default class Database {
+export default class DocumentDatabaseAdapter {
   private url = `http://localhost:${process.env.DATABASE_PORT ?? Global.DEFAULT_PORTS.DATABASE}/db`;
 
   private static RoomName = "bfl";
@@ -75,8 +75,8 @@ export default class Database {
   public async addMatch(id: string, info: any): Promise<Response> {
     return await this.send("addMatch", [
       id,
-      Database.RoomName,
-      Database.DefaultMatchType,
+      DocumentDatabaseAdapter.RoomName,
+      DocumentDatabaseAdapter.DefaultMatchType,
       info,
     ]);
   }
@@ -86,7 +86,7 @@ export default class Database {
       player.ip,
       player.name,
       player.auth,
-      Database.RoomName,
+      DocumentDatabaseAdapter.RoomName,
       discord,
     ]);
   }

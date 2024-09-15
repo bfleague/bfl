@@ -6,8 +6,7 @@ import { Color, TeamPlayersHistory } from "../Global";
 import Game from "./Game";
 import * as Global from "../Global";
 import translate from "../utils/Translate";
-import Utils from "../utils/Utils";
-import Database from "../Database";
+import DocumentDatabaseAdapter from "../Database";
 import { json2csv } from "json-2-csv";
 
 require("dotenv").config();
@@ -266,7 +265,7 @@ export default class MatchStats {
   private events: { type: string; time: number; payload: any }[] = [];
   private id = getId();
   private room: Room;
-  private db = new Database();
+  private db = new DocumentDatabaseAdapter();
   private tick = 0;
 
   constructor(room: Room) {

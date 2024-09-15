@@ -43,6 +43,14 @@ jobs:
           echo "SAFE_CONNECTION_LOG=${{ secrets.SAFE_CONNECTION_LOG }}" >> .env
           echo "CHAT_LOG=${{ secrets.CHAT_LOG }}" >> .env
           echo "DISCORD_INVITE=${{ env.DISCORD_INVITE }}" >> .env
+          echo "AUTH_KEY=${{ secrets.AUTH_KEY }}" >> .env
+          echo "API_URL=${{ secrets.API_URL }}" >> .env
+
+      - name: Set up npm token
+        uses: actions/checkout@v2
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> ~/.npmrc
+          echo "@haxbrasil:registry=https://npm.pkg.github.com" >> ~/.npmrc
 
       - name: Build Docker image
         run: |

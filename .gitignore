@@ -4,3 +4,4 @@ processed*.txt
 blocked-ranges.bin
 dist
 deploy.sh
+.npmrc

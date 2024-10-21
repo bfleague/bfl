@@ -4,24 +4,64 @@ import { Team } from "../../core/Global";
 
 import * as Global from "../../Global";
 
-import { Kick } from "./Kick";
-
 import MapMeasures from "../../utils/MapMeasures";
-import Game, { GameModes } from "../Game";
+import Game, { GameModes, PlayerWithBallState } from "../Game";
 import MathUtils from "../../utils/MathUtils";
 import StadiumUtils from "../../utils/StadiumUtils";
+import GameUtils from "../../utils/GameUtils";
+import translate from "../../utils/Translate";
+import { LandPlay } from "./LandPlay";
 
-export class Safety extends Kick {
-  name = "safety";
-  mode = GameModes.Safety;
+export class Safety extends LandPlay {
+  public readonly name = "safety";
+  public readonly mode = GameModes.Safety;
 
-  playerLineLengthSafetyTeam = 100;
-  playerLineLengthReceivingTeam = 200;
-  playerBackDistanceSafety = 100;
+  public readonly playerLineLengthSafetyTeam = 100;
+  public readonly playerLineLengthReceivingTeam = 200;
+  public readonly playerBackDistanceSafety = 100;
 
-  safetyYardLine = 20;
+  public returning = false;
+  public safetyYardLine = 20;
 
   constructor(room: Room, game: Game) {
+    room.on("gameTick", () => {
+      if (this.game.mode !== this.mode) return;
+
+      if (
+        this.game.qbKickedBall &&
+        !this.game.playerWithBall &&
+        !this.returning
+      ) {
+        for (const player of room.getPlayers().teams()) {
+          if (player.distanceTo(room.getBall()) < 0.5) {
+            this.playerReturnedBall(room, player);
+
+            return;
+          }
+        }
+      }
+    });
+
+    room.on("playerBallKick", (player: Player) => {
+      if (this.game.mode !== this.mode) return;
+
+      if (!this.returning) {
+        if (this.game.qbKickedBall) {
+          this.playerReturnedBall(room, player);
+        } else {
+          this.game.qbKickedBall = true;
+          this.game.unblockTeams(room);
+
+          GameUtils.handleDefenderFieldInvasionBeforeHike({
+            room,
+            game: this.game,
+            kicker: player,
+            name: this.name,
+          });
+        }
+      }
+    });
+
     super(room, game);
   }
 
@@ -119,6 +159,38 @@ export class Safety extends Kick {
     this.game.blockTeam(room, this.game.invertTeam(forTeam));
 
     this.game.mode = this.mode;
+  }
+
+  private playerReturnedBall(room: Room, player: Player) {
+    if (player.getTeam() !== this.game.teamWithBall) {
+      this.returning = true;
+      this.game.setPlayerWithBall(
+        room,
+        player,
+        PlayerWithBallState.PuntReturner,
+        true,
+      );
+
+      room.send({
+        message: translate("RETURNED_SAFETY", player.name),
+        color: Global.Color.MediumSeaGreen,
+        style: "bold",
+      });
+    } else {
+      room.send({
+        message: translate("ILLEGAL_TOUCH_SAME_TEAM", player.name),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.down.set({
+        room,
+        pos: StadiumUtils.getYardsFromXCoord(player.getX()),
+        forTeam: this.game.invertTeam(this.game.teamWithBall),
+        countDistanceFromNewPos: false,
+        positionPlayersEvenly: true,
+      });
+    }
   }
 
   public reset() {

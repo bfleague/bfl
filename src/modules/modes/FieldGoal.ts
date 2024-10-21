@@ -13,31 +13,31 @@ import Timer from "../../utils/Timer";
 import StadiumUtils from "../../utils/StadiumUtils";
 import Utils from "../../utils/Utils";
 import translate from "../../utils/Translate";
-import { Tackle, Tackleable } from "./Tackleable";
+import { Mode } from "./Mode";
+import GameUtils, { Tackle } from "../../utils/GameUtils";
 
-export class FieldGoal extends Tackleable {
-  name = "field goal";
-  mode = GameModes.FieldGoal;
+export class FieldGoal extends Mode {
+  public readonly name = "field goal";
+  public readonly mode = GameModes.FieldGoal;
 
-  fgPoints = 3;
-  fgTimeLimit = 15 * 1000;
-  playerLineLengthFieldGoalKickingTeam = 100;
-  playerLineLengthFieldGoalOtherTeam = 100;
-  maxPlayerBackDistanceFieldGoalOffense = 1000;
-  maxPlayerBackDistanceFieldGoalDefense = 900;
-  maxTimeFGMoveBallPenalty = 1 * 1000;
-  yardsBackOffense = 10;
-  yardsBackDefense = 15;
-  fgMaxDistanceMoveBall = 8.5;
-  maxDistanceYardsFG = 47 + 10;
-  playerLineLengthFG = 100;
-  kickerY = 30;
-  maxDistanceKickerToBallYards = 10;
+  public readonly fgPoints = 3;
+  public readonly fgTimeLimit = 15 * 1000;
+  public readonly playerLineLengthFieldGoalKickingTeam = 100;
+  public readonly playerLineLengthFieldGoalOtherTeam = 100;
+  public readonly maxPlayerBackDistanceFieldGoalOffense = 1000;
+  public readonly maxPlayerBackDistanceFieldGoalDefense = 900;
+  public readonly maxTimeFGMoveBallPenalty = 1 * 1000;
+  public readonly yardsBackOffense = 10;
+  public readonly yardsBackDefense = 15;
+  public readonly fgMaxDistanceMoveBall = 8.5;
+  public readonly maxDistanceYardsFG = 47 + 10;
+  public readonly playerLineLengthFG = 100;
+  public readonly kickerY = 30;
+  public readonly maxDistanceKickerToBallYards = 10;
 
-  fgFailed = false;
-  disabledBallTouch = false;
-
-  fgKicker: Player;
+  public fgFailed = false;
+  public disabledBallTouch = false;
+  public fgKicker: Player;
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -113,7 +113,11 @@ export class FieldGoal extends Tackleable {
         if (this.game.ballMovedTimeFG == null && this.didBallMove(room))
           this.game.ballMovedTimeFG = Date.now();
 
-        const tackle = this.getTackle(room, this.fgKicker);
+        const tackle = GameUtils.getTackle({
+          room,
+          game: this.game,
+          playerBeingTackled: this.fgKicker,
+        });
 
         if (tackle.players.length > 0) {
           this.handleTackle(room, tackle);

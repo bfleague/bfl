@@ -2,6 +2,7 @@ import Player from "../core/Player";
 import Room from "../core/Room";
 
 export class CustomAvatarManager {
+  private static readonly customHaxballMode = true;
   private room: Room;
   private list: Map<number, { time: number; avatar: string }> = new Map();
 
@@ -10,8 +11,11 @@ export class CustomAvatarManager {
   }
 
   private setPlayerDefaultAvatar(player: Player) {
-    //player.setAvatar(player.name.replace(/[^\w\s]/gi, '').slice(0, 2));
-    player.clearAvatar();
+    if (CustomAvatarManager.customHaxballMode) {
+      player.clearAvatar();
+    } else {
+      player.setAvatar(player.name.replace(/[^\w\s]/gi, "").slice(0, 2));
+    }
   }
 
   clearAll() {

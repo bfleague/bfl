@@ -17,11 +17,10 @@ import { DownPlay } from "./DownPlay";
 type Line = { x1: number; y1: number; x2: number; y2: number };
 
 export default class Invasion extends DownPlay {
-  invasionPenalty = 10;
-  invasionTimeSeconds = 3;
-  nonInvasionStartTime = 1 * 1000;
-
-  invasionLinesIndexes = [
+  public readonly invasionPenalty = 10;
+  public readonly invasionTimeSeconds = 3;
+  public readonly nonInvasionStartTime = 1 * 1000;
+  public readonly invasionLinesIndexes = [
     [9, 10],
     [11, 12],
     [13, 14],
@@ -35,8 +34,8 @@ export default class Invasion extends DownPlay {
     [29, 30],
     [31, 32],
   ];
-  invasionDiscsIndexes = [33, 34, 35, 36];
-  innerInvasionLinesIndexes = [
+  public readonly invasionDiscsIndexes = [33, 34, 35, 36];
+  public readonly innerInvasionLinesIndexes = [
     [37, 38],
     [39, 40],
     [41, 42],
@@ -44,18 +43,15 @@ export default class Invasion extends DownPlay {
     [45, 46],
     [47, 48],
   ];
-  innerInvasionDiscsIndexes = [49, 50];
+  public readonly innerInvasionDiscsIndexes = [49, 50];
+  public readonly outerInvasionWidthYards = 9;
+  public readonly innerInvasionWidthYards = 2;
+  public readonly innerInvasionHeightYards = 4;
+  public readonly playerRadius = 15;
 
-  outerInvasionWidthYards = 9;
-  invasionLinesTimeout: Timer;
-
-  innerInvasionWidthYards = 2;
-  innerInvasionHeightYards = 4;
-
-  playerRadius = 15;
-
-  crowdingPlayers: [number, number][] = []; // id, tick
-  crowdingPlayersHistory: [number, number][] = []; // id, tick
+  public invasionLinesTimeout: Timer;
+  public crowdingPlayers: [number, number][] = []; // id, tick
+  public crowdingPlayersHistory: [number, number][] = []; // id, tick
 
   constructor(room: Room, game: Game) {
     super(game);

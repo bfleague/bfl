@@ -14,23 +14,23 @@ import StadiumUtils from "../../utils/StadiumUtils";
 import Utils from "../../utils/Utils";
 
 export class ExtraPoint extends Mode {
-  name = "extra point";
-  mode = GameModes.ExtraPoint;
+  public readonly name = "extra point";
+  public readonly mode = GameModes.ExtraPoint;
 
-  epPoints = 1;
-  conversionPoints = 2;
-  intConversionPoints = 2;
-  epTimeLimit = 8 * 1000;
-  playerLineLengthExtraPointKickingTeam = 100;
-  playerLineLengthExtraPointOtherTeam = 100;
-  playerBackDistanceExtraPoint = 100;
-  maxTimeEPMoveBallPenalty = 1 * 1000;
-  epMaxDistanceMoveBall = 8.5;
-  maxDistanceYardsEP = 47 + 10;
-  extraPointYards = 10;
-  conversionYards = 10;
+  public readonly epPoints = 1;
+  public readonly conversionPoints = 2;
+  public readonly intConversionPoints = 2;
+  public readonly epTimeLimit = 8 * 1000;
+  public readonly playerLineLengthExtraPointKickingTeam = 100;
+  public readonly playerLineLengthExtraPointOtherTeam = 100;
+  public readonly playerBackDistanceExtraPoint = 100;
+  public readonly maxTimeEPMoveBallPenalty = 1 * 1000;
+  public readonly epMaxDistanceMoveBall = 8.5;
+  public readonly maxDistanceYardsEP = 47 + 10;
+  public readonly extraPointYards = 10;
+  public readonly conversionYards = 10;
 
-  epKicker: Player;
+  public epKicker: Player;
 
   constructor(room: Room, game: Game) {
     super(game);

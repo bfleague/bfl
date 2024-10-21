@@ -28,42 +28,37 @@ type SetHikeProperties = {
 };
 
 export class Down extends LandPlay {
-  name = "descida";
-  mode = GameModes.Down;
+  public readonly name = "descida";
+  public readonly mode = GameModes.Down;
 
-  waitingHikeMode = GameModes.WaitingHike;
+  public readonly waitingHikeMode = GameModes.WaitingHike;
+  public readonly trespassingPenalty = 10;
+  public readonly defenseTrespasserPenalty = 10;
+  public readonly holdingPenalty = -5;
+  public readonly qbPassedScrimmageLinePenalty = -5;
+  public readonly attackIllegalTouchPenalty = -5;
+  public readonly maxPenaltiesInRedZone = 3;
+  public readonly hikeMaxDistanceMoveBall = 8.5;
+  public readonly hikeTimeLimit = 10 * 1000;
+  public readonly distanceToHike = 50;
+  public readonly illegalTouchPenalty = 10;
+  public readonly firstDownDiscsIndex = [5, 6];
+  public readonly minimumIntVelocity = 3;
+  public readonly maximumHighestDampingIntVelocity = 6;
+  public readonly timeIllegalTouchDisabledStartMs = 500;
+  public readonly qbScrimmageLineMaxPermitted = 8;
+  public readonly invasion: Invasion;
+  // public readonly bCoeffRunner = 1.5;
+  // public readonly invMassRunner = 0.25;
 
-  ballInitialPoss: Position;
-  trespassingPenalty = 10;
-  defenseTrespasserPenalty = 10;
-  holdingPenalty = -5;
-  qbPassedScrimmageLinePenalty = -5;
-  attackIllegalTouchPenalty = -5;
-  maxPenaltiesInRedZone = 3;
-  hikeMaxDistanceMoveBall = 8.5;
-  hikeTimeLimit = 10 * 1000;
-  distanceToHike = 50;
-  illegalTouchPenalty = 10;
-  firstDownDiscsIndex = [5, 6];
-  qbCarriedBallTime = 0;
-  minimumIntVelocity = 3;
-  maximumHighestDampingIntVelocity = 6;
-  timeIllegalTouchDisabledStartMs = 500;
-  // bCoeffRunner = 1.5;
-  // invMassRunner = 0.25;
-
-  qbScrimmageLineMaxPermitted = 8;
-
-  defenderBlockingBall: Player;
-  sackBallTouched = false;
-
-  sack = false;
-  goalMode = false;
-  hikeTimeEnabled = true;
-
-  invasion: Invasion;
-
-  downSetTime: number;
+  public qbCarriedBallTime = 0;
+  public defenderBlockingBall: Player;
+  public sackBallTouched = false;
+  public sack = false;
+  public goalMode = false;
+  public hikeTimeEnabled = true;
+  public downSetTime: number;
+  public ballInitialPoss: Position;
 
   constructor(room: Room, game: Game) {
     super(room, game);

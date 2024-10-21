@@ -10,26 +10,21 @@ import Player from "../../core/Player";
 import Timer from "../../utils/Timer";
 import StadiumUtils from "../../utils/StadiumUtils";
 import Utils from "../../utils/Utils";
-import { Tackle, Tackleable } from "./Tackleable";
+import { Mode } from "./Mode";
+import GameUtils, { Tackle } from "../../utils/GameUtils";
 
-export abstract class LandPlay extends Tackleable {
-  touchesToTackleRunner = 2;
-  touchesToTackleQBRunner = 1;
+export abstract class LandPlay extends Mode {
+  public readonly touchesToTackleRunner = 2;
+  public readonly touchesToTackleQBRunner = 1;
+  public readonly safetyPoints = 2;
+  public readonly touchdownPoints = 6;
+  public readonly ballLineDiscsIndex = [7, 8];
+  public readonly clownEmojiTime = 15 * 1000;
+  public readonly touchbackYardLine = 25;
+  public readonly timeToFumbleSeconds = 0.1;
 
-  safetyPoints = 2;
-  touchdownPoints = 6;
-
-  ballLineDiscsIndex = [7, 8];
-
-  clownEmojiTime = 15 * 1000;
-
-  wasPlayerWithBallOutsideOfRedZone: number | false = false;
-
-  touchbackYardLine = 25;
-
-  timeToFumbleSeconds = 0.1;
-
-  firstTackle: Tackle;
+  public firstTackle: Tackle;
+  public wasPlayerWithBallOutsideOfRedZone: number | false = false;
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -73,7 +68,10 @@ export abstract class LandPlay extends Tackleable {
           if (this.game.interceptPlayer)
             this.handleInterceptPlayerLeftEndZone(this.game.interceptPlayer);
 
-          const tackle = this.getTackle(room);
+          const tackle = GameUtils.getTackle({
+            room,
+            game: this.game,
+          });
 
           if (tackle.players.length > 0) this.handleTackle(room, tackle);
 

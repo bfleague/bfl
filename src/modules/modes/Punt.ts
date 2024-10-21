@@ -127,7 +127,9 @@ export class Punt extends Kick {
     this.game.mode = this.mode;
   }
 
-  public reset() {}
+  public reset() {
+    this.returning = false;
+  }
 
   @Command({
     name: "punt",

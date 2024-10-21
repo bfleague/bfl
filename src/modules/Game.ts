@@ -583,48 +583,6 @@ class Game extends Module {
     }
   }
 
-  public playerReturnedBall(room: Room, player: Player) {
-    if (player.getTeam() === Team.Spectators) return;
-
-    if (this.playerWithBall == null) {
-      if (player.getTeam() !== this.teamWithBall) {
-        const state =
-          this.mode === this.punt.mode
-            ? PlayerWithBallState.PuntReturner
-            : PlayerWithBallState.KickoffReturner;
-
-        this.setPlayerWithBall(room, player, state, true);
-
-        if (this.mode === this.punt.mode)
-          room.send({
-            message: translate("RETURNED_PUNT", player.name),
-            color: Global.Color.MediumSeaGreen,
-            style: "bold",
-          });
-        else if (this.mode === this.kickOff.mode)
-          room.send({
-            message: translate("RETURNED_KICKOFF", player.name),
-            color: Global.Color.MediumSeaGreen,
-            style: "bold",
-          });
-      } else if (this.qbKickedBall) {
-        room.send({
-          message: translate("ILLEGAL_TOUCH_SAME_TEAM", player.name),
-          color: Global.Color.Orange,
-          style: "bold",
-        });
-
-        this.down.set({
-          room,
-          pos: StadiumUtils.getYardsFromXCoord(player.getX()),
-          forTeam: this.invertTeam(this.teamWithBall),
-          countDistanceFromNewPos: false,
-          positionPlayersEvenly: true,
-        });
-      }
-    }
-  }
-
   public playerWithBallLeft(room: Room, player: Player) {
     const team = this.invertTeam(this.teamWithBall);
     const xCoord = player.getLastPosition().x;

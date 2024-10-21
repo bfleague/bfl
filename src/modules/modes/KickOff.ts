@@ -186,5 +186,6 @@ export class KickOff extends Kick {
     this.resetStallCounter();
     this.isBallToBeKicked = false;
     this.game.firstKickoff = false;
+    this.returning = false;
   }
 }

@@ -447,9 +447,7 @@ export class Down extends LandPlay {
               } else {
                 if (!this.game.conversion) {
                   room.send({
-                    message: translate(
-                      "❌ Recepção fora de campo • Perde a descida",
-                    ),
+                    message: "❌ Recepção fora de campo • Perde a descida",
                     color: Global.Color.Orange,
                     style: "bold",
                   });
@@ -457,9 +455,7 @@ export class Down extends LandPlay {
                   this.set({ room });
                 } else {
                   room.send({
-                    message: translate(
-                      "❌ Recepção fora de campo • Perde a conversão",
-                    ),
+                    message: "❌ Recepção fora de campo • Perde a conversão",
                     color: Global.Color.Orange,
                     style: "bold",
                   });

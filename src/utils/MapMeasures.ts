@@ -43,6 +43,8 @@ const MapMeasures = {
   BlueEndZoneLineCenter: { x: 775, y: 0 },
   PuntRedPositionX: -980,
   PuntBluePositionX: 980,
+  OnsideKickRedPositionX: -775,
+  OnsideKickBluePositionX: 775,
   KickoffKickingPositionX: 465,
   KickoffReceivingPositionX: 775,
   Yard: 15.5,

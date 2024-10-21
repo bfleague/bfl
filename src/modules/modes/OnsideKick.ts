@@ -17,10 +17,10 @@ export class OnsideKick extends LandPlay {
   public readonly name = "onside kick";
   public readonly mode = GameModes.OnsideKick;
 
-  public readonly playerLineLengthPuntPuntingTeam = 100;
-  public readonly playerLineLengthPuntReceivingTeam = 200;
-  public readonly playerBackDistancePunt = 100;
-  public readonly yardsBall = 25;
+  public readonly playerLineLengthKickingTeam = 100;
+  public readonly playerLineLengthReceivingTeam = 200;
+  public readonly playerBackDistance = 100;
+  public readonly yardsBall = 10;
   public readonly yardsBehind = 5;
   public readonly maxOnsideKickTime = 60 * 5;
 
@@ -165,15 +165,15 @@ export class OnsideKick extends LandPlay {
 
     const setKickingTeamPositions = (team: Player[]) => {
       const positions = MathUtils.getPointsAlongLine(
-        { x: 0, y: this.playerLineLengthPuntReceivingTeam },
-        { x: 0, y: -this.playerLineLengthPuntReceivingTeam },
+        { x: 0, y: this.playerLineLengthReceivingTeam },
+        { x: 0, y: -this.playerLineLengthReceivingTeam },
         team.length,
       );
 
       let xPos =
         forTeam === Team.Red
-          ? MapMeasures.PuntBluePositionX - MapMeasures.Yard * 10
-          : MapMeasures.PuntRedPositionX + MapMeasures.Yard * 10;
+          ? MapMeasures.OnsideKickBluePositionX - MapMeasures.Yard * 10
+          : MapMeasures.OnsideKickRedPositionX + MapMeasures.Yard * 10;
 
       for (let i = 0; i < team.length; i++) {
         const player = team[i];
@@ -189,15 +189,15 @@ export class OnsideKick extends LandPlay {
 
     const setReceivingTeamPositions = (team: Player[]) => {
       const positions = MathUtils.getPointsAlongLine(
-        { x: 0, y: this.playerLineLengthPuntReceivingTeam },
-        { x: 0, y: -this.playerLineLengthPuntReceivingTeam },
+        { x: 0, y: this.playerLineLengthReceivingTeam },
+        { x: 0, y: -this.playerLineLengthReceivingTeam },
         team.length,
       );
 
       let xPos =
         forTeam === Team.Red
-          ? MapMeasures.PuntBluePositionX
-          : MapMeasures.PuntRedPositionX;
+          ? MapMeasures.OnsideKickBluePositionX
+          : MapMeasures.OnsideKickRedPositionX;
 
       for (let i = 0; i < team.length; i++) {
         const player = team[i];
@@ -222,8 +222,6 @@ export class OnsideKick extends LandPlay {
 
     this.kicker = kicker;
     this.setTick = this.game.tickCount;
-
-    this.game.setBallDamping(room, Global.BallDamping.Low);
 
     setKickingTeamPositions(kickingTeam);
     setReceivingTeamPositions(receivingTeam);
@@ -339,9 +337,9 @@ export class OnsideKick extends LandPlay {
       return false;
     }
 
-    if (this.game.mode !== this.game.down.waitingHikeMode) {
+    if (this.game.mode !== this.game.kickOff.mode) {
       $.caller.reply({
-        message: `⚠️ Você não pode pedir onside kick agora!`,
+        message: `⚠️ Você não pode pedir onside kick fora de um kick off!`,
         sound: 2,
         color: Global.Color.Tomato,
         style: "bold",

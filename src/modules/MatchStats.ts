@@ -464,6 +464,11 @@ export default class MatchStats {
     game: Game,
     teamsHistory: TeamPlayersHistory,
   ) {
+    if (!process.env.DISCORD_TOKEN) {
+      console.log("Warning: Discord token not set");
+      return;
+    }
+
     const client = new Discord.Client({
       intents: [Discord.GatewayIntentBits.Guilds],
     });
@@ -540,29 +545,33 @@ export default class MatchStats {
       }),
     ];
 
-    this.db.addMatch(this.id, {
-      size: this.tick,
-      players: stats.map((l) => ({
-        id: l.id,
-        name: l.name,
-        confirmed: l.confirmed,
-        points: l.points,
-      })),
-      stats: this.stats,
-      events: this.events,
-      teams: {
-        red: {
-          name: redName,
-          score: score.red,
-          playersIds: red.map((p) => p.id),
+    this.db
+      .addMatch(this.id, {
+        size: this.tick,
+        players: stats.map((l) => ({
+          id: l.id,
+          name: l.name,
+          confirmed: l.confirmed,
+          points: l.points,
+        })),
+        stats: this.stats,
+        events: this.events,
+        teams: {
+          red: {
+            name: redName,
+            score: score.red,
+            playersIds: red.map((p) => p.id),
+          },
+          blue: {
+            name: blueName,
+            score: score.blue,
+            playersIds: blue.map((p) => p.id),
+          },
         },
-        blue: {
-          name: blueName,
-          score: score.blue,
-          playersIds: blue.map((p) => p.id),
-        },
-      },
-    });
+      })
+      .catch((err) => {
+        console.log(`Warning: could not save match to database: ${err}`);
+      });
 
     const embed = new Discord.EmbedBuilder()
       .setTitle(`${redName} ${score.red} x ${score.blue} ${blueName}`)
@@ -591,7 +600,7 @@ export default class MatchStats {
           "Warning: could not find guild, guild ID = ",
           process.env.GUILD_ID,
         );
-        c.destroy();
+        c?.destroy();
         return;
       }
 
@@ -607,17 +616,17 @@ export default class MatchStats {
             color: Color.LightPink,
             style: "bold",
           });
-          c.destroy();
+          c?.destroy();
         })
         .catch((err) => {
           console.log(`Warning: could not send message to Discord: ${err}`);
-          c.destroy();
+          c?.destroy();
         });
     });
 
     client.login(process.env.DISCORD_TOKEN).catch((err) => {
       console.log(`Warning: could not login to Discord: ${err}`);
-      client.destroy();
+      client?.destroy();
     });
   }
 }

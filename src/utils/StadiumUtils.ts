@@ -2,7 +2,6 @@ import { Team } from "../core/Global";
 import MapMeasures from "./MapMeasures";
 
 import * as Global from "../Global";
-import MathUtils from "./MathUtils";
 import Disc from "../core/Disc";
 
 export default class StadiumUtils {

@@ -32,6 +32,7 @@ export const statsVersion = "1";
 export const api = new RoomAPI(process.env.AUTH_KEY, process.env.API_URL);
 
 export enum BallDamping {
+  Low = 0.987,
   Default = 0.99,
   High = 1.002,
   Highest = 1.006,

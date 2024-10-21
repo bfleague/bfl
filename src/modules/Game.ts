@@ -24,6 +24,7 @@ import { Safety } from "./modes/Safety";
 import MapMeasures from "../utils/MapMeasures";
 import { CustomAvatarManager } from "./CustomAvatarManager";
 import MathUtils from "../utils/MathUtils";
+import { OnsideKick } from "./modes/OnsideKick";
 
 const BALL_AVATAR = "🏈";
 
@@ -46,6 +47,7 @@ export enum GameModes {
   ExtraPoint = 5,
   Safety = 6,
   WaitingHike = 7,
+  OnsideKick = 8,
 }
 
 class Game extends Module {
@@ -55,6 +57,7 @@ class Game extends Module {
   public kickOff: KickOff;
   public extraPoint: ExtraPoint;
   public safety: Safety;
+  public onsideKick: OnsideKick;
   public gameCommands: GameCommands;
   public customTeams: CustomTeams;
   public customAvatarManager: CustomAvatarManager;
@@ -113,6 +116,7 @@ class Game extends Module {
   public canChangeMap = false;
   public shouldResetMap = false;
   public lastPlayerPositions: Map<number, number> = new Map();
+  public defaultPlayerRadius = (BFL.playerPhysics as any).radius ?? 15;
 
   private scoreRed = 0;
   private scoreBlue = 0;
@@ -139,6 +143,7 @@ class Game extends Module {
 
     this.down = room.module(Down, this) as Down;
     this.punt = room.module(Punt, this) as Punt;
+    this.onsideKick = room.module(OnsideKick, this) as OnsideKick;
     this.fieldGoal = room.module(FieldGoal, this) as FieldGoal;
     this.kickOff = room.module(KickOff, this) as KickOff;
     this.extraPoint = room.module(ExtraPoint, this) as ExtraPoint;
@@ -589,12 +594,26 @@ class Game extends Module {
 
     this.clearPlayerWithBall();
 
-    if (this.mode === this.punt.mode || this.mode === this.kickOff.mode) {
+    if (
+      this.mode === this.punt.mode ||
+      this.mode === this.kickOff.mode ||
+      this.mode === this.onsideKick.mode
+    ) {
+      const getName = () => {
+        switch (this.mode) {
+          case this.punt.mode:
+            return "Punt";
+          case this.kickOff.mode:
+            return "Kick Off";
+          case this.onsideKick.mode:
+            return "Onside Kick";
+          default:
+            return "Kick";
+        }
+      };
+
       room.send({
-        message: translate(
-          "RECEIVER_LEFT_IN_KICK",
-          this.mode === this.punt.mode ? "Punt" : "Kick Off",
-        ),
+        message: translate("RECEIVER_LEFT_IN_KICK", getName()),
         color: Global.Color.Orange,
         style: "bold",
       });
@@ -1054,12 +1073,17 @@ class Game extends Module {
       this.unghostAll(room);
       this.setBallDamping(room, Global.BallDamping.Default);
       this.playerWithBall?.setbCoeff(0.5);
+      room
+        .getPlayers()
+        .teams()
+        .forEach((p) => p.setRadius(this.defaultPlayerRadius));
     }
 
     this.down.reset();
     this.fieldGoal.reset();
     this.kickOff.reset();
     this.punt.reset();
+    this.onsideKick.reset();
 
     this.interceptAttemptPlayer = null;
 

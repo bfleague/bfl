@@ -8,6 +8,7 @@
   "RETURNED_PUNT": "🏈 Punt retornado por %s",
   "RETURNED_KICKOFF": "🏈 Kickoff retornado por %s",
   "RETURNED_SAFETY": "🏈 Safety retornado por %s",
+  "RETURNED_ONSIDE": "🏈 Onside Kick retornado por %s",
   "ILLEGAL_TOUCH_SAME_TEAM": "❌ Toque ilegal de %s • Bola pega pelo mesmo time que a chutou",
   "RECEIVER_LEFT_IN_KICK": "🚪 Recebedor saiu durante o %s",
   "RECEIVER_LEFT_IN_HIKE": "🚪 Recebedor saiu durante a descida",

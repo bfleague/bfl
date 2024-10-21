@@ -37,6 +37,7 @@
   "TOOK_TOO_LONG_FG": "❌ Demorou demais pra chutar, perde o field goal!",
   "SET_FG": "🔱 %s solicitou FG!",
   "FG": "🥅 Field Goal para o %s • %s para chutar o FG",
+  "RUSHED_FG_TOO_SOON": "❌ %s correu cedo demais no field goal • Perde o FG",
   "CHANGED_TEAM_COLORS": "🥋 %s alterou o uniforme do %s para %s",
   "TEAM_LIST": "🥋 Uniformes (%s): %s.",
   "GAME_RECORDED": "🎥 Esta partida foi gravada (ID: %s) e está disponível em nosso Discord!",

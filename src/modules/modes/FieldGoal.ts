@@ -33,11 +33,12 @@ export class FieldGoal extends Mode {
   public readonly maxDistanceYardsFG = 47 + 10;
   public readonly playerLineLengthFG = 100;
   public readonly kickerY = 30;
-  public readonly maxDistanceKickerToBallYards = 10;
+  public readonly maxKickerBackDistance = MapMeasures.Yard * 5;
+  public readonly ticksToWaitBeforeRunning = 2 * 60;
 
   public fgFailed = false;
-  public disabledBallTouch = false;
   public fgKicker: Player;
+  public setTick: number = null;
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -60,12 +61,10 @@ export class FieldGoal extends Mode {
         this.game.setBallUnmoveable(room);
         this.game.lockBall(room);
         this.game.setBallUnkickable(room);
-        //this.game.unghostAll(room);
 
         const ballPos = room.getBall().getPosition();
 
         setTimeout(() => {
-          this.disabledBallTouch = true;
           if (
             !this.fgFailed &&
             this.detectFailedFieldGoal(room, player, ballPos)
@@ -81,23 +80,10 @@ export class FieldGoal extends Mode {
       if (this.game.mode !== this.mode) return;
       if (this.fgFailed) return;
 
-      if (!this.disabledBallTouch) {
-        const playerTouchingBall = this.getPlayerTouchingBall(room);
-
-        if (playerTouchingBall && playerTouchingBall.id !== this.fgKicker.id) {
-          this.handleIllegalTouch(room, playerTouchingBall);
-
-          return;
-        }
-      }
-
       if (!this.game.qbKickedBall) {
         const playerTouchingBall = this.getPlayerTouchingBall(room);
 
-        if (
-          playerTouchingBall &&
-          playerTouchingBall.getTeam() === this.fgKicker.getTeam()
-        ) {
+        if (playerTouchingBall) {
           if (playerTouchingBall.getTeam() === this.fgKicker.getTeam()) {
             this.handleIllegalTouch(room, playerTouchingBall);
           } else {
@@ -132,10 +118,46 @@ export class FieldGoal extends Mode {
         }
 
         if (
-          this.fgKicker.distanceTo(room.getBall()) >
-          this.maxDistanceKickerToBallYards * MapMeasures.Yard
+          this.game.teamWithBall === Team.Red
+            ? this.fgKicker.getX() < -this.maxKickerBackDistance
+            : this.fgKicker.getX() > this.maxKickerBackDistance
         ) {
           this.handleKickerTooFarFromBall(room);
+
+          return;
+        }
+
+        if (
+          this.game.teamWithBall === Team.Red
+            ? this.fgKicker.getX() > room.getBall().getX()
+            : this.fgKicker.getX() < room.getBall().getX()
+        ) {
+          console.log(
+            this.game.tickCount - this.setTick,
+            this.ticksToWaitBeforeRunning,
+          );
+          if (
+            this.game.tickCount - this.setTick <
+            this.ticksToWaitBeforeRunning
+          ) {
+            room.send({
+              message: translate("RUSHED_FG_TOO_SOON", this.fgKicker.name),
+              color: Global.Color.Orange,
+              style: "bold",
+            });
+
+            this.game.down.set({
+              room,
+              forTeam: this.game.invertTeam(this.game.teamWithBall),
+            });
+
+            return;
+          }
+
+          this.game.fakeFieldGoal.set({
+            room,
+            runner: this.fgKicker,
+          });
 
           return;
         }
@@ -260,9 +282,8 @@ export class FieldGoal extends Mode {
 
     kicker.setY(this.kickerY);
 
-    //this.game.ghostTeam(room, this.game.invertTeam(forTeam));
-
     this.game.mode = this.mode;
+    this.setTick = this.game.tickCount;
 
     this.game.fieldGoalTimeout = new Timer(() => {
       room.send({
@@ -281,7 +302,7 @@ export class FieldGoal extends Mode {
   public reset() {
     this.fgKicker = null;
     this.fgFailed = false;
-    this.disabledBallTouch = false;
+    this.setTick = null;
   }
 
   @Command({
@@ -410,7 +431,7 @@ export class FieldGoal extends Mode {
     for (const player of room.getPlayers().teams()) {
       if (player.id === this.fgKicker?.id) continue;
 
-      if (player.distanceTo(room.getBall()) < 0.5) return player;
+      if (player.distanceTo(room.getBall()) < 0.1) return player;
     }
   }
 

@@ -19,13 +19,35 @@ export class Safety extends LandPlay {
   public readonly playerLineLengthSafetyTeam = 100;
   public readonly playerLineLengthReceivingTeam = 200;
   public readonly playerBackDistanceSafety = 100;
+  public readonly maxOnsideKickTime = 60 * 5;
 
   public returning = false;
   public safetyYardLine = 20;
+  public setTick: number = null;
 
   constructor(room: Room, game: Game) {
     room.on("gameTick", () => {
       if (this.game.mode !== this.mode) return;
+
+      if (
+        this.setTick &&
+        this.game.tickCount - this.setTick > this.maxOnsideKickTime &&
+        !this.game.qbKickedBall
+      ) {
+        room.send({
+          message: `⏰ O tempo para chutar o PUNT esgotou!`,
+          color: Global.Color.Tomato,
+          style: "bold",
+        });
+
+        this.game.down.set({
+          room,
+          forTeam: this.game.invertTeam(this.game.teamWithBall),
+          countDistanceFromNewPos: false,
+        });
+
+        return;
+      }
 
       if (
         this.game.qbKickedBall &&
@@ -153,6 +175,8 @@ export class Safety extends LandPlay {
     setPuntingTeamPositions(safetyTeam);
     setReceivingTeamPositions(receivingTeam);
 
+    this.setTick = this.game.tickCount;
+
     this.setBallLine(room);
     this.game.down.resetFirstDownLine(room);
 
@@ -195,5 +219,6 @@ export class Safety extends LandPlay {
 
   public reset() {
     this.returning = false;
+    this.setTick = null;
   }
 }

@@ -20,14 +20,36 @@ export class Punt extends LandPlay {
   public readonly playerLineLengthPuntPuntingTeam = 100;
   public readonly playerLineLengthPuntReceivingTeam = 200;
   public readonly playerBackDistancePunt = 100;
+  public readonly maxOnsideKickTime = 60 * 5;
 
   public returning = false;
+  public setTick: number = null;
 
   constructor(room: Room, game: Game) {
     super(room, game);
 
     room.on("gameTick", () => {
       if (this.game.mode !== this.mode) return;
+
+      if (
+        this.setTick &&
+        this.game.tickCount - this.setTick > this.maxOnsideKickTime &&
+        !this.game.qbKickedBall
+      ) {
+        room.send({
+          message: `⏰ O tempo para chutar o PUNT esgotou!`,
+          color: Global.Color.Tomato,
+          style: "bold",
+        });
+
+        this.game.down.set({
+          room,
+          forTeam: this.game.invertTeam(this.game.teamWithBall),
+          countDistanceFromNewPos: false,
+        });
+
+        return;
+      }
 
       if (
         this.game.qbKickedBall &&
@@ -157,6 +179,8 @@ export class Punt extends LandPlay {
       }
     };
 
+    this.setTick = this.game.tickCount;
+
     setPuntingTeamPositions(puntingTeam);
     setReceivingTeamPositions(receivingTeam);
     this.setBallLine(room);
@@ -199,6 +223,7 @@ export class Punt extends LandPlay {
 
   public reset() {
     this.returning = false;
+    this.setTick = null;
   }
 
   @Command({

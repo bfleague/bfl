@@ -244,7 +244,7 @@ export class OnsideKick extends LandPlay {
       this.game.down.set({
         room,
         pos: {
-          team: this.game.invertTeam(this.game.teamWithBall),
+          team: this.game.teamWithBall,
           yards: this.yardsBallSameTeamTouch,
         },
         forTeam: this.game.invertTeam(this.game.teamWithBall),
@@ -265,7 +265,7 @@ export class OnsideKick extends LandPlay {
       this.game.down.set({
         room,
         pos: {
-          team: this.game.invertTeam(this.game.teamWithBall),
+          team: this.game.teamWithBall,
           yards: this.yardsBallSameTeamTouch,
         },
         forTeam: this.game.invertTeam(this.game.teamWithBall),

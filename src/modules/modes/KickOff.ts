@@ -9,20 +9,20 @@ import MapMeasures from "../../utils/MapMeasures";
 import MathUtils from "../../utils/MathUtils";
 import StadiumUtils from "../../utils/StadiumUtils";
 import Player from "../../core/Player";
-import Timer from "../../utils/Timer";
 import Utils from "../../utils/Utils";
 import { LandPlay } from "./LandPlay";
 import translate from "../../utils/Translate";
+import StoppageTime from "../../utils/StoppageTime";
+import GameUtils from "../../utils/GameUtils";
 
 export class KickOff extends LandPlay {
   public readonly mode = GameModes.Kickoff;
   public readonly name = "kick off";
 
   public readonly playerLineLengthKickoff = 200;
-  public readonly kickoffSecondsToAddExtra = 10;
-  public readonly kickoffTimePenalty = 10;
+  public readonly kickoffTicksToAddExtra = 10 * 60;
+  public readonly kickoffTicksToPenalty = 10 * 60;
 
-  public kickoffTimer: Timer;
   public kickoffPenaltyStartedAt: number;
   public isBallToBeKicked = false;
   public returning = false;
@@ -55,6 +55,7 @@ export class KickOff extends LandPlay {
         if (this.game.qbKickedBall) {
           this.playerReturnedBall(room, player);
         } else {
+          this.addStoppageTime(room);
           this.game.qbKickedBall = true;
           this.game.unblockTeams(room);
         }
@@ -68,35 +69,6 @@ export class KickOff extends LandPlay {
         this.game.blockTeam(room, this.game.invertTeam(this.game.teamWithBall));
         this.game.blockMiddleKickoff(room, this.game.teamWithBall);
       }
-    });
-
-    room.on("playerBallKick", (player: Player) => {
-      if (this.game.mode !== this.mode) return;
-
-      if (this.kickoffPenaltyStartedAt) {
-        const kickoffStallExtraTime = Date.now() - this.kickoffPenaltyStartedAt;
-
-        this.game.addToStoppage(kickoffStallExtraTime);
-
-        room.send({
-          message: `​⏰​ Foram adicionados ${Utils.getFormattedSeconds(parseInt((kickoffStallExtraTime / 1000 + 10).toFixed(2)))} de acréscimos devido à demora em chutar o kickoff`,
-          color: Global.Color.Yellow,
-          style: "bold",
-        });
-      }
-
-      this.isBallToBeKicked = false;
-      this.kickoffPenaltyStartedAt = 0;
-
-      this.resetStallCounter();
-    });
-
-    room.on("gamePause", () => {
-      this.kickoffTimer?.pause();
-    });
-
-    room.on("gameUnpause", () => {
-      this.kickoffTimer?.resume();
     });
   }
 
@@ -125,16 +97,7 @@ export class KickOff extends LandPlay {
     this.game.downCount = 0;
     this.game.distance = 20;
     this.isBallToBeKicked = true;
-
-    if (
-      !this.game.firstKickoff &&
-      this.game.endGameTime > 0 &&
-      room.getScores().time > 1
-    )
-      this.kickoffTimer = new Timer(() => {
-        this.kickoffPenaltyStartedAt = Date.now();
-        this.game.addToStoppage(10 * 1000);
-      }, this.kickoffSecondsToAddExtra * 1000);
+    this.kickoffPenaltyStartedAt = this.game.tickCount;
 
     room.send({
       message: `​🤾‍♂️​ Kickoff para o ${this.game.getTeamName(forTeam)}`,
@@ -159,15 +122,13 @@ export class KickOff extends LandPlay {
     let red = room.getPlayers().red();
     let blue = room.getPlayers().blue();
 
-    const filterPlayerOutsideField = (p: Player) =>
-      Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
     const getSignal = (p: Player) => (p.getTeam() === Team.Red ? -1 : 1);
 
     let kickingTeam = (forTeam === Team.Red ? red : blue).filter(
-      filterPlayerOutsideField,
+      GameUtils.filterPlayerOutsideField(room),
     );
     let receivingTeam = (forTeam === Team.Red ? blue : red).filter(
-      filterPlayerOutsideField,
+      GameUtils.filterPlayerOutsideField(room),
     );
 
     const kickingPositions = MathUtils.getPointsAlongLine(
@@ -242,8 +203,36 @@ export class KickOff extends LandPlay {
 
   private resetStallCounter() {
     this.kickoffPenaltyStartedAt = null;
-    this.kickoffTimer?.stop();
-    this.kickoffTimer = null;
+  }
+
+  public addStoppageTime(room: Room) {
+    const stoppageTimeDisabled =
+      this.game.firstKickoff ||
+      this.game.endGameTime === 0 ||
+      room.getScores().time === 0 ||
+      this.kickoffPenaltyStartedAt === 0 ||
+      this.game.tickCount - this.kickoffPenaltyStartedAt <
+        this.kickoffTicksToPenalty;
+
+    if (stoppageTimeDisabled) {
+      return;
+    }
+
+    const kickoffStallExtraTime =
+      this.game.tickCount - this.game.kickOff.kickoffPenaltyStartedAt;
+
+    this.game.stoppageTime.addStoppageTime(kickoffStallExtraTime);
+
+    room.send({
+      message: `​⏰​ Foram adicionados ${StoppageTime.ticksToStr(kickoffStallExtraTime)} de acréscimos devido à demora em chutar o kickoff`,
+      color: Global.Color.Yellow,
+      style: "bold",
+    });
+
+    this.isBallToBeKicked = false;
+    this.kickoffPenaltyStartedAt = 0;
+
+    this.resetStallCounter();
   }
 
   public reset() {

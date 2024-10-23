@@ -12,6 +12,7 @@ import StadiumUtils from "../../utils/StadiumUtils";
 import { LandPlay } from "./LandPlay";
 import translate from "../../utils/Translate";
 import Disc from "../../core/Disc";
+import Utils from "../../utils/Utils";
 
 export class OnsideKick extends LandPlay {
   public readonly name = "onside kick";
@@ -23,7 +24,7 @@ export class OnsideKick extends LandPlay {
   public readonly yardsBall = 10;
   public readonly yardsBehind = 5;
   public readonly maxOnsideKickTime = 60 * 5;
-  public readonly yardsBallSameTeamTouch = 40;
+  public readonly yardsBallOnsideFailed = 40;
 
   public returning = false;
   public kicker: Player = null;
@@ -47,15 +48,7 @@ export class OnsideKick extends LandPlay {
           style: "bold",
         });
 
-        this.game.down.set({
-          room,
-          pos: {
-            team: this.game.teamWithBall,
-            yards: this.yardsBall,
-          },
-          forTeam: this.game.invertTeam(this.game.teamWithBall),
-          countDistanceFromNewPos: false,
-        });
+        this.handleOnsideFailed(room);
 
         return;
       }
@@ -73,15 +66,7 @@ export class OnsideKick extends LandPlay {
           style: "bold",
         });
 
-        this.game.down.set({
-          room,
-          pos: {
-            team: this.game.teamWithBall,
-            yards: this.yardsBall,
-          },
-          forTeam: this.game.invertTeam(this.game.teamWithBall),
-          countDistanceFromNewPos: false,
-        });
+        this.handleOnsideFailed(room);
       }
 
       if (
@@ -235,43 +220,25 @@ export class OnsideKick extends LandPlay {
     this.returning = true;
 
     if (player.getTeam() !== this.game.teamWithBall) {
-      room.send({
+      Utils.sendSoundTeamMessage(room, {
         message: translate("RETURNED_ONSIDE", player.name),
         color: Global.Color.MediumSeaGreen,
         style: "bold",
       });
 
-      this.game.down.set({
-        room,
-        pos: {
-          team: this.game.teamWithBall,
-          yards: this.yardsBallSameTeamTouch,
-        },
-        forTeam: this.game.invertTeam(this.game.teamWithBall),
-        countDistanceFromNewPos: false,
-        positionPlayersEvenly: true,
-      });
+      this.handleOnsideFailed(room);
 
       return;
     }
 
     if (player.id !== this.kicker.id) {
-      room.send({
+      Utils.sendSoundTeamMessage(room, {
         message: translate("ILLEGAL_TOUCH_SAME_TEAM", player.name),
         color: Global.Color.Orange,
         style: "bold",
       });
 
-      this.game.down.set({
-        room,
-        pos: {
-          team: this.game.teamWithBall,
-          yards: this.yardsBallSameTeamTouch,
-        },
-        forTeam: this.game.invertTeam(this.game.teamWithBall),
-        countDistanceFromNewPos: false,
-        positionPlayersEvenly: true,
-      });
+      this.handleOnsideFailed(room);
 
       return;
     }
@@ -283,7 +250,7 @@ export class OnsideKick extends LandPlay {
       true,
     );
 
-    room.send({
+    Utils.sendSoundTeamMessage(room, {
       message: `🏈 ${player.name} RECUPEROU O ONSIDE KICK!!!`,
       color: Global.Color.Cyan,
       style: "bold",
@@ -297,6 +264,19 @@ export class OnsideKick extends LandPlay {
     );
 
     ball.setPosition(ballPos);
+  }
+
+  private handleOnsideFailed(room: Room) {
+    this.game.down.set({
+      room,
+      pos: {
+        team: this.game.teamWithBall,
+        yards: this.yardsBallOnsideFailed,
+      },
+      forTeam: this.game.invertTeam(this.game.teamWithBall),
+      countDistanceFromNewPos: false,
+      positionPlayersEvenly: true,
+    });
   }
 
   public reset() {
@@ -370,6 +350,7 @@ export class OnsideKick extends LandPlay {
       style: "bold",
     });
 
+    this.game.kickOff.addStoppageTime(room);
     this.set({ room, kicker: $.caller });
 
     return false;

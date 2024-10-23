@@ -1,6 +1,6 @@
 import type Room from "../../core/Room";
 import type Player from "../../core/Player";
-import { Team } from "../../core/Global";
+import { MessageObject, Team } from "../../core/Global";
 
 import * as Global from "../../Global";
 
@@ -16,6 +16,7 @@ import Utils from "../../utils/Utils";
 import Invasion from "./Invasion";
 import translate from "../../utils/Translate";
 import Disc from "../../core/Disc";
+import GameUtils from "../../utils/GameUtils";
 
 type SetHikeProperties = {
   room: Room;
@@ -51,11 +52,18 @@ export class Down extends LandPlay {
   public readonly firstDownDiscsIndex = [5, 6];
   public readonly minimumIntVelocity = 3;
   public readonly maximumHighestDampingIntVelocity = 6;
-  public readonly timeIllegalTouchDisabledStartMs = 500;
+  public readonly timeIllegalTouchDisabledStartTicks = 30;
   public readonly qbScrimmageLineMaxPermitted = 8;
   public readonly invasion: Invasion;
   // public readonly bCoeffRunner = 1.5;
   // public readonly invMassRunner = 0.25;
+  public readonly timeToKickAutomaticPunt = 10 * 60;
+  public readonly maxDistance: Record<number, number> = {
+    1: 30,
+    2: 30,
+    3: 30,
+    4: 25,
+  };
 
   public qbCarriedBallTime = 0;
   public defenderBlockingBall: Player;
@@ -85,10 +93,10 @@ export class Down extends LandPlay {
           if (
             !this.qbCarriedBallTime &&
             this.ballInitialPoss &&
-            room.getBall().distanceTo(
-              Object.assign(this.ballInitialPoss, {
-                radius: room.getBall().getRadius(),
-              }),
+            MathUtils.getDistanceBetweenPoints(
+              this.ballInitialPoss,
+              room.getBall().getPosition(),
+              room.getBall().getRadius(),
             ) > 1
           ) {
             this.qbCarriedBallTime = Date.now();
@@ -346,6 +354,10 @@ export class Down extends LandPlay {
                     ),
                   );
 
+                  this.game.adjustGameTimeAfterDefensivePenalty(room);
+
+                  this.game.redZonePenalties = 0;
+
                   return;
                 } else {
                   penalty = this.game.getPenaltyValueInRedZone(
@@ -576,7 +588,8 @@ export class Down extends LandPlay {
         this.game.mode === this.waitingHikeMode &&
         !this.game.qbKickedBall &&
         player.getTeam() !== this.game.teamWithBall &&
-        Date.now() > this.downSetTime + this.timeIllegalTouchDisabledStartMs
+        this.game.tickCount >
+          this.downSetTime + this.timeIllegalTouchDisabledStartTicks
       ) {
         this.playerTouchBallHike(room, player);
 
@@ -883,19 +896,21 @@ export class Down extends LandPlay {
       );
     };
 
+    let message: MessageObject = null;
+
     if (this.game.conversion) {
       this.game.downCount = 4;
       this.game.distance = 10;
       this.goalMode = true;
 
-      room.send({
+      message = {
         message:
           translate("CONVERSION_ATTEMPT", this.game.getTeamName(forTeam)) +
           " " +
           hikeTimeMessage(forTeam),
         color: Global.Color.LightGreen,
         style: "bold",
-      });
+      };
     } else if (this.game.downCount === 0) {
       this.game.downCount = 1;
 
@@ -903,11 +918,11 @@ export class Down extends LandPlay {
         this.goalMode = true;
       }
 
-      room.send({
+      message = {
         message: `${this.getDownEmoji(this.game.downCount)} ${this.game.getStateOfMatch()} ${won20Yards ? translate("WON_20_YARDS") : ""} ${translate("FIRST_DOWN", this.game.getTeamName(forTeam))} ${hikeTimeMessage(forTeam)}`,
         color: Global.Color.LightGreen,
         style: "bold",
-      });
+      };
     } else if (this.game.downCount === 4 && countDown) {
       const otherTeam = this.game.invertTeam(forTeam);
 
@@ -915,26 +930,64 @@ export class Down extends LandPlay {
       this.game.distance = 20;
       this.goalMode = false;
 
-      room.send({
+      message = {
         message: `${this.getDownEmoji(this.game.downCount)} ${this.game.getStateOfMatch()} ${translate("TURNOVER_ON_DOWNS", this.game.getTeamName(forTeam))} ${translate("FIRST_DOWN", this.game.getTeamName(otherTeam))} ${hikeTimeMessage(otherTeam)}`,
         color: Global.Color.LightGreen,
         style: "bold",
-      });
+      };
 
       forTeam = otherTeam;
     } else {
       if (countDown) this.game.downCount++;
 
-      room.send({
+      message = {
         message: `${this.getDownEmoji(this.game.downCount)} ${this.game.getStateOfMatch()} ${translate("NTH_DOWN", this.game.downCount)} ${hikeTimeMessage(forTeam)}`,
         color: Global.Color.LightGreen,
         style: "bold",
-      });
+      };
     }
+
+    const distanceToEndZone = Math.abs(
+      StadiumUtils.getDifferenceBetweenFieldPositions(
+        this.game.ballPosition,
+        StadiumUtils.getYardsFromXCoord(
+          (forTeam === Team.Red
+            ? MapMeasures.EndZoneBlue
+            : MapMeasures.EndZoneRed)[1].x,
+        ),
+        forTeam,
+      ),
+    );
+
+    console.log(distanceToEndZone);
+
+    if (
+      countDistanceFromNewPos &&
+      this.game.distance >= this.maxDistance[this.game.downCount] &&
+      distanceToEndZone > this.game.fieldGoal.maxSafeDistanceYardsFG
+    ) {
+      Utils.sendSoundTeamMessage(room, {
+        message: `🤾 ${this.game.getStateOfMatch()} • Punt automático para o ${this.game.getTeamName(forTeam)}`,
+        color: Global.Color.LightGreen,
+        style: "bold",
+      });
+
+      this.game.punt.set({
+        room,
+        forTeam: this.game.teamWithBall,
+        pos,
+        sendMessage: false,
+        timeToKick: this.timeToKickAutomaticPunt,
+      });
+
+      return;
+    }
+
+    room.send(message);
 
     this.game.teamWithBall = forTeam;
     this.game.mode = this.waitingHikeMode;
-    this.downSetTime = Date.now();
+    this.downSetTime = this.game.tickCount;
 
     this.setBallForHike(room, forTeam);
     this.game.resetPlayersPositionEvenly(room);
@@ -978,11 +1031,12 @@ export class Down extends LandPlay {
     this.invasion.clear();
   }
 
-  public setBallPositionForHike(ball: Disc, forTeam: Team) {
+  public setBallPositionForHike(ball: Disc, forTeam: Team): Position {
     const ballPos = StadiumUtils.getCoordinateFromYards(
       this.game.ballPosition.team,
       this.game.ballPosition.yards,
     );
+
     ballPos.x =
       ballPos.x +
       MapMeasures.Yard *
@@ -992,6 +1046,8 @@ export class Down extends LandPlay {
     ball.setPosition(ballPos);
 
     this.ballInitialPoss = ballPos;
+
+    return ballPos;
   }
 
   public setBallForHike(room: Room, forTeam: Team) {
@@ -1182,7 +1238,10 @@ export class Down extends LandPlay {
 
         if (!isWaitingHike) this.game.matchStats.add(player, { faltas: 1 });
 
-        this.game.adjustGameTimeAfterDefensivePenalty(room);
+        this.game.adjustGameTimeAfterDefensivePenalty(
+          room,
+          this.downSetTime - this.game.tickCount,
+        );
 
         this.set({ room, decrement: penalty, countDown: false });
       } else {
@@ -1440,7 +1499,7 @@ export class Down extends LandPlay {
     for (const player of room.getPlayers().teams()) {
       if (player.id === this.game.quarterback.id) continue;
 
-      if (player.distanceTo(room.getBall()) < 0.5) return player;
+      if (GameUtils.isPlayerTouchingBall(player, room.getBall())) return player;
     }
   }
 
@@ -1459,9 +1518,7 @@ export class Down extends LandPlay {
   private getWideReceiverCatchingBall(room: Room) {
     if (this.game.qbKickedBall) {
       for (const player of this.game.getTeamWithBall(room)) {
-        if (player.id === this.game.quarterback.id) continue;
-
-        if (player.distanceTo(room.getBall()) < 0.5) {
+        if (GameUtils.isPlayerTouchingBall(player, room.getBall())) {
           return player;
         }
       }

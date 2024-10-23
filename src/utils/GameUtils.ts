@@ -3,6 +3,8 @@ import Room from "../core/Room";
 import Game from "../modules/Game";
 import * as Global from "../Global";
 import Player from "../core/Player";
+import Disc from "../core/Disc";
+import MapMeasures from "./MapMeasures";
 
 export type Tackle = { tackleCount: number; players: Player[] };
 
@@ -92,4 +94,12 @@ export default class GameUtils {
 
     return tackles;
   }
+
+  static isPlayerTouchingBall(player: Player, ball: Disc) {
+    return player.distanceTo(ball) < 0.5;
+  }
+
+  static filterPlayerOutsideField = (room: Room) => (p: Player) =>
+    room.getPlayers().filter((pl) => pl.getTeam() === p.getTeam()).length <=
+      4 || Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
 }

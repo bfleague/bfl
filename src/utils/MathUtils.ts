@@ -33,11 +33,19 @@ export default class MathUtils {
     return [c, p2];
   }
 
-  static getDistanceBetweenPoints(p1: Position, p2: Position) {
-    const dx = p1.x - p2.x;
-    const dy = p1.y - p2.y;
+  static getDistanceBetweenPoints(
+    p1: Position,
+    p2: Position,
+    r1 = 0,
+    r2 = r1,
+  ): number {
+    const distanceBetweenCenters = Math.sqrt(
+      (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2,
+    );
 
-    return Math.sqrt(dx * dx + dy * dy);
+    const distanceBetweenEdges = distanceBetweenCenters - (r1 + r2);
+
+    return distanceBetweenEdges;
   }
 
   static getPointOfIntersection(

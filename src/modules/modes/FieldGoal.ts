@@ -30,7 +30,8 @@ export class FieldGoal extends Mode {
   public readonly yardsBackOffense = 10;
   public readonly yardsBackDefense = 15;
   public readonly fgMaxDistanceMoveBall = 8.5;
-  public readonly maxDistanceYardsFG = 47 + 10;
+  public readonly maxDistanceYardsFG = 48;
+  public readonly maxSafeDistanceYardsFG = 46;
   public readonly playerLineLengthFG = 100;
   public readonly kickerY = 30;
   public readonly maxKickerBackDistance = MapMeasures.Yard * 5;
@@ -40,6 +41,7 @@ export class FieldGoal extends Mode {
   public fgKicker: Player;
   public setTick: number = null;
   public downInfo: { distance: number; downCount: number };
+  public ballMovedTimeFG: number = null;
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -97,8 +99,8 @@ export class FieldGoal extends Mode {
           return;
         }
 
-        if (this.game.ballMovedTimeFG == null && this.didBallMove(room))
-          this.game.ballMovedTimeFG = Date.now();
+        if (this.ballMovedTimeFG == null && this.didBallMove(room))
+          this.ballMovedTimeFG = Date.now();
 
         const tackle = GameUtils.getTackle({
           room,
@@ -236,14 +238,12 @@ export class FieldGoal extends Mode {
     this.game.down.resetFirstDownLine(room);
     this.game.down.resetBallLine(room);
 
-    const filterPlayerOutsideField = (p: Player) =>
-      Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
-
     let kickingTeam = (forTeam === Team.Red ? red : blue)
       .filter((p) => p.id !== kicker.id)
-      .filter(filterPlayerOutsideField);
+      .filter(GameUtils.filterPlayerOutsideField(room));
+
     let otherTeam = (forTeam === Team.Red ? blue : red).filter(
-      filterPlayerOutsideField,
+      GameUtils.filterPlayerOutsideField(room),
     );
 
     this.game.teamWithBall = forTeam;
@@ -317,6 +317,8 @@ export class FieldGoal extends Mode {
     this.fgKicker = null;
     this.fgFailed = false;
     this.setTick = null;
+    this.ballMovedTimeFG = null;
+    this.downInfo = null;
   }
 
   @Command({
@@ -490,9 +492,9 @@ export class FieldGoal extends Mode {
     return (
       ball.distanceTo({ ...ballPos, radius: ball.getRadius() }) >
         this.fgMaxDistanceMoveBall ||
-      (this.game.ballMovedTimeFG != null &&
+      (this.ballMovedTimeFG != null &&
         !this.game.qbKickedBall &&
-        Date.now() > this.game.ballMovedTimeFG + this.maxTimeFGMoveBallPenalty)
+        Date.now() > this.ballMovedTimeFG + this.maxTimeFGMoveBallPenalty)
     );
   }
 

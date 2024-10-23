@@ -25,6 +25,7 @@ import MapMeasures from "../utils/MapMeasures";
 import { CustomAvatarManager } from "./CustomAvatarManager";
 import MathUtils from "../utils/MathUtils";
 import { OnsideKick } from "./modes/OnsideKick";
+import StoppageTime from "../utils/StoppageTime";
 
 const BALL_AVATAR = "🏈";
 
@@ -95,7 +96,6 @@ class Game extends Module {
   public invasionPlayers: Player[] = [];
   public invasionTimeout: Timer;
   public teamPlayersHistory: Global.TeamPlayersHistory = [];
-  public ballMovedTimeFG: number;
   public overtime = false;
   public gameStopped = false;
   public lastPlayMessageSent = false;
@@ -103,7 +103,6 @@ class Game extends Module {
   public hikeTimeSeconds = 12;
   public carryBallSackTime = 4;
   public finalSeconds = 10;
-  public isStoppageTime = false;
   public stadium = this.getDefaultMap();
   public gameTime: number;
   public gameTimeSecondsToSendRec = 1 * 60;
@@ -118,10 +117,10 @@ class Game extends Module {
   public shouldResetMap = false;
   public lastPlayerPositions: Map<number, number> = new Map();
   public defaultPlayerRadius = (BFL.playerPhysics as any).radius ?? 15;
+  public stoppageTime: StoppageTime;
 
   private scoreRed = 0;
   private scoreBlue = 0;
-  private stoppageTimeMs = 0;
   private playerLineLengthForEvenlyPositiong = 110;
   private playerCbPositionY = 100;
   private offensiveDistanceSpawnYardsHike = 12;
@@ -268,29 +267,20 @@ class Game extends Module {
       }
 
       this.teamPlayersHistory = [];
-
       this.gameTime = null;
       this.teamWithBall = null;
       this.downCount = 0;
       this.distance = 20;
-
       this.scoreBlue = 0;
       this.scoreRed = 0;
-
-      this.stoppageTimeMs = 0;
-
       this.tickCount = 0;
-
       this.overtime = false;
       this.gameStopped = false;
       this.lastPlayMessageSent = false;
-      this.isStoppageTime = false;
       this.firstKickoff = true;
-
       this.lastPlayerPositions = new Map();
 
       const mvp = this.matchStats.getMVP();
-
       this.matchStats.clear();
 
       if (mvp)
@@ -311,14 +301,11 @@ class Game extends Module {
 
     room.on("gameStart", (byPlayer: Player) => {
       this.endGameTime = room.getScores().timeLimit;
-
-      this.kickOff.set({ room, forTeam: Team.Red });
-
-      room.startRecording();
-
-      this.matchStats.clear();
-
       this.overtime = false;
+      this.stoppageTime = new StoppageTime();
+      this.kickOff.set({ room, forTeam: Team.Red });
+      this.matchStats.clear();
+      room.startRecording();
 
       this.teamPlayersHistory = [
         ...room
@@ -345,79 +332,69 @@ class Game extends Module {
       if (this.gameStopped) return;
 
       this.matchStats.setTick(++this.tickCount);
-
       this.customAvatarManager.run();
 
       this.gameTime = room.getScores().time;
 
-      if (
+      const stoppageTimeShouldBegin =
+        this.endGameTime !== 0 &&
         this.gameTime > this.endGameTime &&
         !this.kickOff.isBallToBeKicked &&
-        this.stoppageTimeMs !== 0 &&
-        !this.isStoppageTime
-      ) {
+        this.stoppageTime.thereIsStoppageTime() &&
+        !this.stoppageTime.isStoppageTime();
+
+      if (stoppageTimeShouldBegin) {
         Utils.sendSoundTeamMessage(room, {
-          message: `​⏰​ Acréscimos de jogo: +${Utils.getFormattedSeconds(parseInt((this.stoppageTimeMs / 1000).toFixed(2)))} • Novo tempo limite: ${Utils.fancyTimeFormat(this.stoppageTimeMs / 1000 + this.endGameTime)}`,
+          message: `​⏰​ Acréscimos de jogo: +${this.stoppageTime.getStoppageTimeStr()} • Novo tempo limite: ${this.stoppageTime.getGameEndingTimeStr(this.endGameTime)}`,
           color: Global.Color.Yellow,
           style: "bold",
         });
 
-        this.isStoppageTime = true;
+        this.stoppageTime.setInitialStoppageTime();
+        this.stoppageTime.enableStoppageTime(true);
       }
 
       const stoppageTimeEnded =
-        this.isStoppageTime &&
-        this.stoppageTimeMs / 1000 + this.endGameTime < this.gameTime;
+        this.stoppageTime.isStoppageTime() &&
+        this.stoppageTime.getGameEndingTimeSeconds(this.endGameTime) <
+          this.gameTime;
 
-      if (
-        this.gameTime > this.endGameTime &&
-        this.endGameTime !== 0 &&
-        (stoppageTimeEnded || this.stoppageTimeMs === 0)
-      ) {
-        if (
-          this.mode !== this.down.mode &&
-          this.mode !== this.fieldGoal.mode &&
-          this.mode !== this.extraPoint.mode &&
-          !this.conversion &&
-          this.scoreRed !== this.scoreBlue &&
-          !this.playerWithBall &&
-          this.mode !== this.kickOff.mode
-        ) {
-          this.gameStopped = true;
+      const beyondTimeLimit = this.gameTime > this.endGameTime;
 
-          const teamWon = this.scoreRed > this.scoreBlue ? Team.Red : Team.Blue;
-          const teamLost = this.invertTeam(teamWon);
+      const isFinalTime =
+        stoppageTimeEnded ||
+        (!this.stoppageTime.thereIsStoppageTime() && beyondTimeLimit);
 
-          const losingPlayers = room
-            .getPlayers()
-            .filter((p) => p.getTeam() === teamLost);
+      const finished =
+        isFinalTime &&
+        !this.conversion &&
+        this.scoreRed !== this.scoreBlue &&
+        !this.playerWithBall &&
+        this.mode === this.down.waitingHikeMode;
 
-          room.stop();
+      if (finished) {
+        this.handleEndGame(room);
+        return;
+      }
 
-          setTimeout(() => {
-            losingPlayers.forEach((p) => {
-              p.setTeam(Team.Spectators);
-            });
-          }, 500);
-        } else if (!this.lastPlayMessageSent) {
-          if (this.scoreRed === this.scoreBlue) {
-            Utils.sendSoundTeamMessage(room, {
-              message: translate("OVERTIME"),
-              color: Global.Color.Yellow,
-              style: "bold",
-            });
+      if (isFinalTime && !this.lastPlayMessageSent) {
+        if (this.scoreRed === this.scoreBlue) {
+          Utils.sendSoundTeamMessage(room, {
+            message: translate("OVERTIME"),
+            color: Global.Color.Yellow,
+            style: "bold",
+          });
 
-            this.overtime = true;
-          } else {
-            Utils.sendSoundTeamMessage(room, {
-              message: translate("LAST_PLAY"),
-              color: Global.Color.Yellow,
-              style: "bold",
-            });
-          }
-
-          this.lastPlayMessageSent = true;
+          this.overtime = true;
+        } else {
+          Utils.sendSoundTeamMessage(room, {
+            message: translate("LAST_PLAY"),
+            color: Global.Color.Yellow,
+            style: "bold",
+          });
         }
+
+        this.lastPlayMessageSent = true;
       }
     });
 
@@ -563,29 +540,37 @@ class Game extends Module {
     this.invasionTimeout = null;
   }
 
-  public adjustGameTimeAfterDefensivePenalty(room: Room) {
+  public adjustGameTimeAfterDefensivePenalty(
+    room: Room,
+    ticksToAdd = this.tickCount - this.down.downSetTime,
+  ) {
     if (
       this.endGameTime - this.gameTime < this.finalSeconds &&
       this.endGameTime !== 0 &&
       !this.overtime
     ) {
-      const newEndGame =
-        this.endGameTime + (10 - (this.endGameTime - this.gameTime));
+      const baseEndGameTime = Math.max(
+        this.stoppageTime.getInitialStoppageTime(),
+        (this.gameTime - this.endGameTime) * 60,
+      );
 
-      if (this.endGameTime !== parseInt(newEndGame + "")) {
-        this.endGameTime = newEndGame;
+      const newEndGameTime = Math.max(
+        this.stoppageTime.getStoppageTimeTicks(),
+        baseEndGameTime + ticksToAdd,
+      );
 
-        Utils.sendSoundTeamMessage(room, {
-          message: translate(
-            "END_GAME_TIME_ADJUSTED_AFTER_PENALTY",
-            Utils.fancyTimeFormat(this.endGameTime),
-          ),
-          color: Global.Color.Yellow,
-          style: "bold",
-        });
+      this.stoppageTime.setStoppageTime(newEndGameTime);
 
-        this.lastPlayMessageSent = false;
-      }
+      Utils.sendSoundTeamMessage(room, {
+        message: translate(
+          "END_GAME_TIME_ADJUSTED_AFTER_PENALTY",
+          this.stoppageTime.getGameEndingTimeStr(this.endGameTime),
+        ),
+        color: Global.Color.Yellow,
+        style: "bold",
+      });
+
+      this.lastPlayMessageSent = false;
     }
   }
 
@@ -928,14 +913,23 @@ class Game extends Module {
     }
   }
 
-  public addToStoppage(timeMs: number) {
-    if (!this.isStoppageTime) {
-      this.stoppageTimeMs += timeMs;
-    }
-  }
+  public handleEndGame(room: Room) {
+    this.gameStopped = true;
 
-  public getStoppage() {
-    return this.stoppageTimeMs;
+    const teamWon = this.scoreRed > this.scoreBlue ? Team.Red : Team.Blue;
+    const teamLost = this.invertTeam(teamWon);
+
+    const losingPlayers = room
+      .getPlayers()
+      .filter((p) => p.getTeam() === teamLost);
+
+    room.stop();
+
+    setTimeout(() => {
+      losingPlayers.forEach((p) => {
+        p.setTeam(Team.Spectators);
+      });
+    }, 500);
   }
 
   public updatePlayersPosition(room: Room) {
@@ -1114,7 +1108,6 @@ class Game extends Module {
     this.intercept = false;
     this.conversion = false;
     this.running = false;
-    this.ballMovedTimeFG = null;
     this.blockedPass = false;
     this.quarterback = null;
     this.qbKickedBall = false;

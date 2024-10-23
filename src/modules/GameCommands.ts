@@ -1058,7 +1058,7 @@ class GameCommands extends Module {
   }
 
   @Command({
-    name: "acrescimos",
+    name: "tempo",
   })
   acrescimosCommand($: CommandInfo, room: Room) {
     if (!room.isGameInProgress()) {
@@ -1073,7 +1073,7 @@ class GameCommands extends Module {
     }
 
     $.caller.reply({
-      message: `​⏰​ Acréscimos acumulados: ${Utils.getFormattedSeconds(parseInt((this.game.getStoppage() / 1000).toFixed(2)))}`,
+      message: `🔚​ Tempo de término do jogo: ${this.game.stoppageTime.getGameEndingTimeStr(this.game.endGameTime)}`,
       color: Global.Color.Yellow,
       style: "bold",
     });

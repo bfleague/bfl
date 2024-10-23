@@ -20,10 +20,11 @@ export class Punt extends LandPlay {
   public readonly playerLineLengthPuntPuntingTeam = 100;
   public readonly playerLineLengthPuntReceivingTeam = 200;
   public readonly playerBackDistancePunt = 100;
-  public readonly maxOnsideKickTime = 60 * 5;
+  public readonly maxKickTime = 60 * 5;
 
   public returning = false;
   public setTick: number = null;
+  public overrideMaxKickTime: number = null;
 
   constructor(room: Room, game: Game) {
     super(room, game);
@@ -33,7 +34,8 @@ export class Punt extends LandPlay {
 
       if (
         this.setTick &&
-        this.game.tickCount - this.setTick > this.maxOnsideKickTime &&
+        this.game.tickCount - this.setTick >
+          (this.overrideMaxKickTime ?? this.maxKickTime) &&
         !this.game.qbKickedBall
       ) {
         room.send({
@@ -91,10 +93,14 @@ export class Punt extends LandPlay {
     room,
     forTeam = this.game.teamWithBall,
     pos = this.game.ballPosition,
+    sendMessage = true,
+    timeToKick = this.maxKickTime,
   }: {
     room: Room;
     forTeam?: Team;
     pos?: Global.FieldPosition;
+    sendMessage?: boolean;
+    timeToKick?: number;
   }) {
     this.game.mode = null;
 
@@ -105,12 +111,15 @@ export class Punt extends LandPlay {
     this.game.ballPosition = pos;
     this.game.downCount = 0;
     this.game.distance = 20;
+    this.overrideMaxKickTime = timeToKick;
 
-    room.send({
-      message: `🤾 Punt para o ${this.game.getTeamName(forTeam)}`,
-      color: Global.Color.LightGreen,
-      style: "bold",
-    });
+    if (sendMessage) {
+      room.send({
+        message: `🤾 Punt para o ${this.game.getTeamName(forTeam)}`,
+        color: Global.Color.LightGreen,
+        style: "bold",
+      });
+    }
 
     const ballPosInMap = StadiumUtils.getCoordinateFromYards(
       pos.team,
@@ -127,14 +136,11 @@ export class Punt extends LandPlay {
     let red = room.getPlayers().red();
     let blue = room.getPlayers().blue();
 
-    const filterPlayerOutsideField = (p: Player) =>
-      Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
-
     let puntingTeam = (forTeam === Team.Red ? red : blue).filter(
-      filterPlayerOutsideField,
+      GameUtils.filterPlayerOutsideField(room),
     );
     let receivingTeam = (forTeam === Team.Red ? blue : red).filter(
-      filterPlayerOutsideField,
+      GameUtils.filterPlayerOutsideField(room),
     );
 
     this.game.teamWithBall = forTeam;
@@ -224,6 +230,7 @@ export class Punt extends LandPlay {
   public reset() {
     this.returning = false;
     this.setTick = null;
+    this.overrideMaxKickTime = null;
   }
 
   @Command({
@@ -277,6 +284,22 @@ export class Punt extends LandPlay {
     if ($.caller.distanceTo(room.getBall()) > 50) {
       $.caller.reply({
         message: `⚠️ Você está longe demais da bola!`,
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
+
+      return false;
+    }
+
+    if (
+      StadiumUtils.isInRedZone(
+        StadiumUtils.getYardsFromXCoord($.caller.getX()),
+        this.game.invertTeam($.caller.getTeam()),
+      )
+    ) {
+      $.caller.reply({
+        message: `⚠️ Você não pode pedir punt na red zone!`,
         sound: 2,
         color: Global.Color.Tomato,
         style: "bold",

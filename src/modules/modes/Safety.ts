@@ -11,6 +11,7 @@ import StadiumUtils from "../../utils/StadiumUtils";
 import GameUtils from "../../utils/GameUtils";
 import translate from "../../utils/Translate";
 import { LandPlay } from "./LandPlay";
+import StoppageTime from "../../utils/StoppageTime";
 
 export class Safety extends LandPlay {
   public readonly name = "safety";
@@ -19,7 +20,9 @@ export class Safety extends LandPlay {
   public readonly playerLineLengthSafetyTeam = 100;
   public readonly playerLineLengthReceivingTeam = 200;
   public readonly playerBackDistanceSafety = 100;
-  public readonly maxOnsideKickTime = 60 * 5;
+  public readonly maxSafetyKickTime = 60 * 10;
+  public readonly endGameStallSeconds = 30;
+  public readonly extraTimeDueToSafetyStallTicks = 20 * 60;
 
   public returning = false;
   public safetyYardLine = 20;
@@ -31,11 +34,11 @@ export class Safety extends LandPlay {
 
       if (
         this.setTick &&
-        this.game.tickCount - this.setTick > this.maxOnsideKickTime &&
+        this.game.tickCount - this.setTick > this.maxSafetyKickTime &&
         !this.game.qbKickedBall
       ) {
         room.send({
-          message: `⏰ O tempo para chutar o PUNT esgotou!`,
+          message: `⏰ O tempo para chutar o SAFETY esgotou!`,
           color: Global.Color.Tomato,
           style: "bold",
         });
@@ -113,6 +116,23 @@ export class Safety extends LandPlay {
       color: Global.Color.LightGreen,
       style: "bold",
     });
+
+    const safetyStallInEndGame =
+      this.game.stoppageTime.getGameEndingTimeSeconds(this.game.endGameTime) -
+        this.endGameStallSeconds <
+      this.game.gameTime;
+
+    if (safetyStallInEndGame) {
+      this.game.stoppageTime.addStoppageTime(
+        this.extraTimeDueToSafetyStallTicks,
+      );
+
+      room.send({
+        message: `​⏰​ Foram adicionados ${StoppageTime.ticksToStr(this.extraTimeDueToSafetyStallTicks)} de acréscimos devido ao safety no final de jogo`,
+        color: Global.Color.Yellow,
+        style: "bold",
+      });
+    }
 
     const ballPosInMap = StadiumUtils.getCoordinateFromYards(
       forTeam,

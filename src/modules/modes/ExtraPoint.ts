@@ -12,6 +12,7 @@ import MathUtils from "../../utils/MathUtils";
 import Timer from "../../utils/Timer";
 import StadiumUtils from "../../utils/StadiumUtils";
 import Utils from "../../utils/Utils";
+import GameUtils from "../../utils/GameUtils";
 
 export class ExtraPoint extends Mode {
   public readonly name = "extra point";
@@ -25,12 +26,12 @@ export class ExtraPoint extends Mode {
   public readonly playerLineLengthExtraPointOtherTeam = 100;
   public readonly playerBackDistanceExtraPoint = 100;
   public readonly maxTimeEPMoveBallPenalty = 1 * 1000;
-  public readonly epMaxDistanceMoveBall = 8.5;
   public readonly maxDistanceYardsEP = 47 + 10;
   public readonly extraPointYards = 10;
   public readonly conversionYards = 10;
 
   public epKicker: Player;
+  public epSetTick: number;
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -97,12 +98,48 @@ export class ExtraPoint extends Mode {
       if (this.game.mode !== this.mode) return;
 
       if (!this.game.qbKickedBall) {
-        if (this.game.ballMovedTimeFG == null && this.didBallMove(room))
-          this.game.ballMovedTimeFG = Date.now();
+        if (this.game.tickCount - this.epSetTick > this.epTimeLimit) {
+          room.send({
+            message: `❌ Demorou demais pra chutar, perde o extra point!`,
+            color: Global.Color.Orange,
+            style: "bold",
+          });
 
-        //if (this.didBallIlegallyMoveDuringEP(room)) this.handleIllegalBallMove(room);
+          this.resetToKickoff(room, this.game.teamWithBall);
 
-        //if (this.getTeamPlayerTouchingBall(room, this.game.invertTeam(this.game.teamWithBall))) this.handleIllegalTouchByEnemyTeam(room);
+          return;
+        }
+
+        const enemyPlayersBeyondLine = room
+          .getPlayers()
+          .teams()
+          .filter(
+            (player) =>
+              player.getTeam() !== this.game.teamWithBall &&
+              Math.abs(player.getX()) <
+                Math.abs(
+                  StadiumUtils.getCoordinateFromYards(this.game.ballPosition).x,
+                ),
+          );
+
+        if (enemyPlayersBeyondLine.length > 0) {
+          this.handleIllegalBlitzByEnemyTeam(room);
+          return;
+        }
+
+        const enemyPlayersTouchingBall = room
+          .getPlayers()
+          .teams()
+          .filter(
+            (player) =>
+              player.getTeam() !== this.game.teamWithBall &&
+              GameUtils.isPlayerTouchingBall(player, room.getBall()),
+          );
+
+        if (enemyPlayersTouchingBall.length > 0) {
+          this.handleIllegalTouchByEnemyTeam(room);
+          return;
+        }
       } else {
         if (this.didBallPassedGoalLine(room)) {
           this.handleSuccessfulExtraPoint(room);
@@ -117,7 +154,8 @@ export class ExtraPoint extends Mode {
         message === "hike" &&
         player.getTeam() === this.game.teamWithBall &&
         this.game.mode === this.mode &&
-        !this.game.conversion
+        !this.game.conversion &&
+        player.distanceTo(room.getBall()) <= this.game.down.distanceToHike
       ) {
         this.game.conversion = true;
 
@@ -161,10 +199,7 @@ export class ExtraPoint extends Mode {
     ball.setVelocityY(0);
     ball.setPosition(ballPosInMap);
     this.game.unlockBall(room);
-    this.game.setBallUnmoveable(room);
-
     this.game.down.setBallPositionForHike(ball, forTeam);
-
     this.game.down.resetFirstDownLine(room);
     this.game.down.setBallLine(room);
 
@@ -202,17 +237,7 @@ export class ExtraPoint extends Mode {
     }
 
     this.game.mode = this.mode;
-
-    if (!this.game.extraPointTimeout)
-      this.game.extraPointTimeout = new Timer(() => {
-        room.send({
-          message: `❌ Demorou demais pra chutar, perde o extra point!`,
-          color: Global.Color.Orange,
-          style: "bold",
-        });
-
-        this.resetToKickoff(room, forTeam);
-      }, this.epTimeLimit);
+    this.epSetTick = this.game.tickCount;
   }
 
   public reset() {
@@ -230,35 +255,6 @@ export class ExtraPoint extends Mode {
     this.game.kickOffReset = new Timer(
       () => this.game.kickOff.set({ room, forTeam }),
       3000,
-    );
-  }
-
-  private didBallMove(room: Room) {
-    const ballPos = StadiumUtils.getCoordinateFromYards(
-      this.game.ballPosition.team,
-      this.game.ballPosition.yards,
-    );
-    const ball = room.getBall();
-
-    return (
-      Math.abs(ball.getX() - ballPos.x) > 0.01 ||
-      Math.abs(ball.getY() - ballPos.y) > 0.01
-    );
-  }
-
-  private didBallIlegallyMoveDuringEP(room: Room) {
-    const ballPos = StadiumUtils.getCoordinateFromYards(
-      this.game.ballPosition.team,
-      this.game.ballPosition.yards,
-    );
-    const ball = room.getBall();
-
-    return (
-      ball.distanceTo({ ...ballPos, radius: ball.getRadius() }) >
-        this.epMaxDistanceMoveBall ||
-      (this.game.ballMovedTimeFG != null &&
-        !this.game.qbKickedBall &&
-        Date.now() > this.game.ballMovedTimeFG + this.maxTimeEPMoveBallPenalty)
     );
   }
 
@@ -301,16 +297,6 @@ export class ExtraPoint extends Mode {
     }
   }
 
-  private handleIllegalBallMove(room: Room) {
-    room.send({
-      message: `❌ Condução ilegal da bola durante o Extra Point • Perde o EP`,
-      color: Global.Color.Orange,
-      style: "bold",
-    });
-
-    this.resetToKickoff(room, this.game.teamWithBall);
-  }
-
   private handleIllegalBallKick(room: Room) {
     room.send({
       message: `❌ Dois toques na bola pelo time que chutou • Ilegal • EP falhou`,
@@ -326,6 +312,16 @@ export class ExtraPoint extends Mode {
 
     Utils.sendSoundTeamMessage(room, {
       message: `🙌 Toque ilegal da equipe adversária durante o Extra Point • +${this.conversionPoints} pontos para o ${this.game.getTeamName(this.game.teamWithBall)} • ${this.game.getScoreMessage()}`,
+      color: Global.Color.LimeGreen,
+      style: "bold",
+    });
+  }
+
+  private handleIllegalBlitzByEnemyTeam(room: Room) {
+    this.scoreExtraPoint(room, this.game.teamWithBall, this.conversionPoints);
+
+    Utils.sendSoundTeamMessage(room, {
+      message: `🙌 Ultrapassagem ilegal da equipe adversária durante o Extra Point • +${this.conversionPoints} pontos para o ${this.game.getTeamName(this.game.teamWithBall)} • ${this.game.getScoreMessage()}`,
       color: Global.Color.LimeGreen,
       style: "bold",
     });

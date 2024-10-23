@@ -296,7 +296,7 @@ export abstract class LandPlay extends Mode {
         teamPos = pos.team;
         msg = `Bola colocada na linha em que saiu`;
       } else if (this.mode === this.game.onsideKick.mode) {
-        yards = 25;
+        yards = 40;
         team = this.game.invertTeam(this.game.teamWithBall);
         teamPos = this.game.teamWithBall;
       } else {

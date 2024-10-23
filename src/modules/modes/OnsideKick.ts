@@ -23,6 +23,7 @@ export class OnsideKick extends LandPlay {
   public readonly yardsBall = 10;
   public readonly yardsBehind = 5;
   public readonly maxOnsideKickTime = 60 * 5;
+  public readonly yardsBallSameTeamTouch = 40;
 
   public returning = false;
   public kicker: Player = null;
@@ -234,17 +235,21 @@ export class OnsideKick extends LandPlay {
     this.returning = true;
 
     if (player.getTeam() !== this.game.teamWithBall) {
-      this.game.setPlayerWithBall(
-        room,
-        player,
-        PlayerWithBallState.PuntReturner,
-        true,
-      );
-
       room.send({
         message: translate("RETURNED_ONSIDE", player.name),
         color: Global.Color.MediumSeaGreen,
         style: "bold",
+      });
+
+      this.game.down.set({
+        room,
+        pos: {
+          team: this.game.invertTeam(this.game.teamWithBall),
+          yards: this.yardsBallSameTeamTouch,
+        },
+        forTeam: this.game.invertTeam(this.game.teamWithBall),
+        countDistanceFromNewPos: false,
+        positionPlayersEvenly: true,
       });
 
       return;
@@ -260,8 +265,8 @@ export class OnsideKick extends LandPlay {
       this.game.down.set({
         room,
         pos: {
-          team: this.game.teamWithBall,
-          yards: this.yardsBall,
+          team: this.game.invertTeam(this.game.teamWithBall),
+          yards: this.yardsBallSameTeamTouch,
         },
         forTeam: this.game.invertTeam(this.game.teamWithBall),
         countDistanceFromNewPos: false,

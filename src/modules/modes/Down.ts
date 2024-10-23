@@ -25,6 +25,12 @@ type SetHikeProperties = {
   decrement?: number;
   countDistanceFromNewPos?: boolean;
   positionPlayersEvenly?: boolean;
+  duringHikeMode?: {
+    playerWithBall: Player;
+    playerWithBallState: PlayerWithBallState;
+    down: number;
+    distance: number;
+  };
 };
 
 export class Down extends LandPlay {
@@ -780,9 +786,33 @@ export class Down extends LandPlay {
     decrement,
     countDown = true,
     countDistanceFromNewPos = true,
+    duringHikeMode,
   }: SetHikeProperties) {
-    const beforeModeWasHike = this.game.mode === this.mode;
+    if (duringHikeMode) {
+      this.game.mode = null;
+      this.game.reset(room);
+      this.game.mode = this.mode;
+      this.game.teamWithBall = forTeam;
+      this.game.quarterback = duringHikeMode.playerWithBall;
+      this.game.ballPosition = pos;
 
+      this.game.downCount = duringHikeMode.down;
+      this.game.distance = duringHikeMode.distance;
+
+      this.handleFirstDownLine(room);
+      this.setBallLine(room);
+
+      this.game.setPlayerWithBall(
+        room,
+        duringHikeMode.playerWithBall,
+        duringHikeMode.playerWithBallState,
+        true,
+      );
+
+      return;
+    }
+
+    const beforeModeWasHike = this.game.mode === this.mode;
     const isConversion = this.game.conversion;
 
     if (this.game.conversion) {
@@ -791,9 +821,7 @@ export class Down extends LandPlay {
     }
 
     this.game.mode = null;
-
     this.game.reset(room);
-
     if (isConversion) this.game.conversion = true;
 
     if (countDistanceFromNewPos && pos && !this.game.conversion) {
@@ -807,9 +835,7 @@ export class Down extends LandPlay {
     }
 
     if (!pos) pos = this.game.ballPosition;
-
     this.game.ballPosition = pos;
-
     let won20Yards = false;
 
     if (decrement != null) {
@@ -907,18 +933,13 @@ export class Down extends LandPlay {
     }
 
     this.game.teamWithBall = forTeam;
+    this.game.mode = this.waitingHikeMode;
+    this.downSetTime = Date.now();
 
     this.setBallForHike(room, forTeam);
-
     this.game.resetPlayersPositionEvenly(room);
-
-    this.game.mode = this.waitingHikeMode;
-
     this.handleFirstDownLine(room);
-
     this.setBallLine(room);
-
-    this.downSetTime = Date.now();
 
     if (!room.isGamePaused() && this.hikeTimeEnabled) {
       this.game.hikeTimeout = new Timer(

@@ -5,7 +5,7 @@ import Command, { CommandInfo } from "../../core/Command";
 
 import * as Global from "../../Global";
 
-import Game, { GameModes } from "../Game";
+import Game, { GameModes, PlayerWithBallState } from "../Game";
 
 import MapMeasures from "../../utils/MapMeasures";
 import MathUtils from "../../utils/MathUtils";
@@ -34,11 +34,12 @@ export class FieldGoal extends Mode {
   public readonly playerLineLengthFG = 100;
   public readonly kickerY = 30;
   public readonly maxKickerBackDistance = MapMeasures.Yard * 5;
-  public readonly ticksToWaitBeforeRunning = 2 * 60;
+  public readonly ticksToWaitBeforeRunning = 1 * 60;
 
   public fgFailed = false;
   public fgKicker: Player;
   public setTick: number = null;
+  public downInfo: { distance: number; downCount: number };
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -132,10 +133,6 @@ export class FieldGoal extends Mode {
             ? this.fgKicker.getX() > room.getBall().getX()
             : this.fgKicker.getX() < room.getBall().getX()
         ) {
-          console.log(
-            this.game.tickCount - this.setTick,
-            this.ticksToWaitBeforeRunning,
-          );
           if (
             this.game.tickCount - this.setTick <
             this.ticksToWaitBeforeRunning
@@ -154,9 +151,23 @@ export class FieldGoal extends Mode {
             return;
           }
 
-          this.game.fakeFieldGoal.set({
+          room.send({
+            message: translate("RUN", this.fgKicker.name),
+            color: Global.Color.DeepSkyBlue,
+            style: "bold",
+          });
+
+          this.game.down.set({
             room,
-            runner: this.fgKicker,
+            forTeam: this.game.teamWithBall,
+            pos: this.game.ballPosition,
+            countDistanceFromNewPos: false,
+            duringHikeMode: {
+              playerWithBall: this.fgKicker,
+              playerWithBallState: PlayerWithBallState.QbRunner,
+              distance: this.downInfo.distance,
+              down: this.downInfo.downCount,
+            },
           });
 
           return;
@@ -176,11 +187,13 @@ export class FieldGoal extends Mode {
     forTeam = this.game.teamWithBall,
     pos = this.game.ballPosition,
     kicker,
+    downInfo,
   }: {
     room: Room;
     forTeam?: Team;
     pos?: Global.FieldPosition;
     kicker?: Player;
+    downInfo: { distance: number; downCount: number };
   }) {
     this.game.mode = null;
 
@@ -189,6 +202,7 @@ export class FieldGoal extends Mode {
 
     this.game.teamWithBall = forTeam;
     this.game.ballPosition = pos;
+    this.downInfo = downInfo;
     this.game.downCount = 0;
     this.game.distance = 20;
 
@@ -389,7 +403,14 @@ export class FieldGoal extends Mode {
       style: "bold",
     });
 
-    this.set({ room, kicker: $.caller });
+    this.set({
+      room,
+      kicker: $.caller,
+      downInfo: {
+        distance: this.game.distance,
+        downCount: this.game.downCount,
+      },
+    });
 
     return false;
   }

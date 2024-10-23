@@ -25,7 +25,6 @@ import MapMeasures from "../utils/MapMeasures";
 import { CustomAvatarManager } from "./CustomAvatarManager";
 import MathUtils from "../utils/MathUtils";
 import { OnsideKick } from "./modes/OnsideKick";
-import { FakeFieldGoal } from "./modes/FakeFieldGoal";
 
 const BALL_AVATAR = "🏈";
 
@@ -60,7 +59,6 @@ class Game extends Module {
   public extraPoint: ExtraPoint;
   public safety: Safety;
   public onsideKick: OnsideKick;
-  public fakeFieldGoal: FakeFieldGoal;
   public gameCommands: GameCommands;
   public customTeams: CustomTeams;
   public customAvatarManager: CustomAvatarManager;
@@ -148,7 +146,6 @@ class Game extends Module {
     this.punt = room.module(Punt, this) as Punt;
     this.onsideKick = room.module(OnsideKick, this) as OnsideKick;
     this.fieldGoal = room.module(FieldGoal, this) as FieldGoal;
-    this.fakeFieldGoal = room.module(FakeFieldGoal, this) as FakeFieldGoal;
     this.kickOff = room.module(KickOff, this) as KickOff;
     this.extraPoint = room.module(ExtraPoint, this) as ExtraPoint;
     this.safety = room.module(Safety, this) as Safety;
@@ -1088,7 +1085,6 @@ class Game extends Module {
     this.kickOff.reset();
     this.punt.reset();
     this.onsideKick.reset();
-    this.fakeFieldGoal.reset();
 
     this.interceptAttemptPlayer = null;
 

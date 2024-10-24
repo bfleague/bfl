@@ -1147,7 +1147,7 @@ export class Down extends LandPlay {
     hikeTimeStatus: HikeTimeStatus,
     hikeTimeFormatted: string,
   ) {
-    if (hikeTimeStatus.isOver) {
+    if (!hikeTimeStatus.isOver) {
       this.game.matchStats.add(this.game.quarterback, { faltas: 1 });
 
       if (!this.game.conversion) {
@@ -1171,24 +1171,7 @@ export class Down extends LandPlay {
         this.game.resetToKickoff(room);
       }
     } else {
-      this.game.setPlayerWithBall(
-        room,
-        this.game.quarterback,
-        PlayerWithBallState.QbRunner,
-        true,
-      );
-
-      room.send({
-        message: translate("QUARTERBACK_RUN", this.game.quarterback.name),
-        color: Global.Color.DeepSkyBlue,
-        style: "bold",
-      });
-
-      this.game.updatePlayersPosition(room);
-
-      this.game.matchStats.add(this.game.quarterback, {
-        corridasQb: 1,
-      });
+      this.handleQBAttemptingRun(room);
     }
   }
 

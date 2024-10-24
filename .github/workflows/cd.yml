@@ -7,6 +7,7 @@ env:
   GUILD_ID: "952375559554490440"
   ENABLE_LOG: "true"
   DISCORD_INVITE: "https://discord.gg/6Fq5hhxU8e"
+  DISCORD_PUB_LINK_CHANNEL_ID: "1298857578423390289"
 
 on:
   push:
@@ -45,6 +46,7 @@ jobs:
           echo "DISCORD_INVITE=${{ env.DISCORD_INVITE }}" >> .env
           echo "AUTH_KEY=${{ secrets.AUTH_KEY }}" >> .env
           echo "API_URL=${{ secrets.API_URL }}" >> .env
+          echo "DISCORD_PUB_LINK_CHANNEL_ID=${{ env.DISCORD_PUB_LINK_CHANNEL_ID }}" >> .env
 
       - name: Set up npm token
         run: |

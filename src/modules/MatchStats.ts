@@ -589,7 +589,7 @@ export default class MatchStats {
     const embed = new Discord.EmbedBuilder()
       .setTitle(`${redName} ${score.red} x ${score.blue} ${blueName}`)
       .setDescription(
-        `[Clique aqui para ver as stats](https://bflstats.fun/match?id=${this.id})`,
+        `[Clique aqui para ver as stats](https://bflstats.haxbrasil.com/match?id=${this.id})`,
       )
       .setColor(0x0099ff)
       .addFields(

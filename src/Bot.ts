@@ -6,13 +6,14 @@ import Haxball from "./haxball/Haxball.js";
 import Room from "./core/Room";
 import { AFK } from "./modules/administration/AFK";
 import Game from "./modules/Game";
+import * as Discord from "discord.js";
 
 import Register from "./modules/administration/Register";
 import Help from "./modules/administration/Help";
 import { BetterChat } from "./modules/administration/BetterChat";
 import { Admin } from "./modules/administration/Admin";
 import Version from "./modules/administration/Version";
-import Discord from "./modules/administration/Discord";
+import DiscordMod from "./modules/administration/Discord";
 import AntiFake from "./modules/administration/AntiFake";
 import Log from "./modules/administration/Log";
 import Tutorial from "./modules/administration/Tutorial";
@@ -91,10 +92,57 @@ function run(
   room.module(BetterChat);
   room.module(Admin);
   room.module(Version);
-  room.module(Discord);
+  room.module(DiscordMod);
   room.module(Tutorial);
 
-  room.on("roomLink", (link) => console.log(link));
+  room.on("roomLink", (link) => {
+    console.log(link);
+
+    if (process.env.DISCORD_PUB_LINK_CHANNEL_ID) {
+      sendDiscordLink(link);
+    }
+  });
 
   console.log("https://github.com/haxfootballbrazil/hfb-bot");
+}
+
+function sendDiscordLink(link: string) {
+  const embed = new Discord.EmbedBuilder()
+    .setTitle(`Sala aberta`)
+    .setDescription(`[Clique aqui para entrar na sala](${link})`)
+    .setColor(0x0099ff);
+
+  const client = new Discord.Client({
+    intents: [Discord.GatewayIntentBits.Guilds],
+  });
+
+  client.login(process.env.DISCORD_TOKEN).catch((err) => {
+    console.log(`Warning: could not login to Discord: ${err}`);
+    client?.destroy();
+  });
+
+  client.on("ready", (c) => {
+    const guild = c.guilds.cache.get(process.env.GUILD_ID);
+
+    if (!guild) {
+      console.log(
+        "Warning: could not find guild, guild ID = ",
+        process.env.GUILD_ID,
+      );
+      c?.destroy();
+      return;
+    }
+
+    const channel = guild.channels.cache.get(
+      process.env.DISCORD_PUB_LINK_CHANNEL_ID,
+    ) as Discord.TextChannel;
+
+    channel
+      .send({ embeds: [embed] })
+      .then(() => c?.destroy())
+      .catch((err) => {
+        console.log(`Warning: could not send message to Discord: ${err}`);
+        c?.destroy();
+      });
+  });
 }

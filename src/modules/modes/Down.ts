@@ -1297,7 +1297,7 @@ export class Down extends LandPlay {
   }
 
   private addDownInfoMoment(room: Room, type: DownMoment) {
-    this.downInfo.addMomentInfo(type, {
+    this.downInfo?.addMomentInfo(type, {
       ballPosition: room.getBall().getPosition(),
       time: this.game.tickCount,
       players: room

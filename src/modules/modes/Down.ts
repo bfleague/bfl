@@ -655,16 +655,9 @@ export class Down extends LandPlay {
       };
     }
 
-    const distanceToEndZone = Math.abs(
-      StadiumUtils.getDifferenceBetweenFieldPositions(
-        this.game.ballPosition,
-        StadiumUtils.getYardsFromXCoord(
-          (forTeam === Team.Red
-            ? MapMeasures.EndZoneBlue
-            : MapMeasures.EndZoneRed)[1].x,
-        ),
-        forTeam,
-      ),
+    const distanceToEndZone = GameUtils.distanceToEndZone(
+      this.game.ballPosition,
+      forTeam,
     );
 
     if (

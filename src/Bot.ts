@@ -95,10 +95,16 @@ function run(
   room.module(DiscordMod);
   room.module(Tutorial);
 
+  let sent = false;
+
   room.on("roomLink", (link) => {
     console.log(link);
 
     if (process.env.DISCORD_PUB_LINK_CHANNEL_ID) {
+      if (sent) {
+        return;
+      }
+
       sendDiscordLink(link);
     }
   });

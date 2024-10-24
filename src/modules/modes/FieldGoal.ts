@@ -23,16 +23,15 @@ export class FieldGoal extends Mode {
   public readonly fgPoints = 3;
   public readonly fgTimeLimit = 15 * 1000;
   public readonly playerLineLengthFieldGoalKickingTeam = 100;
-  public readonly playerLineLengthFieldGoalOtherTeam = 100;
+  public readonly playerLineLengthFieldGoalOtherTeam = 150;
   public readonly maxPlayerBackDistanceFieldGoalOffense = 1000;
   public readonly maxPlayerBackDistanceFieldGoalDefense = 900;
   public readonly maxTimeFGMoveBallPenalty = 1 * 1000;
-  public readonly yardsBackOffense = 10;
-  public readonly yardsBackDefense = 15;
+  public readonly yardsBackOffense = 8;
+  public readonly yardsBackDefense = 12;
   public readonly fgMaxDistanceMoveBall = 8.5;
   public readonly maxDistanceYardsFG = 48;
   public readonly maxSafeDistanceYardsFG = 46;
-  public readonly playerLineLengthFG = 100;
   public readonly kickerY = 30;
   public readonly maxKickerBackDistance = MapMeasures.Yard * 5;
   public readonly ticksToWaitBeforeRunning = 1 * 60;
@@ -42,6 +41,7 @@ export class FieldGoal extends Mode {
   public setTick: number = null;
   public downInfo: { distance: number; downCount: number };
   public ballMovedTimeFG: number = null;
+  public ballPos: Position;
 
   constructor(room: Room, game: Game) {
     super(game);
@@ -207,6 +207,7 @@ export class FieldGoal extends Mode {
     this.downInfo = downInfo;
     this.game.downCount = 0;
     this.game.distance = 20;
+    this.game.ballPosition = pos;
 
     this.fgKicker = kicker;
 
@@ -220,17 +221,17 @@ export class FieldGoal extends Mode {
       style: "bold",
     });
 
-    const ballPosInMap = StadiumUtils.getCoordinateFromYards(
-      pos.team,
-      pos.yards,
-    );
     const ball = room.getBall();
 
     ball.setVelocityX(0);
     ball.setVelocityY(0);
-    ball.setPosition(ballPosInMap);
+    const ballPos = this.game.down.setBallPositionForHike(
+      ball,
+      this.game.invertTeam(this.game.ballPosition.team),
+    );
     this.game.unlockBall(room);
     this.game.setBallMoveable(room);
+    this.ballPos = ballPos;
 
     const red = room.getPlayers().red();
     const blue = room.getPlayers().blue();
@@ -248,35 +249,55 @@ export class FieldGoal extends Mode {
 
     this.game.teamWithBall = forTeam;
 
+    const distanceToEndZoneYards = GameUtils.distanceToEndZone(
+      this.game.ballPosition,
+      forTeam,
+    );
+
+    const minDistance = -25;
+    const maxDistance = 30;
+    const proximityFactor = Math.max(
+      0,
+      Math.min(
+        1,
+        (distanceToEndZoneYards - minDistance) / (maxDistance - minDistance),
+      ),
+    );
+
     const xBackOffense =
       forTeam === Team.Blue
         ? Math.max(
             -this.maxPlayerBackDistanceFieldGoalOffense,
-            ball.getX() - this.yardsBackOffense * MapMeasures.Yard,
+            ball.getX() -
+              this.yardsBackOffense * MapMeasures.Yard * proximityFactor,
           )
         : Math.min(
             this.maxPlayerBackDistanceFieldGoalOffense,
-            ball.getX() + this.yardsBackOffense * MapMeasures.Yard,
+            ball.getX() +
+              this.yardsBackOffense * MapMeasures.Yard * proximityFactor,
           );
+
     const xBackDefense =
       forTeam === Team.Blue
         ? Math.max(
             -this.maxPlayerBackDistanceFieldGoalDefense,
-            ball.getX() - this.yardsBackDefense * MapMeasures.Yard,
+            ball.getX() -
+              this.yardsBackDefense * MapMeasures.Yard * proximityFactor,
           )
         : Math.min(
             this.maxPlayerBackDistanceFieldGoalDefense,
-            ball.getX() + this.yardsBackDefense * MapMeasures.Yard,
+            ball.getX() +
+              this.yardsBackDefense * MapMeasures.Yard * proximityFactor,
           );
 
     const kickingTeamPositions = MathUtils.getPointsAlongLine(
-      { x: 0, y: this.playerLineLengthFG },
-      { x: 0, y: -this.playerLineLengthFG },
+      { x: 0, y: this.playerLineLengthFieldGoalKickingTeam },
+      { x: 0, y: -this.playerLineLengthFieldGoalKickingTeam },
       kickingTeam.length,
     );
     const defenseTeamPositions = MathUtils.getPointsAlongLine(
-      { x: 0, y: this.playerLineLengthFG },
-      { x: 0, y: -this.playerLineLengthFG },
+      { x: 0, y: this.playerLineLengthFieldGoalOtherTeam },
+      { x: 0, y: -this.playerLineLengthFieldGoalOtherTeam },
       otherTeam.length,
     );
 
@@ -319,6 +340,7 @@ export class FieldGoal extends Mode {
     this.setTick = null;
     this.ballMovedTimeFG = null;
     this.downInfo = null;
+    this.ballPos = null;
   }
 
   @Command({
@@ -470,27 +492,19 @@ export class FieldGoal extends Mode {
   }
 
   private didBallMove(room: Room) {
-    const ballPos = StadiumUtils.getCoordinateFromYards(
-      this.game.ballPosition.team,
-      this.game.ballPosition.yards,
-    );
     const ball = room.getBall();
 
     return (
-      Math.abs(ball.getX() - ballPos.x) > 0.01 ||
-      Math.abs(ball.getY() - ballPos.y) > 0.01
+      Math.abs(ball.getX() - this.ballPos.x) > 0.01 ||
+      Math.abs(ball.getY() - this.ballPos.y) > 0.01
     );
   }
 
   private didBallIlegallyMoveDuringFG(room: Room) {
-    const ballPos = StadiumUtils.getCoordinateFromYards(
-      this.game.ballPosition.team,
-      this.game.ballPosition.yards,
-    );
     const ball = room.getBall();
 
     return (
-      ball.distanceTo({ ...ballPos, radius: ball.getRadius() }) >
+      ball.distanceTo({ ...this.ballPos, radius: ball.getRadius() }) >
         this.fgMaxDistanceMoveBall ||
       (this.ballMovedTimeFG != null &&
         !this.game.qbKickedBall &&

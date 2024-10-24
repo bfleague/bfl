@@ -5,6 +5,7 @@ import * as Global from "../Global";
 import Player from "../core/Player";
 import Disc from "../core/Disc";
 import MapMeasures from "./MapMeasures";
+import StadiumUtils from "./StadiumUtils";
 
 export type Tackle = { tackleCount: number; players: Player[] };
 
@@ -102,4 +103,18 @@ export default class GameUtils {
   static filterPlayerOutsideField = (room: Room) => (p: Player) =>
     room.getPlayers().filter((pl) => pl.getTeam() === p.getTeam()).length <=
       4 || Math.abs(p.getY()) < Math.abs(MapMeasures.OuterField[0].y);
+
+  static distanceToEndZone(ballPosition: Global.FieldPosition, forTeam: Team) {
+    return Math.abs(
+      StadiumUtils.getDifferenceBetweenFieldPositions(
+        ballPosition,
+        StadiumUtils.getYardsFromXCoord(
+          (forTeam === Team.Red
+            ? MapMeasures.EndZoneBlue
+            : MapMeasures.EndZoneRed)[1].x,
+        ),
+        forTeam,
+      ),
+    );
+  }
 }

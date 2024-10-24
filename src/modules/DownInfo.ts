@@ -7,18 +7,18 @@ export type DownMoment = "kick" | "reception" | "advantage";
 type DownPlayer = {
   playerId: number;
   playerName: string;
-  withBall: boolean;
   type: PlayerType;
 };
 
 type DownPlayerInfo = {
   playerId: number;
-  position: [number, number];
+  position: number[];
+  withBall: boolean;
 };
 
 type DownMomentInfo = {
   time: number;
-  ballPosition: [number, number];
+  ballPosition: number[];
   players: DownPlayerInfo[];
 };
 
@@ -31,6 +31,7 @@ type DownInfoObject = {
 };
 
 export default class DownInfo {
+  private static readonly version = 2;
   private downInfo: DownInfoObject;
 
   constructor() {
@@ -52,7 +53,10 @@ export default class DownInfo {
       ballPosition: [info.ballPosition.x, info.ballPosition.y],
       players: info.players.map((p) => ({
         playerId: p.player.id,
-        position: [p.player.getX(), p.player.getX()],
+        position: [p.player.getX().toFixed(2), p.player.getX().toFixed(2)].map(
+          Number,
+        ),
+        withBall: p.withBall,
       })),
     };
 
@@ -64,7 +68,6 @@ export default class DownInfo {
       this.downInfo.players.push({
         playerId: p.player.id,
         playerName: p.player.name,
-        withBall: p.withBall,
         type: p.type,
       });
     }
@@ -77,6 +80,9 @@ export default class DownInfo {
   }
 
   public toJson() {
-    return JSON.stringify(this.downInfo);
+    return JSON.stringify({
+      version: DownInfo.version,
+      ...this.downInfo,
+    });
   }
 }

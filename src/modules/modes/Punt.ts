@@ -294,7 +294,7 @@ export class Punt extends LandPlay {
 
     if (
       StadiumUtils.isInRedZone(
-        StadiumUtils.getYardsFromXCoord($.caller.getX()),
+        this.game.ballPosition,
         this.game.invertTeam($.caller.getTeam()),
       )
     ) {

@@ -731,7 +731,7 @@ export class Down extends LandPlay {
   }
 
   public reset() {
-    if (this.downInfo.hasAllMoments()) {
+    if (this.downInfo?.hasAllMoments()) {
       this.game.matchStats.addDown(this.downInfo);
     }
 

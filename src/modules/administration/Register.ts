@@ -214,20 +214,14 @@ export default class Register extends Module {
 
   private setPermissions(player: Player, playerId: string) {
     Global.api.getPlayerPermissions(playerId).andTee(({ value }) => {
-      console.log(value.data.permissions);
-
       const hasAdmin = value.data.permissions.some(
         (p) =>
           p.scope === "room" && p.resource === "admin" && p.action === "get",
       );
 
-      console.log(hasAdmin);
-
       if (hasAdmin) {
         player.roles.push(Global.adminAccountRole);
       }
-
-      console.log(player.roles);
     });
   }
 

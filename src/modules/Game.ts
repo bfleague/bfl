@@ -52,6 +52,12 @@ export enum GameModes {
   FakeFieldGoal = 9,
 }
 
+export type HikeTimeStatus = {
+  isOver: boolean;
+  time: number;
+  timeOver: number;
+};
+
 class Game extends Module {
   public down: Down;
   public fieldGoal: FieldGoal;
@@ -775,7 +781,7 @@ class Game extends Module {
     ).replace(".", ",");
   }
 
-  public getHikeTimeStatus() {
+  public getHikeTimeStatus(): HikeTimeStatus {
     let time = this.hikeTime + this.hikeTimeSeconds * 1000;
 
     if (this.down.qbCarriedBallTime)

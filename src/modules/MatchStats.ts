@@ -8,6 +8,7 @@ import * as Global from "../Global";
 import translate from "../utils/Translate";
 import DocumentDatabaseAdapter from "../Database";
 import { json2csv } from "json-2-csv";
+import DownInfo from "./DownInfo";
 
 require("dotenv").config();
 
@@ -267,6 +268,7 @@ export default class MatchStats {
   private room: Room;
   private db = new DocumentDatabaseAdapter();
   private tick = 0;
+  private downHistory: DownInfo[] = [];
 
   constructor(room: Room) {
     this.room = room;
@@ -406,6 +408,10 @@ export default class MatchStats {
       });
   }
 
+  public addDown(down: DownInfo) {
+    this.downHistory.push(down);
+  }
+
   public emit(type: string, payload: any) {
     this.events.push({ type, time: this.tick, payload });
   }
@@ -453,6 +459,7 @@ export default class MatchStats {
     this.tick = 0;
     this.stats = [];
     this.events = [];
+    this.downHistory = [];
   }
 
   public setTick(t: number) {
@@ -543,6 +550,12 @@ export default class MatchStats {
       new Discord.AttachmentBuilder(Buffer.from(JSON.stringify(data)), {
         name: "data.json",
       }),
+      new Discord.AttachmentBuilder(
+        Buffer.from(JSON.stringify(this.downHistory)),
+        {
+          name: "downs.json",
+        },
+      ),
     ];
 
     this.db

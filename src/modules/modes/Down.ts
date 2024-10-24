@@ -4,7 +4,7 @@ import { MessageObject, Team } from "../../core/Global";
 
 import * as Global from "../../Global";
 
-import Game, { GameModes, PlayerWithBallState } from "../Game";
+import Game, { GameModes, HikeTimeStatus, PlayerWithBallState } from "../Game";
 import { LandPlay } from "./LandPlay";
 
 import MapMeasures from "../../utils/MapMeasures";
@@ -17,6 +17,7 @@ import Invasion from "./Invasion";
 import translate from "../../utils/Translate";
 import Disc from "../../core/Disc";
 import GameUtils from "../../utils/GameUtils";
+import DownInfo, { DownMoment } from "../DownInfo";
 
 type SetHikeProperties = {
   room: Room;
@@ -55,8 +56,6 @@ export class Down extends LandPlay {
   public readonly timeIllegalTouchDisabledStartTicks = 30;
   public readonly qbScrimmageLineMaxPermitted = 8;
   public readonly invasion: Invasion;
-  // public readonly bCoeffRunner = 1.5;
-  // public readonly invMassRunner = 0.25;
   public readonly timeToKickAutomaticPunt = 10 * 60;
   public readonly maxDistance: Record<number, number> = {
     1: 30,
@@ -73,6 +72,8 @@ export class Down extends LandPlay {
   public hikeTimeEnabled = true;
   public downSetTime: number;
   public ballInitialPoss: Position;
+  public downInfo: DownInfo = null;
+  public playerWithBallInAdvantage = false;
 
   constructor(room: Room, game: Game) {
     super(room, game);
@@ -87,490 +88,198 @@ export class Down extends LandPlay {
         hikeTimeStatus.time,
       );
 
-      if (!this.game.interceptAttemptPlayer && this.game.quarterback) {
-        if (!this.game.playerWithBall && !this.game.qbKickedBall) {
-          /* Bola se moveu */
-          if (
-            !this.qbCarriedBallTime &&
-            this.ballInitialPoss &&
-            MathUtils.getDistanceBetweenPoints(
-              this.ballInitialPoss,
-              room.getBall().getPosition(),
-              room.getBall().getRadius(),
-            ) > 1
-          ) {
-            this.qbCarriedBallTime = Date.now();
-          }
+      const sackWithBallNotTouched = this.sack && !this.sackBallTouched;
 
-          /* Ultrapassagem ilegal do QB */
-          if (this.hasQBPassedScrimmageLine(room)) {
-            if (!hikeTimeStatus.isOver) {
-              this.game.matchStats.add(this.game.quarterback, { faltas: 1 });
+      const hasInterceptAttempt = !!this.game.interceptAttemptPlayer;
 
-              if (!this.game.conversion) {
-                room.send({
-                  message: translate("QUARTERBACK_BLITZ", hikeTimeFormatted),
-                  color: Global.Color.Orange,
-                  style: "bold",
-                });
+      const afterHikeBeforeKick =
+        this.game.quarterback &&
+        !this.game.playerWithBall &&
+        !this.game.qbKickedBall;
 
-                this.set({
-                  room,
-                  decrement: this.qbPassedScrimmageLinePenalty,
-                });
-              } else {
-                room.send({
-                  message: translate(
-                    "QUARTERBACK_BLITZ_CONVERSION",
-                    hikeTimeFormatted,
-                  ),
-                  color: Global.Color.Orange,
-                  style: "bold",
-                });
+      const afterKickBeforeCatch =
+        this.game.quarterback &&
+        ((this.game.qbKickedBall && !this.game.playerWithBall) ||
+          (this.game.qbKickedBall && sackWithBallNotTouched));
 
-                this.game.resetToKickoff(room);
-              }
+      const afterCatch = this.game.playerWithBall;
 
-              return;
-            } else {
-              this.game.setPlayerWithBall(
-                room,
-                this.game.quarterback,
-                PlayerWithBallState.QbRunner,
-                true,
-              );
+      const ball = room.getBall();
 
-              room.send({
-                message: translate(
-                  "QUARTERBACK_RUN",
-                  this.game.quarterback.name,
-                ),
-                color: Global.Color.DeepSkyBlue,
-                style: "bold",
-              });
-
-              this.game.updatePlayersPosition(room);
-
-              this.game.matchStats.add(this.game.quarterback, {
-                corridasQb: 1,
-              });
-
-              return;
-            }
-          }
-
-          /* Corrida do QB */
-          if (this.qbIsAttemptingRun(room)) {
-            this.game.setPlayerWithBall(
-              room,
-              this.game.quarterback,
-              PlayerWithBallState.QbRunner,
-              true,
-            );
-
-            room.send({
-              message: translate("QUARTERBACK_RUN", this.game.quarterback.name),
-              color: Global.Color.DeepSkyBlue,
-              style: "bold",
-            });
-
-            this.game.updatePlayersPosition(room);
-
-            this.game.matchStats.add(this.game.quarterback, { corridasQb: 1 });
-
-            return;
-          }
-
-          /* Player tocando na bola */
-          const playerTouchingBall = this.getPlayerTouchingBall(room);
-
-          if (playerTouchingBall) {
-            this.playerTouchBallHike(room, playerTouchingBall);
-
-            return;
-          }
-
-          /* Bola passou da linha de scrimmage */
-          if (this.hasQBBallPassedScrimmageLine(room)) {
-            this.game.matchStats.add(this.game.quarterback, { faltas: 1 });
-
-            if (!this.game.conversion) {
-              room.send({
-                message: translate("BALL_PASSED_SCRIMMAGE_LINE"),
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.set({ room });
-            } else {
-              room.send({
-                message: translate("BALL_PASSED_SCRIMMAGE_LINE_CONVERSION"),
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.game.resetToKickoff(room);
-            }
-
-            return;
-          }
-
-          /* Bola saiu do campo */
-          if (this.isBallOutsideField(room)) {
-            if (!this.game.conversion) {
-              room.send({
-                message: translate("BALL_OUTSIDE_FIELD"),
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.set({ room });
-            } else {
-              room.send({
-                message: translate("BALL_OUTSIDE_FIELD_CONVERSION"),
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.game.resetToKickoff(room);
-            }
-
-            return;
-          }
-
-          /* Corrida de RB */
-          const run = this.getRunningBackAttemptingRun(room);
-
-          if (run) {
-            if (run.valid) {
-              room.send({
-                message: translate("RUN", run.player.name),
-                color: Global.Color.DeepSkyBlue,
-                style: "bold",
-              });
-
-              this.game.matchStats.add(run.player, { corridas: 1 });
-
-              this.game.updatePlayersPosition(room);
-
-              this.game.setPlayerWithBall(
-                room,
-                run.player,
-                PlayerWithBallState.Runner,
-                true,
-              );
-
-              // run.player.setbCoeff(this.bCoeffRunner);
-              // run.player.setInvMass(this.invMassRunner);
-
-              return;
-            } else {
-              this.game.matchStats.add(run.player, { faltas: 1 });
-
-              if (!this.game.conversion) {
-                room.send({
-                  message: translate("ILLEGAL_RUN_HIKE", run.player.name),
-                  color: Global.Color.Orange,
-                  style: "bold",
-                });
-
-                this.set({ room });
-              } else {
-                room.send({
-                  message: translate("ILLEGAL_RUN_CONVERSION", run.player.name),
-                  color: Global.Color.Orange,
-                  style: "bold",
-                });
-
-                this.game.resetToKickoff(room);
-              }
-
-              return;
-            }
-          }
-
-          const holdingPlayers = this.getHoldingPlayers(room);
-
-          if (holdingPlayers) {
-            holdingPlayers.forEach((p) => {
-              this.game.matchStats.add(p, { faltas: 1 });
-              this.game.customAvatarManager.setPlayerAvatar(p, "🤡", 3000);
-            });
-
-            if (!this.game.conversion) {
-              room.send({
-                message: translate(
-                  "HOLDING",
-                  Utils.getPlayersNames(holdingPlayers),
-                  Math.abs(this.holdingPenalty),
-                ),
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.set({ room, decrement: this.holdingPenalty });
-            } else {
-              room.send({
-                message: translate(
-                  "HOLDING_CONVERSION",
-                  Utils.getPlayersNames(holdingPlayers),
-                ),
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.game.resetToKickoff(room);
-            }
-
-            return;
-          }
-
-          /* Ultrapassagem ilegal na linha de scrimmage */
-          const trespassingDefender = this.getDefensePlayersTrespassing(room);
-
-          if (trespassingDefender) {
-            if (!hikeTimeStatus.isOver) {
-              let penalty = this.defenseTrespasserPenalty;
-
-              this.game.matchStats.add(trespassingDefender, { faltas: 1 });
-
-              if (
-                StadiumUtils.isInRedZone(
-                  this.game.ballPosition,
-                  this.game.invertTeam(this.game.teamWithBall),
-                )
-              ) {
-                this.game.redZonePenalties++;
-
-                if (this.game.redZonePenalties >= this.maxPenaltiesInRedZone) {
-                  this.setRedZoneTouchdown(
-                    room,
-                    this.game.teamWithBall,
-                    this.game.invasionPlayers,
-                    translate(
-                      "AUTO_TOUCHDOWN_BLITZ",
-                      trespassingDefender.name,
-                      hikeTimeFormatted,
-                    ),
-                  );
-
-                  this.game.adjustGameTimeAfterDefensivePenalty(room);
-
-                  this.game.redZonePenalties = 0;
-
-                  return;
-                } else {
-                  penalty = this.game.getPenaltyValueInRedZone(
-                    this.trespassingPenalty,
-                  );
-
-                  room.send({
-                    message: translate(
-                      "REDZONE_BLITZ",
-                      trespassingDefender.name,
-                      hikeTimeFormatted,
-                      this.game.redZonePenalties,
-                      this.maxPenaltiesInRedZone,
-                      penalty,
-                    ),
-                    color: Global.Color.Orange,
-                    style: "bold",
-                  });
-                }
-              } else {
-                room.send({
-                  message: translate(
-                    "BLITZ",
-                    trespassingDefender.name,
-                    hikeTimeFormatted,
-                    penalty,
-                  ),
-                  color: Global.Color.Orange,
-                  style: "bold",
-                });
-              }
-
-              this.game.adjustGameTimeAfterDefensivePenalty(room);
-
-              this.set({ room, decrement: penalty, countDown: false });
-
-              return;
-            } else {
-              this.game.setPlayerWithBall(
-                room,
-                this.game.quarterback,
-                PlayerWithBallState.QbRunnerSacking,
-                true,
-              );
-
-              this.sack = true;
-
-              room.send({
-                message: translate(
-                  "SACK_ATTEMPT",
-                  trespassingDefender.name,
-                  this.game.quarterback.name,
-                ),
-                color: Global.Color.DeepSkyBlue,
-                style: "bold",
-              });
-            }
-          }
-
-          /* Invasão */
-          if (!hikeTimeStatus.isOver) {
-            const invasion = this.invasion.handle(room);
-
-            if (invasion) return;
-          }
-        } else if (this.game.qbKickedBall) {
-          if (
-            !this.game.playerWithBall ||
-            (this.sack && !this.sackBallTouched)
-          ) {
-            /* Bola fora de campo no sack */
-            const ball = room.getBall();
-            if (
-              this.sack &&
-              StadiumUtils.isOutOfMap(ball.getPosition(), -ball.getRadius())
-            ) {
-              this.sackBallTouched = true;
-
-              return;
-            }
-
-            /* Bola recebida por WR */
-            const wideReceiverCatchingBall =
-              this.getWideReceiverCatchingBall(room);
-
-            if (
-              wideReceiverCatchingBall &&
-              !this.game.blockedPass &&
-              !this.game.intercept &&
-              !this.game.interceptAttemptPlayer &&
-              !(
-                wideReceiverCatchingBall.id === this.game.quarterback.id &&
-                this.sack
-              )
-            ) {
-              if (
-                !StadiumUtils.isOutOfMap(
-                  wideReceiverCatchingBall.getPosition(),
-                  0,
-                )
-              ) {
-                this.qbPassedInSack();
-
-                this.setReceiver(room, wideReceiverCatchingBall);
-              } else {
-                if (!this.game.conversion) {
-                  room.send({
-                    message: "❌ Recepção fora de campo • Perde a descida",
-                    color: Global.Color.Orange,
-                    style: "bold",
-                  });
-
-                  this.set({ room });
-                } else {
-                  room.send({
-                    message: "❌ Recepção fora de campo • Perde a conversão",
-                    color: Global.Color.Orange,
-                    style: "bold",
-                  });
-
-                  this.game.resetToKickoff(room);
-                }
-              }
-
-              return;
-            }
-
-            /* Passe bloqueado pela defesa */
-            const defenderCatchingBall = this.getDefenderBlockingBall(room);
-
-            if (defenderCatchingBall && !this.game.blockedPass) {
-              this.defenderBlockingBall = defenderCatchingBall;
-              this.game.blockedPass = true;
-
-              setTimeout(() => {
-                if (
-                  !this.game.interceptAttemptPlayer &&
-                  !this.game.intercept &&
-                  this.game.mode === this.mode &&
-                  (this.sack ? !this.sackBallTouched : true)
-                ) {
-                  if (this.sack) {
-                    this.sackBallTouched = true;
-                  } else {
-                    this.game.blockPass(room, defenderCatchingBall);
-                  }
-                }
-              }, 100);
-
-              return;
-            }
-
-            if (
-              this.defenderBlockingBall &&
-              !this.game.interceptAttemptPlayer &&
-              !this.game.intercept &&
-              this.defenderBlockingBall.distanceTo(room.getBall()) > 5
-            ) {
-              if (this.sack) {
-                this.sackBallTouched = true;
-              } else {
-                this.game.blockPass(room, this.defenderBlockingBall);
-              }
-
-              return;
-            }
-          }
+      if (hasInterceptAttempt) {
+        if (this.checkInterceptionFailed(room)) {
+          this.handleInterceptionFailed(room);
+        } else {
+          this.handleInterceptionSuccess(room);
         }
+
+        return;
       }
 
-      /* Interceptação */
-      if (this.game.interceptAttemptPlayer) {
-        if (this.checkInterceptionFailed(room)) {
-          this.game.setBallDamping(room, Global.BallDamping.Default);
+      if (afterHikeBeforeKick) {
+        const ballMoved =
+          !this.qbCarriedBallTime &&
+          this.ballInitialPoss &&
+          MathUtils.getDistanceBetweenPoints(
+            this.ballInitialPoss,
+            room.getBall().getPosition(),
+            room.getBall().getRadius(),
+          ) > 1;
 
-          if (!this.sack) {
-            room.send({
-              message: translate(
-                "INTERCEPTION_FAILED",
-                this.game.interceptAttemptPlayer.name,
-                this.game.interceptAttemptPlayer.name,
-              ),
-              color: Global.Color.Orange,
-              style: "bold",
-            });
+        /* Bola se moveu */
+        if (ballMoved) {
+          this.qbCarriedBallTime = Date.now();
+        }
 
-            this.game.blockPass(room, this.game.interceptAttemptPlayer, false);
+        /* Ultrapassagem do QB */
+        if (this.hasQBPassedScrimmageLine(room)) {
+          this.handleQBPassedScrimmageLine(
+            room,
+            hikeTimeStatus,
+            hikeTimeFormatted,
+          );
 
-            this.game.interceptAttemptPlayer = null;
+          return;
+        }
+
+        /* Corrida do QB */
+        if (this.qbIsAttemptingRun(room)) {
+          this.handleQBAttemptingRun(room);
+
+          return;
+        }
+
+        /* Player tocando na bola */
+        const playerTouchingBall = this.getPlayerTouchingBall(room);
+
+        if (playerTouchingBall) {
+          this.playerTouchBallHike(room, playerTouchingBall);
+
+          return;
+        }
+
+        /* Bola passou da linha de scrimmage */
+        if (this.hasQBBallPassedScrimmageLine(room)) {
+          this.handleQBBallPassedScrimmageLine(room);
+
+          return;
+        }
+
+        /* Bola saiu de campo */
+        if (this.isBallOutsideField(room)) {
+          this.handleBallOutsideField(room);
+
+          return;
+        }
+
+        /* Corrida de RB */
+        const run = this.getRunningBackAttemptingRun(room);
+
+        if (run) {
+          this.handleRunningBackAttemptingRun(room, run);
+
+          return;
+        }
+
+        const holdingPlayers = this.getHoldingPlayers(room);
+
+        if (holdingPlayers) {
+          this.handleHoldingPlayers(room, holdingPlayers);
+
+          return;
+        }
+
+        /* Ultrapassagem ilegal na linha de scrimmage */
+        const trespassingDefender = this.getDefensePlayersTrespassing(room);
+
+        if (trespassingDefender) {
+          if (!hikeTimeStatus.isOver) {
+            this.handleIllegalTrespassing(
+              room,
+              trespassingDefender,
+              hikeTimeFormatted,
+            );
           } else {
-            room.send({
-              message: translate(
-                "INTERCEPTION_FAILED_SACK",
-                this.game.interceptAttemptPlayer.name,
-                this.game.interceptAttemptPlayer.name,
-              ),
-              color: Global.Color.Orange,
-              style: "bold",
-            });
+            this.handleSackAttempt(room, trespassingDefender);
+          }
 
+          return;
+        }
+
+        /* Invasão */
+        if (!hikeTimeStatus.isOver) {
+          const invasion = this.invasion.handle(room);
+
+          if (invasion) return;
+        }
+
+        return;
+      }
+
+      if (afterKickBeforeCatch) {
+        /* Bola fora de campo no sack */
+        if (
+          this.sack &&
+          StadiumUtils.isOutOfMap(ball.getPosition(), -ball.getRadius())
+        ) {
+          this.sackBallTouched = true;
+
+          return;
+        }
+
+        /* Bola recebida por WR */
+        const wideReceiverCatchingBall = this.getWideReceiverCatchingBall(room);
+
+        if (
+          wideReceiverCatchingBall &&
+          !this.game.blockedPass &&
+          !this.game.intercept &&
+          !this.game.interceptAttemptPlayer &&
+          !(
+            wideReceiverCatchingBall.id === this.game.quarterback.id &&
+            this.sack
+          )
+        ) {
+          this.handleWideReceiverCatchingBall(room, wideReceiverCatchingBall);
+
+          return;
+        }
+
+        /* Passe bloqueado pela defesa */
+        const defenderBlockingBall = this.getDefenderBlockingBall(room);
+
+        if (defenderBlockingBall && !this.game.blockedPass) {
+          this.handleDefenderBlockingBall(room, defenderBlockingBall);
+
+          return;
+        }
+
+        if (
+          this.defenderBlockingBall &&
+          !this.game.interceptAttemptPlayer &&
+          !this.game.intercept &&
+          this.defenderBlockingBall.distanceTo(room.getBall()) > 5
+        ) {
+          if (this.sack) {
             this.sackBallTouched = true;
-
-            this.game.interceptAttemptPlayer = null;
+          } else {
+            this.game.blockPass(room, this.defenderBlockingBall);
           }
-        } else {
-          const ball = room.getBall();
 
-          if (
-            ball.getDamping() === Global.BallDamping.Highest &&
-            ball.getVelocity() > this.maximumHighestDampingIntVelocity
-          ) {
-            this.game.setBallDamping(room, Global.BallDamping.High);
-          }
+          return;
+        }
+
+        return;
+      }
+
+      if (afterCatch) {
+        if (
+          !this.playerWithBallInAdvantage &&
+          this.checkPlayerWithBallInAdvantage(room)
+        ) {
+          this.playerWithBallInAdvantage = true;
+
+          this.handlePlayerWithBallInAdvantage(room);
         }
       }
     });
@@ -584,74 +293,73 @@ export class Down extends LandPlay {
     room.on("playerBallKick", (player: Player) => {
       if (this.game.interceptAttemptPlayer || this.game.intercept) return;
 
-      if (
+      const isIllegalTouch =
         this.game.mode === this.waitingHikeMode &&
         !this.game.qbKickedBall &&
         player.getTeam() !== this.game.teamWithBall &&
         this.game.tickCount >
-          this.downSetTime + this.timeIllegalTouchDisabledStartTicks
-      ) {
-        this.playerTouchBallHike(room, player);
+          this.downSetTime + this.timeIllegalTouchDisabledStartTicks;
 
-        return;
-      } else if (this.game.mode !== this.mode) {
+      if (isIllegalTouch) {
+        this.playerTouchBallHike(room, player);
         return;
       }
+
+      if (this.game.mode !== this.mode) return;
 
       if (!this.game.qbKickedBall) {
         this.game.updatePlayersPosition(room);
 
         if (player.id === this.game.quarterback?.id) {
           this.game.qbKickedBall = true;
-
           this.game.matchStats.add(this.game.quarterback, {
             passesTentados: 1,
           });
+          this.addDownInfoMoment(room, "kick");
         } else {
           this.playerTouchBallHike(room, player);
         }
-      } else if (
+
+        return;
+      }
+
+      const isBallLoose =
         !this.game.playerWithBall ||
         (this.sack &&
           !this.sackBallTouched &&
-          player.id !== this.game.quarterback.id)
-      ) {
-        if (player.getTeam() !== this.game.teamWithBall) {
-          if (!this.game.interceptAttemptPlayer) {
-            this.handleInterception(room, player);
-          } else {
-            if (this.sack) {
-              this.sackBallTouched = true;
-            } else {
-              this.game.blockPass(room, player);
-            }
-          }
+          player.id !== this.game.quarterback.id);
+
+      if (!isBallLoose) return;
+
+      if (player.getTeam() !== this.game.teamWithBall) {
+        if (!this.game.interceptAttemptPlayer) {
+          this.handleInterception(room, player);
+        } else if (this.sack) {
+          this.sackBallTouched = true;
         } else {
-          if (!StadiumUtils.isOutOfMap(player.getPosition(), 0)) {
-            if (this.sack) this.qbPassedInSack();
-
-            this.setReceiver(room, player);
-          } else {
-            if (!this.game.conversion) {
-              room.send({
-                message: "❌ Recepção fora de campo • Perde a descida",
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.set({ room });
-            } else {
-              room.send({
-                message: "❌ Recepção fora de campo • Perde a conversão",
-                color: Global.Color.Orange,
-                style: "bold",
-              });
-
-              this.game.resetToKickoff(room);
-            }
-          }
+          this.game.blockPass(room, player);
         }
+
+        return;
       }
+
+      if (StadiumUtils.isOutOfMap(player.getPosition(), 0)) {
+        const message = this.game.conversion
+          ? "❌ Recepção fora de campo • Perde a conversão"
+          : "❌ Recepção fora de campo • Perde a descida";
+
+        room.send({ message, color: Global.Color.Orange, style: "bold" });
+
+        if (this.game.conversion) {
+          this.game.resetToKickoff(room);
+        } else {
+          this.set({ room });
+        }
+        return;
+      }
+
+      if (this.sack) this.qbPassedInSack();
+      this.setReceiver(room, player);
     });
 
     room.on("gamePause", (byPlayer: Player) => {
@@ -959,8 +667,6 @@ export class Down extends LandPlay {
       ),
     );
 
-    console.log(distanceToEndZone);
-
     if (
       countDistanceFromNewPos &&
       this.game.distance >= this.maxDistance[this.game.downCount] &&
@@ -994,6 +700,8 @@ export class Down extends LandPlay {
     this.handleFirstDownLine(room);
     this.setBallLine(room);
 
+    this.downInfo = new DownInfo();
+
     if (!room.isGamePaused() && this.hikeTimeEnabled) {
       this.game.hikeTimeout = new Timer(
         () => {
@@ -1023,12 +731,18 @@ export class Down extends LandPlay {
   }
 
   public reset() {
+    if (this.downInfo.hasAllMoments()) {
+      this.game.matchStats.addDown(this.downInfo);
+    }
+
     this.qbCarriedBallTime = 0;
     this.ballInitialPoss = null;
     this.sack = null;
     this.sackBallTouched = false;
     this.downSetTime = null;
+    this.playerWithBallInAdvantage = false;
     this.invasion.clear();
+    this.downInfo = null;
   }
 
   public setBallPositionForHike(ball: Disc, forTeam: Team): Position {
@@ -1109,6 +823,8 @@ export class Down extends LandPlay {
 
     this.game.matchStats.add(player, { recepcoes: 1 });
     this.game.matchStats.add(this.game.quarterback, { passesCompletos: 1 });
+
+    this.addDownInfoMoment(room, "reception");
 
     room.send({
       message: translate("BALL_RECEIVED", player.name),
@@ -1362,6 +1078,26 @@ export class Down extends LandPlay {
     );
   }
 
+  private handleBallOutsideField(room: Room) {
+    if (!this.game.conversion) {
+      room.send({
+        message: translate("BALL_OUTSIDE_FIELD"),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.set({ room });
+    } else {
+      room.send({
+        message: translate("BALL_OUTSIDE_FIELD_CONVERSION"),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.resetToKickoff(room);
+    }
+  }
+
   private hasQBBallPassedScrimmageLine(room: Room) {
     if (!this.game.quarterback) return false;
 
@@ -1378,15 +1114,30 @@ export class Down extends LandPlay {
     );
   }
 
+  private handleQBBallPassedScrimmageLine(room: Room) {
+    this.game.matchStats.add(this.game.quarterback, { faltas: 1 });
+
+    if (!this.game.conversion) {
+      room.send({
+        message: translate("BALL_PASSED_SCRIMMAGE_LINE"),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.set({ room });
+    } else {
+      room.send({
+        message: translate("BALL_PASSED_SCRIMMAGE_LINE_CONVERSION"),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.resetToKickoff(room);
+    }
+  }
+
   private hasQBPassedScrimmageLine(room: Room) {
     if (!this.game.quarterback) return false;
-
-    /*const maxPermittedScrimmageLineTrespassing = Math.abs(this.game.quarterback.getY()) < 30 ? this.qbScrimmageLineMaxPermitted : 0;
-
-        return (
-            (this.game.quarterback.getTeam() === Team.Red && this.game.quarterback.getX() > room.getBall().getX() + maxPermittedScrimmageLineTrespassing) ||
-            (this.game.quarterback.getTeam() === Team.Blue && this.game.quarterback.getX() < room.getBall().getX() - maxPermittedScrimmageLineTrespassing)
-        );*/
 
     const ballPos = StadiumUtils.getCoordinateFromYards(this.game.ballPosition);
 
@@ -1398,6 +1149,56 @@ export class Down extends LandPlay {
     );
   }
 
+  private handleQBPassedScrimmageLine(
+    room: Room,
+    hikeTimeStatus: HikeTimeStatus,
+    hikeTimeFormatted: string,
+  ) {
+    if (hikeTimeStatus.isOver) {
+      this.game.matchStats.add(this.game.quarterback, { faltas: 1 });
+
+      if (!this.game.conversion) {
+        room.send({
+          message: translate("QUARTERBACK_BLITZ", hikeTimeFormatted),
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+
+        this.set({
+          room,
+          decrement: this.qbPassedScrimmageLinePenalty,
+        });
+      } else {
+        room.send({
+          message: translate("QUARTERBACK_BLITZ_CONVERSION", hikeTimeFormatted),
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+
+        this.game.resetToKickoff(room);
+      }
+    } else {
+      this.game.setPlayerWithBall(
+        room,
+        this.game.quarterback,
+        PlayerWithBallState.QbRunner,
+        true,
+      );
+
+      room.send({
+        message: translate("QUARTERBACK_RUN", this.game.quarterback.name),
+        color: Global.Color.DeepSkyBlue,
+        style: "bold",
+      });
+
+      this.game.updatePlayersPosition(room);
+
+      this.game.matchStats.add(this.game.quarterback, {
+        corridasQb: 1,
+      });
+    }
+  }
+
   private qbIsAttemptingRun(room: Room) {
     const isHikeTimeOver = this.game.getHikeTimeStatus().isOver;
 
@@ -1406,6 +1207,25 @@ export class Down extends LandPlay {
       isHikeTimeOver &&
       this.game.quarterback.distanceTo(room.getBall()) > 100
     );
+  }
+
+  private handleQBAttemptingRun(room: Room) {
+    this.game.setPlayerWithBall(
+      room,
+      this.game.quarterback,
+      PlayerWithBallState.QbRunner,
+      true,
+    );
+
+    room.send({
+      message: translate("QUARTERBACK_RUN", this.game.quarterback.name),
+      color: Global.Color.DeepSkyBlue,
+      style: "bold",
+    });
+
+    this.game.updatePlayersPosition(room);
+
+    this.game.matchStats.add(this.game.quarterback, { corridasQb: 1 });
   }
 
   private isQBCarryingBall(room: Room) {
@@ -1431,6 +1251,72 @@ export class Down extends LandPlay {
     }
 
     return false;
+  }
+
+  private handleInterceptionFailed(room: Room) {
+    this.game.setBallDamping(room, Global.BallDamping.Default);
+
+    if (!this.sack) {
+      room.send({
+        message: translate(
+          "INTERCEPTION_FAILED",
+          this.game.interceptAttemptPlayer.name,
+          this.game.interceptAttemptPlayer.name,
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.blockPass(room, this.game.interceptAttemptPlayer, false);
+    } else {
+      room.send({
+        message: translate(
+          "INTERCEPTION_FAILED_SACK",
+          this.game.interceptAttemptPlayer.name,
+          this.game.interceptAttemptPlayer.name,
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.sackBallTouched = true;
+    }
+
+    this.game.interceptAttemptPlayer = null;
+  }
+
+  private handleInterceptionSuccess(room: Room) {
+    const ball = room.getBall();
+
+    if (
+      ball.getDamping() === Global.BallDamping.Highest &&
+      ball.getVelocity() > this.maximumHighestDampingIntVelocity
+    ) {
+      this.game.setBallDamping(room, Global.BallDamping.High);
+    }
+  }
+
+  private addDownInfoMoment(room: Room, type: DownMoment) {
+    this.downInfo.addMomentInfo(type, {
+      ballPosition: room.getBall().getPosition(),
+      time: this.game.tickCount,
+      players: room
+        .getPlayers()
+        .teams()
+        .map((p) => {
+          const getType = (p: Player) => {
+            if (p.id === this.game.quarterback.id) return "qb";
+            if (p.getTeam() === this.game.teamWithBall) return "wr";
+            return "def";
+          };
+
+          return {
+            player: p,
+            withBall: this.game.playerWithBall?.id === p.id,
+            type: getType(p),
+          };
+        }),
+    });
   }
 
   private getHoldingPlayers(room: Room) {
@@ -1473,6 +1359,40 @@ export class Down extends LandPlay {
     }
   }
 
+  private handleHoldingPlayers(room: Room, holdingPlayers: Player[]) {
+    holdingPlayers.forEach((p) => {
+      this.game.matchStats.add(p, { faltas: 1 });
+      this.game.customAvatarManager.setPlayerAvatar(p, "🤡", 3000);
+    });
+
+    if (!this.game.conversion) {
+      room.send({
+        message: translate(
+          "HOLDING",
+          Utils.getPlayersNames(holdingPlayers),
+          Math.abs(this.holdingPenalty),
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.set({ room, decrement: this.holdingPenalty });
+    } else {
+      room.send({
+        message: translate(
+          "HOLDING_CONVERSION",
+          Utils.getPlayersNames(holdingPlayers),
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.resetToKickoff(room);
+    }
+
+    return;
+  }
+
   private getDefensePlayersTrespassing(room: Room) {
     const isHikeTimeOver = this.game.getHikeTimeStatus().isOver;
 
@@ -1495,6 +1415,95 @@ export class Down extends LandPlay {
     }
   }
 
+  private handleIllegalTrespassing(
+    room: Room,
+    trespassingDefender: Player,
+    hikeTimeFormatted: string,
+  ) {
+    let penalty = this.defenseTrespasserPenalty;
+
+    this.game.matchStats.add(trespassingDefender, { faltas: 1 });
+
+    if (
+      StadiumUtils.isInRedZone(
+        this.game.ballPosition,
+        this.game.invertTeam(this.game.teamWithBall),
+      )
+    ) {
+      this.game.redZonePenalties++;
+
+      if (this.game.redZonePenalties >= this.maxPenaltiesInRedZone) {
+        this.setRedZoneTouchdown(
+          room,
+          this.game.teamWithBall,
+          this.game.invasionPlayers,
+          translate(
+            "AUTO_TOUCHDOWN_BLITZ",
+            trespassingDefender.name,
+            hikeTimeFormatted,
+          ),
+        );
+
+        this.game.adjustGameTimeAfterDefensivePenalty(room);
+
+        this.game.redZonePenalties = 0;
+
+        return;
+      } else {
+        penalty = this.game.getPenaltyValueInRedZone(this.trespassingPenalty);
+
+        room.send({
+          message: translate(
+            "REDZONE_BLITZ",
+            trespassingDefender.name,
+            hikeTimeFormatted,
+            this.game.redZonePenalties,
+            this.maxPenaltiesInRedZone,
+            penalty,
+          ),
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+      }
+    } else {
+      room.send({
+        message: translate(
+          "BLITZ",
+          trespassingDefender.name,
+          hikeTimeFormatted,
+          penalty,
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+    }
+
+    this.game.adjustGameTimeAfterDefensivePenalty(room);
+
+    this.set({ room, decrement: penalty, countDown: false });
+  }
+
+  private handleSackAttempt(room: Room, trespassingDefender: Player) {
+    this.game.setPlayerWithBall(
+      room,
+      this.game.quarterback,
+      PlayerWithBallState.QbRunnerSacking,
+      true,
+    );
+
+    this.sack = true;
+
+    room.send({
+      message: translate(
+        "SACK_ATTEMPT",
+        trespassingDefender.name,
+        this.game.quarterback.name,
+      ),
+      color: Global.Color.DeepSkyBlue,
+      style: "bold",
+    });
+  }
+
   private getPlayerTouchingBall(room: Room) {
     for (const player of room.getPlayers().teams()) {
       if (player.id === this.game.quarterback.id) continue;
@@ -1515,6 +1524,50 @@ export class Down extends LandPlay {
     return;
   }
 
+  private handleRunningBackAttemptingRun(
+    room: Room,
+    run: { valid: boolean; player: Player },
+  ) {
+    if (run.valid) {
+      room.send({
+        message: translate("RUN", run.player.name),
+        color: Global.Color.DeepSkyBlue,
+        style: "bold",
+      });
+
+      this.game.matchStats.add(run.player, { corridas: 1 });
+
+      this.game.updatePlayersPosition(room);
+
+      this.game.setPlayerWithBall(
+        room,
+        run.player,
+        PlayerWithBallState.Runner,
+        true,
+      );
+    } else {
+      this.game.matchStats.add(run.player, { faltas: 1 });
+
+      if (!this.game.conversion) {
+        room.send({
+          message: translate("ILLEGAL_RUN_HIKE", run.player.name),
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+
+        this.set({ room });
+      } else {
+        room.send({
+          message: translate("ILLEGAL_RUN_CONVERSION", run.player.name),
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+
+        this.game.resetToKickoff(room);
+      }
+    }
+  }
+
   private getWideReceiverCatchingBall(room: Room) {
     if (this.game.qbKickedBall) {
       for (const player of this.game.getTeamWithBall(room)) {
@@ -1525,12 +1578,83 @@ export class Down extends LandPlay {
     }
   }
 
+  private handleWideReceiverCatchingBall(
+    room: Room,
+    wideReceiverCatchingBall: Player,
+  ) {
+    if (!StadiumUtils.isOutOfMap(wideReceiverCatchingBall.getPosition(), 0)) {
+      this.qbPassedInSack();
+
+      this.setReceiver(room, wideReceiverCatchingBall);
+    } else {
+      if (!this.game.conversion) {
+        room.send({
+          message: "❌ Recepção fora de campo • Perde a descida",
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+
+        this.set({ room });
+      } else {
+        room.send({
+          message: "❌ Recepção fora de campo • Perde a conversão",
+          color: Global.Color.Orange,
+          style: "bold",
+        });
+
+        this.game.resetToKickoff(room);
+      }
+    }
+  }
+
   private getDefenderBlockingBall(room: Room) {
     for (const player of this.game.getTeamWithoutBall(room)) {
       if (player.distanceTo(room.getBall()) < 0.2) {
         return player;
       }
     }
+  }
+
+  private handleDefenderBlockingBall(room: Room, defenderBlockingBall: Player) {
+    this.defenderBlockingBall = defenderBlockingBall;
+    this.game.blockedPass = true;
+
+    setTimeout(() => {
+      if (
+        !this.game.interceptAttemptPlayer &&
+        !this.game.intercept &&
+        this.game.mode === this.mode &&
+        (this.sack ? !this.sackBallTouched : true)
+      ) {
+        if (this.sack) {
+          this.sackBallTouched = true;
+        } else {
+          this.game.blockPass(room, defenderBlockingBall);
+        }
+      }
+    }, 100);
+  }
+
+  private checkPlayerWithBallInAdvantage(room: Room) {
+    const playerWithBallIsInAdvantage = room
+      .getPlayers()
+      .filter((p) => p.getTeam() !== this.game.teamWithBall)
+      .every((p) => {
+        const radius =
+          p.distanceTo(this.game.playerWithBall) < p.getRadius() * 2
+            ? p.getRadius()
+            : 0;
+
+        return this.game.playerWithBall.getTeam() === Team.Red
+          ? p.getX() + radius < this.game.playerWithBall.getX()
+          : p.getX() - radius > this.game.playerWithBall.getX();
+      });
+
+    return playerWithBallIsInAdvantage;
+  }
+
+  private handlePlayerWithBallInAdvantage(room: Room) {
+    this.addDownInfoMoment(room, "advantage");
   }
 
   @Command({

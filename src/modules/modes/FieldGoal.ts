@@ -254,7 +254,7 @@ export class FieldGoal extends Mode {
       forTeam,
     );
 
-    const minDistance = -25;
+    const minDistance = -30;
     const maxDistance = 30;
     const proximityFactor = Math.max(
       0,
@@ -316,6 +316,9 @@ export class FieldGoal extends Mode {
     }
 
     kicker.setY(this.kickerY);
+    kicker.setX(
+      kicker.getX() + (forTeam === Team.Red ? -1 : 1) * MapMeasures.Yard * 2,
+    );
 
     this.game.mode = this.mode;
     this.setTick = this.game.tickCount;

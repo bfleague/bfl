@@ -333,6 +333,17 @@ export class OnsideKick extends LandPlay {
       return false;
     }
 
+    if (this.game.firstKickoff) {
+      $.caller.reply({
+        message: `⚠️ Você não pode pedir onside kick no primeiro kick off!`,
+        sound: 2,
+        color: Global.Color.Tomato,
+        style: "bold",
+      });
+
+      return false;
+    }
+
     if ($.caller.distanceTo(room.getBall()) > 50) {
       $.caller.reply({
         message: `⚠️ Você está longe demais da bola!`,

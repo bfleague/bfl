@@ -27,6 +27,7 @@ type SetHikeProperties = {
   decrement?: number;
   countDistanceFromNewPos?: boolean;
   positionPlayersEvenly?: boolean;
+  lastHikeMode?: boolean;
   duringHikeMode?: {
     playerWithBall: Player;
     playerWithBallState: PlayerWithBallState;
@@ -74,6 +75,7 @@ export class Down extends LandPlay {
   public ballInitialPoss: Position;
   public downInfo: DownInfo = null;
   public playerWithBallInAdvantage = false;
+  public lastHikeMode = false;
 
   constructor(room: Room, game: Game) {
     super(room, game);
@@ -508,9 +510,15 @@ export class Down extends LandPlay {
     countDown = true,
     countDistanceFromNewPos = true,
     duringHikeMode,
+    lastHikeMode = false,
   }: SetHikeProperties) {
+    const skipHike = this.lastHikeMode;
+
+    this.lastHikeMode = lastHikeMode;
+
     if (duringHikeMode) {
       this.game.mode = null;
+
       this.game.reset(room);
       this.game.mode = this.mode;
       this.game.teamWithBall = forTeam;
@@ -522,6 +530,7 @@ export class Down extends LandPlay {
 
       this.handleFirstDownLine(room);
       this.setBallLine(room);
+      this.lastHikeMode = lastHikeMode;
 
       this.game.setPlayerWithBall(
         room,
@@ -631,7 +640,7 @@ export class Down extends LandPlay {
         color: Global.Color.LightGreen,
         style: "bold",
       };
-    } else if (this.game.downCount === 4 && countDown) {
+    } else if ((this.game.downCount === 4 || skipHike) && countDown) {
       const otherTeam = this.game.invertTeam(forTeam);
 
       this.game.downCount = 1;
@@ -736,6 +745,7 @@ export class Down extends LandPlay {
     this.playerWithBallInAdvantage = false;
     this.invasion.clear();
     this.downInfo = null;
+    this.lastHikeMode = false;
   }
 
   public setBallPositionForHike(ball: Disc, forTeam: Team): Position {

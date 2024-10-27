@@ -170,6 +170,7 @@ export class FieldGoal extends Mode {
               distance: this.downInfo.distance,
               down: this.downInfo.downCount,
             },
+            lastHikeMode: true,
           });
 
           return;

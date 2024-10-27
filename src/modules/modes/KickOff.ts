@@ -82,9 +82,12 @@ export class KickOff extends LandPlay {
     pos?: Global.FieldPosition;
   }) {
     this.game.mode = null;
+    const firstKickoff = this.game.firstKickoff;
 
     this.game.reset(room);
     this.game.resetPlay(room);
+
+    this.game.firstKickoff = firstKickoff;
 
     if (!pos) {
       this.game.ballPosition = { team: forTeam, yards: 50 };

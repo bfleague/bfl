@@ -64,10 +64,12 @@ function run(
   geo?: string[],
   proxy?: string,
 ) {
+  const isPublic = !testMode && !isClosed;
+
   const room = new Room(HBInit, {
     roomName: ` 🔰 🏈 𝗕𝗙𝗟 • Futebol Americano 🏈`,
     maxPlayers: 20,
-    public: !testMode && !isClosed,
+    public: isPublic,
     geo: geo
       ? { code: geo[0], lat: parseFloat(geo[1]), lon: parseFloat(geo[2]) }
       : undefined,
@@ -105,17 +107,23 @@ function run(
         return;
       }
 
-      sendDiscordLink(link);
+      sent = true;
+
+      sendDiscordLink(link, {
+        public: isPublic,
+      });
     }
   });
 
   console.log("https://github.com/haxfootballbrazil/hfb-bot");
 }
 
-function sendDiscordLink(link: string) {
+function sendDiscordLink(link: string, { public: pub }: { public: boolean }) {
   const embed = new Discord.EmbedBuilder()
     .setTitle(`Sala aberta`)
-    .setDescription(`[Clique aqui para entrar na sala](${link})`)
+    .setDescription(
+      `[Clique aqui para entrar na sala](${link})\n\`${pub ? "PÚBLICA" : "FECHADA"}\``,
+    )
     .setColor(0x0099ff);
 
   const client = new Discord.Client({

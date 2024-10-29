@@ -359,7 +359,7 @@ export abstract class LandPlay extends Mode {
         });
 
         if (
-          this.game.interceptAttemptPlayer.getTeam() !== Team.Red ||
+          this.game.interceptAttemptPlayer.getTeam() !== Team.Red &&
           this.game.interceptAttemptPlayer.getTeam() !== Team.Blue
         ) {
           this.game.downCount = 0;

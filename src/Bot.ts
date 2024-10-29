@@ -122,7 +122,7 @@ function sendDiscordLink(link: string, { public: pub }: { public: boolean }) {
   const embed = new Discord.EmbedBuilder()
     .setTitle(`Sala aberta`)
     .setDescription(
-      `[Clique aqui para entrar na sala](${link})\n\`${pub ? "PÚBLICA" : "FECHADA"}\``,
+      `[Clique aqui para entrar na sala](${link})\n\n\`${pub ? "PÚBLICA" : "INVISÍVEL"}\``,
     )
     .setColor(0x0099ff);
 

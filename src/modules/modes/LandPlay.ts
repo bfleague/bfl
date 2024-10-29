@@ -358,6 +358,21 @@ export abstract class LandPlay extends Mode {
           interceptacoes: 1,
         });
 
+        if (
+          this.game.interceptAttemptPlayer.getTeam() !== Team.Red ||
+          this.game.interceptAttemptPlayer.getTeam() !== Team.Blue
+        ) {
+          this.game.downCount = 0;
+          this.game.distance = 20;
+
+          this.game.down.set({
+            room,
+            forTeam: this.game.invertTeam(this.game.teamWithBall),
+          });
+
+          return;
+        }
+
         this.handleInterceptPlayerLeftEndZone(this.game.interceptAttemptPlayer);
 
         this.game.intercept = true;

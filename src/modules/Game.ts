@@ -642,6 +642,8 @@ class Game extends Module {
     state: PlayerWithBallState,
     running: boolean,
   ) {
+    console.log("setPlayerWithBall", player.name, state);
+
     this.playerWithBallInitialPosition = player.getPosition();
 
     if (this.playerWithBall)

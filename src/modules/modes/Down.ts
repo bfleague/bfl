@@ -1018,7 +1018,7 @@ export class Down extends LandPlay {
       // const multiplierRed = player.getTeam() === Team.Red ? 1.3 : 1.1;
       // const multiplierBlue = player.getTeam() === Team.Blue ? 1.3 : 1.1;
 
-      const multiplier = 1.1;
+      const multiplier = 1.05;
 
       let pointOfIntersection;
 
@@ -1622,6 +1622,8 @@ export class Down extends LandPlay {
   }
 
   private checkPlayerWithBallInAdvantage(room: Room) {
+    console.log(this.game.playerWithBall.name, this.game.playerWithBall.id);
+
     const playerWithBallIsInAdvantage = room
       .getPlayers()
       .filter((p) => p.getTeam() !== this.game.teamWithBall)

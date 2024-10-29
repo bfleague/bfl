@@ -21,7 +21,7 @@ export class ExtraPoint extends Mode {
   public readonly epPoints = 1;
   public readonly conversionPoints = 2;
   public readonly intConversionPoints = 2;
-  public readonly epTimeLimit = 8 * 1000;
+  public readonly epTimeLimit = 5 * 1000;
   public readonly playerLineLengthExtraPointKickingTeam = 100;
   public readonly playerLineLengthExtraPointOtherTeam = 100;
   public readonly playerBackDistanceExtraPoint = 100;

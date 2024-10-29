@@ -79,10 +79,10 @@ export default class DownInfo {
     );
   }
 
-  public toJson() {
-    return JSON.stringify({
+  public toObject() {
+    return {
       version: DownInfo.version,
       ...this.downInfo,
-    });
+    };
   }
 }

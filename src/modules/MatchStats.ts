@@ -551,7 +551,7 @@ export default class MatchStats {
         name: "data.json",
       }),
       new Discord.AttachmentBuilder(
-        Buffer.from(JSON.stringify(this.downHistory)),
+        Buffer.from(JSON.stringify(this.downHistory.map((d) => d.toObject()))),
         {
           name: "downs.json",
         },

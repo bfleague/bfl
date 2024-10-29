@@ -67,7 +67,7 @@ function run(
   const isPublic = !testMode && !isClosed;
 
   const room = new Room(HBInit, {
-    roomName: ` 🔰 🏈 𝗕𝗙𝗟 • Futebol Americano 🏈`,
+    roomName: `🏈 𝗕𝗙𝗟 • Futebol Americano 🏈`,
     maxPlayers: 20,
     public: isPublic,
     geo: geo

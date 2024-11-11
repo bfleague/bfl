@@ -1622,8 +1622,6 @@ export class Down extends LandPlay {
   }
 
   private checkPlayerWithBallInAdvantage(room: Room) {
-    console.log(this.game.playerWithBall.name, this.game.playerWithBall.id);
-
     const playerWithBallIsInAdvantage = room
       .getPlayers()
       .filter((p) => p.getTeam() !== this.game.teamWithBall)

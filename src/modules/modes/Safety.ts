@@ -111,6 +111,13 @@ export class Safety extends LandPlay {
     this.game.downCount = 0;
     this.game.distance = 20;
 
+    if (StadiumUtils.isSpaceMap(this.game.customMap)) {
+      room.getPlayers().forEach((player) => {
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+      });
+    }
+
     room.send({
       message: `🤾 Safety para o ${this.game.getTeamName(forTeam)}`,
       color: Global.Color.LightGreen,

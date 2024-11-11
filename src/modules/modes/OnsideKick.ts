@@ -136,7 +136,14 @@ export class OnsideKick extends LandPlay {
     ball.setVelocityY(0);
     ball.setPosition(ballPosInMap);
 
-    this.game.setBallKickForce(room, 1.2);
+    if (StadiumUtils.isSpaceMap(this.game.customMap)) {
+      room.getPlayers().forEach((player) => {
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+      });
+    } else {
+      this.game.setBallKickForce(room, 1.5);
+    }
 
     let red = room.getPlayers().red();
     let blue = room.getPlayers().blue();

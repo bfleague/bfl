@@ -124,6 +124,7 @@ class Game extends Module {
   public lastPlayerPositions: Map<number, number> = new Map();
   public defaultPlayerRadius = (BFL.playerPhysics as any).radius ?? 15;
   public stoppageTime: StoppageTime;
+  public customMap: string | true | null = null;
 
   private scoreRed = 0;
   private scoreBlue = 0;
@@ -642,8 +643,6 @@ class Game extends Module {
     state: PlayerWithBallState,
     running: boolean,
   ) {
-    console.log("setPlayerWithBall", player.name, state);
-
     this.playerWithBallInitialPosition = player.getPosition();
 
     if (this.playerWithBall)

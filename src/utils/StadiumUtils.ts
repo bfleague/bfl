@@ -56,6 +56,10 @@ export default class StadiumUtils {
     };
   }
 
+  static isSpaceMap(value: string | true): value is "spaceball" | "bounce" {
+    return value === "spaceball" || value === "bounce";
+  }
+
   static getYardDifferenceBetweenPositions(
     pos1: Position,
     pos2: Position,

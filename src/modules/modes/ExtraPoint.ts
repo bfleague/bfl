@@ -203,6 +203,13 @@ export class ExtraPoint extends Mode {
     this.game.down.resetFirstDownLine(room);
     this.game.down.setBallLine(room);
 
+    if (StadiumUtils.isSpaceMap(this.game.customMap)) {
+      room.getPlayers().forEach((player) => {
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+      });
+    }
+
     if (!silent) {
       room.send({
         message: `🥅 Extra Point para o ${this.game.getTeamName(forTeam)} • ${Utils.getFormattedSeconds(this.epTimeLimit / 1000)} para chutar extra point`,

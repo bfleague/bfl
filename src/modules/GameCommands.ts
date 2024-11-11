@@ -40,68 +40,65 @@ class GameCommands extends Module {
       func: (stadium, value) => {
         const newStadium = this.game.getDefaultMap();
 
-        if (value === "futsal") {
-          newStadium.bg.type = "hockey";
+        switch (value) {
+          case "futsal":
+            newStadium.bg.type = "hockey";
 
-          newStadium["ballPhysics"] = {
-            pos: [0, 0],
-            radius: 6.25,
-            bCoef: 0.4,
-            invMass: 1.5,
-            color: "FFCC00",
-          };
+            newStadium["ballPhysics"] = {
+              radius: 6.25,
+              bCoef: 0.4,
+              invMass: 1.5,
+              color: "FFCC00",
+            };
 
-          newStadium["playerPhysics"] = {
-            bCoef: 0,
-            acceleration: 0.11,
-            kickingAcceleration: 0.083,
-          };
-        } else if (value === "bounce") {
-          for (const segment of newStadium["segments"]) {
-            if (segment["bCoef"] == null) segment["bCoef"] = 0.1;
-          }
+            newStadium["playerPhysics"] = {
+              bCoef: 0,
+              acceleration: 0.11,
+              kickStrength: 7,
+            };
 
-          for (const plane of newStadium["planes"]) {
-            if (plane["bCoef"] == null) {
-              plane["bCoef"] = 0;
-            } else {
-              plane["bCoef"] = 0.1;
+            break;
+          case "bounce":
+            for (const segment of newStadium["segments"]) {
+              if (segment["bCoef"] == null) segment["bCoef"] = 0.1;
             }
-          }
 
-          newStadium["playerPhysics"] = {
-            bCoef: 1.5,
-            invMass: 0.5,
-            damping: 0.9995,
-            acceleration: 0.025,
-            kickingAcceleration: 0.0175,
-            kickingDamping: 0.9995,
-            kickStrength: 5,
-          };
+            for (const plane of newStadium["planes"]) {
+              if (plane["bCoef"] == null) {
+                plane["bCoef"] = 0;
+              } else {
+                plane["bCoef"] = 0.1;
+              }
+            }
 
-          newStadium["ballPhysics"] = {
-            radius: 10,
-            bCoef: 0.5,
-            invMass: 1,
-            damping: 0.99,
-            color: "FFFFFF",
-          };
-        } else if (value === "spaceball") {
-          newStadium["playerPhysics"] = {
-            damping: 0.9995,
-            acceleration: 0.025,
-            kickingAcceleration: 0.0175,
-            kickingDamping: 0.9995,
-          };
+            newStadium["playerPhysics"] = {
+              bCoef: 0.8,
+              invMass: 0.4,
+              damping: 0.9995,
+              acceleration: 0.029,
+              kickingAcceleration: 0.017,
+              kickingDamping: 0.988,
+            };
 
-          newStadium["ballPhysics"] = {
-            damping: 1,
-            color: "CCFF33",
-          };
-        } else {
-          throw new Error(
-            "Valor inválido. Valores disponíveis: futsal, bounce, spaceball",
-          );
+            break;
+          case "spaceball":
+            newStadium["playerPhysics"] = {
+              damping: 0.9995,
+              acceleration: 0.025,
+              kickingAcceleration: 0.0175,
+              kickingDamping: 0.9995,
+            };
+
+            newStadium["ballPhysics"] = {
+              damping: 1,
+              color: "CCFF33",
+            };
+
+            break;
+          default:
+            throw new Error(
+              "Valor inválido. Valores disponíveis: futsal, bounce, spaceball",
+            );
         }
 
         Object.assign(stadium, newStadium);
@@ -110,15 +107,20 @@ class GameCommands extends Module {
     bg: {
       type: "string",
       func: (stadium, value) => {
-        if (value === "grass") {
-          stadium.bg.type = "grass";
-          delete stadium.bg["color"];
-        } else if (value === "hockey" || value === "futsal") {
-          stadium.bg.type = "hockey";
-          delete stadium.bg["color"];
-        } else {
-          stadium.bg.type = "none";
-          stadium.bg["color"] = value.replace("0x", "").replace("#", "");
+        switch (value) {
+          case "grass":
+            stadium.bg.type = "grass";
+            delete stadium.bg["color"];
+            break;
+          case "hockey":
+          case "futsal":
+            stadium.bg.type = "hockey";
+            delete stadium.bg["color"];
+            break;
+          default:
+            stadium.bg.type = "none";
+            stadium.bg["color"] = value.replace("0x", "").replace("#", "");
+            break;
         }
       },
     },
@@ -972,6 +974,8 @@ class GameCommands extends Module {
     } else if (propertyStr === "reset") {
       room.setStadium(this.game.getDefaultMap());
 
+      this.game.customMap = null;
+
       room.send({
         message: `⚙️ ${$.caller.name} resetou o mapa`,
         color: Global.Color.Pink,
@@ -1049,6 +1053,13 @@ class GameCommands extends Module {
       ...this.game.stadium,
       name: this.game.stadium.name + " Personalizado",
     });
+
+    if (propertyStr === "mode") {
+      this.game.customMap = value;
+      console.log("Custom map set to", value);
+    } else {
+      this.game.customMap = true;
+    }
 
     room.send({
       message: `⚙️ ${$.caller.name} alterou o mapa`,

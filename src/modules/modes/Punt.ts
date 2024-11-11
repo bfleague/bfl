@@ -113,6 +113,13 @@ export class Punt extends LandPlay {
     this.game.distance = 20;
     this.overrideMaxKickTime = timeToKick;
 
+    if (StadiumUtils.isSpaceMap(this.game.customMap)) {
+      room.getPlayers().forEach((player) => {
+        player.setVelocityX(0);
+        player.setVelocityY(0);
+      });
+    }
+
     if (sendMessage) {
       room.send({
         message: `🤾 Punt para o ${this.game.getTeamName(forTeam)}`,

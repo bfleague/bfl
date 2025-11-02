@@ -1,5 +1,5 @@
 import { Team } from "./core/Global";
-import { RoomAPI } from "@haxbrasil/lib";
+import { RoomAPI } from "./lib";
 import "dotenv/config";
 
 export type FieldPosition = { team: Team; yards: number };

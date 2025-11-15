@@ -142,7 +142,7 @@ export class OnsideKick extends LandPlay {
         player.setVelocityY(0);
       });
     } else {
-      this.game.setBallKickForce(room, 1.35);
+      this.game.setBallKickForce(room, 1.3);
     }
 
     let red = room.getPlayers().red();

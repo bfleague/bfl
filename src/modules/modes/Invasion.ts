@@ -53,6 +53,9 @@ export default class Invasion extends DownPlay {
   public crowdingPlayers: [number, number][] = []; // id, tick
   public crowdingPlayersHistory: [number, number][] = []; // id, tick
 
+  public defenseBodyingDistance = 15;
+  public pointsInsideInnerInvasion = 5;
+
   constructor(room: Room, game: Game) {
     super(game);
 
@@ -112,15 +115,17 @@ export default class Invasion extends DownPlay {
 
         oldCrowdersIds.push(p[0]);
 
-        p[1]++;
+        let points: number;
 
         if (this.isInnerInvasionValid()) {
           const player = room.getPlayer(p[0]);
 
           if (player && this.isInsideInnerInvasion(player)) {
-            p[1]++;
+            points = this.pointsInsideInnerInvasion;
           }
         }
+
+        p[1] += points || 1;
 
         const crowdingPlayerHistoryIndex =
           this.crowdingPlayersHistory.findIndex((a) => a[0] === p[0]);
@@ -161,7 +166,8 @@ export default class Invasion extends DownPlay {
     if (
       !defendersCrowding.every((invader) => {
         for (const player of this.game.getTeamWithBall(room)) {
-          if (invader.distanceTo(player) < 1) return false;
+          if (invader.distanceTo(player) < this.defenseBodyingDistance)
+            return false;
         }
 
         return true;

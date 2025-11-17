@@ -41,8 +41,8 @@ export class Down extends LandPlay {
   public readonly mode = GameModes.Down;
 
   public readonly waitingHikeMode = GameModes.WaitingHike;
-  public readonly trespassingPenalty = 10;
-  public readonly defenseTrespasserPenalty = 10;
+  public readonly trespassingPenalty = 5;
+  public readonly defenseTrespasserPenalty = 5;
   public readonly pushingPenalty = -5;
   public readonly qbPassedScrimmageLinePenalty = -5;
   public readonly attackIllegalTouchPenalty = -5;
@@ -61,12 +61,8 @@ export class Down extends LandPlay {
   public readonly qbScrimmageLineMaxPermitted = 8;
   public readonly invasion: Invasion;
   public readonly timeToKickAutomaticPunt = 10 * 60;
-  public readonly maxDistance: Record<number, number> = {
-    1: 30,
-    2: 30,
-    3: 30,
-    4: 25,
-  };
+  public readonly downToAutomaticPunt = 4;
+  public readonly maxDistance = 25;
 
   public qbCarriedBallTime = 0;
   public defenderBlockingBall: Player;
@@ -688,7 +684,8 @@ export class Down extends LandPlay {
 
     if (
       countDistanceFromNewPos &&
-      this.game.distance >= this.maxDistance[this.game.downCount] &&
+      this.game.downCount >= this.downToAutomaticPunt &&
+      this.game.distance > this.maxDistance &&
       distanceToEndZone > this.game.fieldGoal.maxSafeDistanceYardsFG
     ) {
       Utils.sendSoundTeamMessage(room, {
@@ -1404,8 +1401,9 @@ export class Down extends LandPlay {
     if (!this.game.quarterback) return;
 
     const now = Date.now();
-    const lineOfScrimmageX =
-      StadiumUtils.getCoordinateFromYards(this.game.ballPosition).x;
+    const lineOfScrimmageX = StadiumUtils.getCoordinateFromYards(
+      this.game.ballPosition,
+    ).x;
     const scrimmageTouchBuffer = MapMeasures.Yard * 5;
     const defenders = this.game.getTeamWithoutBall(room);
     const attackers = this.game
@@ -1449,8 +1447,7 @@ export class Down extends LandPlay {
         const touchNearScrimmage =
           Math.abs(attacker.getX() - lineOfScrimmageX) <=
             scrimmageTouchBuffer ||
-          Math.abs(defender.getX() - lineOfScrimmageX) <=
-            scrimmageTouchBuffer;
+          Math.abs(defender.getX() - lineOfScrimmageX) <= scrimmageTouchBuffer;
 
         if (touchNearScrimmage) {
           this.illegalHoldingContacts.delete(key);

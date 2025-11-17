@@ -372,47 +372,51 @@ export default class Invasion extends DownPlay {
     return rectW;
   }
 
+  public isPlayerInsideCrowdingBox(player: Player) {
+    const ballPos = this.game.getBallStartPos();
+
+    const circleX = player.getX();
+    const circleY = player.getY();
+    const circleR = player.getRadius();
+
+    const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
+
+    const rectLimitRed = MapMeasures.RedZoneRed[0].x + MapMeasures.Yard;
+
+    const rectY = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
+    const rectX =
+      this.game.teamWithBall === Team.Red
+        ? ballPos.x
+        : Math.max(ballPos.x - rectMaxW, rectLimitRed);
+
+    const rectW = this.getOuterBoxWidth();
+    const rectH =
+      MapMeasures.HashesHeight.y2 * 2 - MapMeasures.SingleHashHeight * 2;
+
+    const distX = Math.abs(circleX - rectX - rectW / 2);
+    const distY = Math.abs(circleY - rectY - rectH / 2);
+
+    if (distX > rectW / 2 + circleR) return false;
+    if (distY > rectH / 2 + circleR) return false;
+
+    if (distX <= rectW / 2 || distY <= rectH / 2) {
+      return true;
+    }
+
+    const dx = distX - rectW / 2;
+    const dy = distY - rectH / 2;
+
+    return dx * dx + dy * dy <= circleR * circleR;
+  }
+
   private getCrowdingPlayers(room: Room) {
     const crowdingPlayers = [];
 
     for (const player of room.getPlayers().teams()) {
       if (this.game.quarterback.id === player.id) continue;
 
-      const ballPos = this.game.getBallStartPos();
-
-      const circleX = player.getX();
-      const circleY = player.getY();
-      const circleR = player.getRadius();
-
-      const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
-
-      const rectLimitRed = MapMeasures.RedZoneRed[0].x + MapMeasures.Yard;
-
-      const rectY = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
-      const rectX =
-        this.game.teamWithBall === Team.Red
-          ? ballPos.x
-          : Math.max(ballPos.x - rectMaxW, rectLimitRed);
-
-      const rectW = this.getOuterBoxWidth();
-      const rectH =
-        MapMeasures.HashesHeight.y2 * 2 - MapMeasures.SingleHashHeight * 2;
-
-      const distX = Math.abs(circleX - rectX - rectW / 2);
-      const distY = Math.abs(circleY - rectY - rectH / 2);
-
-      if (distX > rectW / 2 + circleR) continue;
-      if (distY > rectH / 2 + circleR) continue;
-
-      if (distX <= rectW / 2 || distY <= rectH / 2) {
+      if (this.isPlayerInsideCrowdingBox(player)) {
         crowdingPlayers.push(player);
-      } else {
-        const dx = distX - rectW / 2;
-        const dy = distY - rectH / 2;
-
-        if (dx * dx + dy * dy <= circleR * circleR) {
-          crowdingPlayers.push(player);
-        }
       }
     }
 

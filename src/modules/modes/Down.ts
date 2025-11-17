@@ -43,17 +43,17 @@ export class Down extends LandPlay {
   public readonly waitingHikeMode = GameModes.WaitingHike;
   public readonly trespassingPenalty = 10;
   public readonly defenseTrespasserPenalty = 10;
-  public readonly holdingPenalty = -5;
+  public readonly pushingPenalty = -5;
   public readonly qbPassedScrimmageLinePenalty = -5;
   public readonly attackIllegalTouchPenalty = -5;
-  public readonly illegalPushingPenalty = -5;
+  public readonly illegalHoldingPenalty = -5;
   public readonly maxPenaltiesInRedZone = 3;
   public readonly hikeMaxDistanceMoveBall = 8.5;
   public readonly hikeTimeLimit = 10 * 1000;
   public readonly distanceToHike = 50;
   public readonly illegalTouchPenalty = 10;
-  public readonly illegalPushingMaxContactTime = 2 * 1000;
-  public readonly illegalPushingTouchDistance = 5;
+  public readonly illegalHoldingMaxContactTime = 2 * 1000;
+  public readonly illegalHoldingTouchDistance = 5;
   public readonly firstDownDiscsIndex = [5, 6];
   public readonly minimumIntVelocity = 3;
   public readonly maximumHighestDampingIntVelocity = 6;
@@ -79,7 +79,7 @@ export class Down extends LandPlay {
   public downInfo: DownInfo = null;
   public playerWithBallInAdvantage = false;
   public lastHikeMode = false;
-  private illegalPushingContacts = new Map<string, number>();
+  private illegalHoldingContacts = new Map<string, number>();
 
   constructor(room: Room, game: Game) {
     super(room, game);
@@ -187,21 +187,21 @@ export class Down extends LandPlay {
           return;
         }
 
-        const holdingPlayers = this.getHoldingPlayers(room);
+        const pushingPlayers = this.getPushingPlayers(room);
 
-        if (holdingPlayers) {
-          this.handleHoldingPlayers(room, holdingPlayers);
+        if (pushingPlayers) {
+          this.handlePushingPlayers(room, pushingPlayers);
 
           return;
         }
 
-        const illegalPushing = this.getIllegalPushing(room);
+        const illegalHolding = this.getIllegalHolding(room);
 
-        if (illegalPushing) {
-          this.handleIllegalPushing(
+        if (illegalHolding) {
+          this.handleIllegalHolding(
             room,
-            illegalPushing.attacker,
-            illegalPushing.defender,
+            illegalHolding.attacker,
+            illegalHolding.defender,
           );
 
           return;
@@ -330,7 +330,7 @@ export class Down extends LandPlay {
 
         if (player.id === this.game.quarterback?.id) {
           this.game.qbKickedBall = true;
-          this.clearIllegalPushingContacts();
+          this.clearIllegalHoldingContacts();
           this.game.matchStats.add(this.game.quarterback, {
             passesTentados: 1,
           });
@@ -720,7 +720,7 @@ export class Down extends LandPlay {
     this.setBallLine(room);
 
     this.downInfo = new DownInfo();
-    this.clearIllegalPushingContacts();
+    this.clearIllegalHoldingContacts();
 
     if (!room.isGamePaused() && this.hikeTimeEnabled) {
       this.game.hikeTimeout = new Timer(
@@ -764,7 +764,7 @@ export class Down extends LandPlay {
     this.invasion.clear();
     this.downInfo = null;
     this.lastHikeMode = false;
-    this.clearIllegalPushingContacts();
+    this.clearIllegalHoldingContacts();
   }
 
   public setBallPositionForHike(ball: Disc, forTeam: Team): Position {
@@ -1324,7 +1324,7 @@ export class Down extends LandPlay {
     });
   }
 
-  private getHoldingPlayers(room: Room) {
+  private getPushingPlayers(room: Room) {
     const isHikeTimeOver = this.game.getHikeTimeStatus().isOver;
 
     if (this.game.playerWithBall || isHikeTimeOver || this.game.qbKickedBall)
@@ -1343,7 +1343,7 @@ export class Down extends LandPlay {
 
       const minimumVelocity = 0;
 
-      const holdingPlayers = this.game
+      const pushingPlayers = this.game
         .getTeamWithBall(room)
         .filter(
           (attacker) =>
@@ -1360,12 +1360,12 @@ export class Down extends LandPlay {
                 attacker.getVelocityX() > minimumVelocity)),
         );
 
-      return holdingPlayers.length > 0 ? holdingPlayers : undefined;
+      return pushingPlayers.length > 0 ? pushingPlayers : undefined;
     }
   }
 
-  private handleHoldingPlayers(room: Room, holdingPlayers: Player[]) {
-    holdingPlayers.forEach((p) => {
+  private handlePushingPlayers(room: Room, pushingPlayers: Player[]) {
+    pushingPlayers.forEach((p) => {
       this.game.matchStats.add(p, { faltas: 1 });
       this.game.customAvatarManager.setPlayerAvatar(p, "🤡", 3000);
     });
@@ -1373,20 +1373,20 @@ export class Down extends LandPlay {
     if (!this.game.conversion) {
       room.send({
         message: translate(
-          "HOLDING",
-          Utils.getPlayersNames(holdingPlayers),
-          Math.abs(this.holdingPenalty),
+          "PUSHING",
+          Utils.getPlayersNames(pushingPlayers),
+          Math.abs(this.pushingPenalty),
         ),
         color: Global.Color.Orange,
         style: "bold",
       });
 
-      this.set({ room, decrement: this.holdingPenalty });
+      this.set({ room, decrement: this.pushingPenalty });
     } else {
       room.send({
         message: translate(
-          "HOLDING_CONVERSION",
-          Utils.getPlayersNames(holdingPlayers),
+          "PUSHING_CONVERSION",
+          Utils.getPlayersNames(pushingPlayers),
         ),
         color: Global.Color.Orange,
         style: "bold",
@@ -1398,7 +1398,7 @@ export class Down extends LandPlay {
     return;
   }
 
-  private getIllegalPushing(
+  private getIllegalHolding(
     room: Room,
   ): { attacker: Player; defender: Player } | undefined {
     if (!this.game.quarterback) return;
@@ -1414,55 +1414,77 @@ export class Down extends LandPlay {
     const touchingPairs = new Set<string>();
 
     for (const attacker of attackers) {
+      const attackerInCrowdingBox =
+        this.invasion.isPlayerInsideCrowdingBox(attacker);
+      const defendersInRange = [];
+
       for (const defender of defenders) {
-        if (attacker.distanceTo(defender) > this.illegalPushingTouchDistance)
+        if (attacker.distanceTo(defender) > this.illegalHoldingTouchDistance)
           continue;
 
+        const defenderInCrowdingBox =
+          this.invasion.isPlayerInsideCrowdingBox(defender);
+
+        if (!attackerInCrowdingBox && !defenderInCrowdingBox) continue;
+
+        defendersInRange.push(defender);
+      }
+
+      if (defendersInRange.length >= 2) {
+        defendersInRange.forEach((defender) => {
+          const key = `${attacker.id}:${defender.id}`;
+          this.illegalHoldingContacts.delete(key);
+        });
+
+        continue;
+      }
+
+      for (const defender of defendersInRange) {
         const key = `${attacker.id}:${defender.id}`;
         touchingPairs.add(key);
 
-        if (!this.illegalPushingContacts.has(key)) {
-          this.illegalPushingContacts.set(key, now);
+        if (!this.illegalHoldingContacts.has(key)) {
+          this.illegalHoldingContacts.set(key, now);
           continue;
         }
 
-        const start = this.illegalPushingContacts.get(key);
+        const start = this.illegalHoldingContacts.get(key);
 
-        if (start && now - start >= this.illegalPushingMaxContactTime) {
+        if (start && now - start >= this.illegalHoldingMaxContactTime) {
           return { attacker, defender };
         }
       }
     }
 
-    for (const key of Array.from(this.illegalPushingContacts.keys())) {
+    for (const key of Array.from(this.illegalHoldingContacts.keys())) {
       if (!touchingPairs.has(key)) {
-        this.illegalPushingContacts.delete(key);
+        this.illegalHoldingContacts.delete(key);
       }
     }
   }
 
-  private handleIllegalPushing(room: Room, attacker: Player, defender: Player) {
-    this.clearIllegalPushingContacts();
+  private handleIllegalHolding(room: Room, attacker: Player, defender: Player) {
+    this.clearIllegalHoldingContacts();
     this.game.matchStats.add(attacker, { faltas: 1 });
     this.game.customAvatarManager.setPlayerAvatar(attacker, "🤡", 3000);
 
     if (!this.game.conversion) {
       room.send({
         message: translate(
-          "ILLEGAL_PUSHING",
+          "ILLEGAL_HOLDING",
           attacker.name,
           defender.name,
-          Math.abs(this.illegalPushingPenalty),
+          Math.abs(this.illegalHoldingPenalty),
         ),
         color: Global.Color.Orange,
         style: "bold",
       });
 
-      this.set({ room, decrement: this.illegalPushingPenalty });
+      this.set({ room, decrement: this.illegalHoldingPenalty });
     } else {
       room.send({
         message: translate(
-          "ILLEGAL_PUSHING_CONVERSION",
+          "ILLEGAL_HOLDING_CONVERSION",
           attacker.name,
           defender.name,
         ),
@@ -1474,8 +1496,8 @@ export class Down extends LandPlay {
     }
   }
 
-  private clearIllegalPushingContacts() {
-    this.illegalPushingContacts.clear();
+  private clearIllegalHoldingContacts() {
+    this.illegalHoldingContacts.clear();
   }
 
   private getDefensePlayersTrespassing(room: Room) {

@@ -236,7 +236,7 @@ export class Down extends LandPlay {
           this.sack &&
           StadiumUtils.isOutOfMap(ball.getPosition(), -ball.getRadius())
         ) {
-          this.sackBallTouched = true;
+          this.markSackBallTouched(room);
 
           return;
         }
@@ -275,7 +275,7 @@ export class Down extends LandPlay {
           this.defenderBlockingBall.distanceTo(room.getBall()) > 5
         ) {
           if (this.sack) {
-            this.sackBallTouched = true;
+            this.markSackBallTouched(room);
           } else {
             this.game.blockPass(room, this.defenderBlockingBall);
           }
@@ -350,7 +350,7 @@ export class Down extends LandPlay {
         if (!this.game.interceptAttemptPlayer) {
           this.handleInterception(room, player);
         } else if (this.sack) {
-          this.sackBallTouched = true;
+          this.markSackBallTouched(room);
         } else {
           this.game.blockPass(room, player);
         }
@@ -985,6 +985,7 @@ export class Down extends LandPlay {
           this.game.quarterback,
           PlayerWithBallState.QbRunnerSacking,
           true,
+          { keepBallActive: true },
         );
 
         this.sack = true;
@@ -1083,7 +1084,7 @@ export class Down extends LandPlay {
           if (!this.sack) {
             this.game.blockPass(room, player);
           } else {
-            this.sackBallTouched = true;
+            this.markSackBallTouched(room);
           }
         }
       }
@@ -1098,6 +1099,8 @@ export class Down extends LandPlay {
   }
 
   private handleBallOutsideField(room: Room) {
+    this.game.setLooseBallColor(room);
+
     if (!this.game.conversion) {
       room.send({
         message: translate("BALL_OUTSIDE_FIELD"),
@@ -1281,7 +1284,7 @@ export class Down extends LandPlay {
         style: "bold",
       });
 
-      this.sackBallTouched = true;
+      this.markSackBallTouched(room);
     }
 
     this.game.interceptAttemptPlayer = null;
@@ -1607,6 +1610,7 @@ export class Down extends LandPlay {
       this.game.quarterback,
       PlayerWithBallState.QbRunnerSacking,
       true,
+      { keepBallActive: true },
     );
 
     this.sack = true;
@@ -1628,6 +1632,11 @@ export class Down extends LandPlay {
 
       if (GameUtils.isPlayerTouchingBall(player, room.getBall())) return player;
     }
+  }
+
+  private markSackBallTouched(room: Room) {
+    this.sackBallTouched = true;
+    this.game.setLooseBallColor(room);
   }
 
   private getRunningBackAttemptingRun(room: Room) {
@@ -1745,7 +1754,7 @@ export class Down extends LandPlay {
         (this.sack ? !this.sackBallTouched : true)
       ) {
         if (this.sack) {
-          this.sackBallTouched = true;
+          this.markSackBallTouched(room);
         } else {
           this.game.blockPass(room, defenderBlockingBall);
         }

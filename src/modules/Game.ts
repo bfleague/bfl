@@ -135,6 +135,7 @@ class Game extends Module {
   private cbDistanceSpawnYardsHike = 6;
   private ballActiveColor: number | null = null;
   private readonly ballInactiveColor = Global.Color.Gray;
+  private keepBallActiveDuringPossession = false;
 
   constructor(room: Room) {
     super();
@@ -646,6 +647,7 @@ class Game extends Module {
     player: Player,
     state: PlayerWithBallState,
     running: boolean,
+    options?: { keepBallActive?: boolean },
   ) {
     this.playerWithBallInitialPosition = player.getPosition();
 
@@ -655,7 +657,8 @@ class Game extends Module {
 
     this.unlockBall(room);
     this.setBallMoveable(room);
-    this.setBallInactiveColor(room);
+    this.keepBallActiveDuringPossession = options?.keepBallActive ?? false;
+    this.updateBallColorForPossession(room);
 
     this.playerWithBall = player;
     this.playerWithBallState = state;
@@ -666,6 +669,7 @@ class Game extends Module {
   }
 
   public clearPlayerWithBall(room: Room) {
+    this.keepBallActiveDuringPossession = false;
     this.restoreBallActiveColor(room);
 
     if (
@@ -860,6 +864,11 @@ class Game extends Module {
       .setcGroup(room.CollisionFlags.ball | room.CollisionFlags.kick);
   }
 
+  public setLooseBallColor(room: Room) {
+    this.keepBallActiveDuringPossession = false;
+    this.setBallInactiveColor(room);
+  }
+
   private getBallColorFromDisc(room: Room): number | null {
     const ball = room.getBall();
     if (!ball) return null;
@@ -918,6 +927,14 @@ class Game extends Module {
 
   private restoreBallActiveColor(room: Room) {
     this.setBallColor(room, this.ballActiveColor ?? null);
+  }
+
+  private updateBallColorForPossession(room: Room) {
+    if (this.keepBallActiveDuringPossession) {
+      this.restoreBallActiveColor(room);
+    } else {
+      this.setBallInactiveColor(room);
+    }
   }
 
   public blockTeam(room: Room, team: Team) {

@@ -133,6 +133,8 @@ class Game extends Module {
   private offensiveDistanceSpawnYardsHike = 12;
   private defensiveDistanceSpawnYardsHike = 10;
   private cbDistanceSpawnYardsHike = 6;
+  private ballActiveColor: number | null = null;
+  private readonly ballInactiveColor = Global.Color.Gray;
 
   constructor(room: Room) {
     super();
@@ -147,6 +149,7 @@ class Game extends Module {
     room.setScoreLimit(0);
     room.setTimeLimit(this.timeLimit);
     room.setStadium(this.stadium);
+    this.rememberBallActiveColor(room);
 
     this.down = room.module(Down, this) as Down;
     this.punt = room.module(Punt, this) as Punt;
@@ -406,6 +409,7 @@ class Game extends Module {
     });
 
     room.on("stadiumChange", (newStadiumName, byPlayer) => {
+      this.rememberBallActiveColor(room);
       if (!byPlayer) return;
       if (this.canChangeMap) {
         this.canChangeMap = false;
@@ -585,7 +589,7 @@ class Game extends Module {
     const team = this.invertTeam(this.teamWithBall);
     const xCoord = player.getLastPosition().x;
 
-    this.clearPlayerWithBall();
+    this.clearPlayerWithBall(room);
 
     if (
       this.mode === this.punt.mode ||
@@ -651,6 +655,7 @@ class Game extends Module {
 
     this.unlockBall(room);
     this.setBallMoveable(room);
+    this.setBallInactiveColor(room);
 
     this.playerWithBall = player;
     this.playerWithBallState = state;
@@ -660,7 +665,9 @@ class Game extends Module {
     if (running) this.running = running;
   }
 
-  public clearPlayerWithBall() {
+  public clearPlayerWithBall(room: Room) {
+    this.restoreBallActiveColor(room);
+
     if (
       this.playerWithBall &&
       this.customAvatarManager.getPlayer(this.playerWithBall)?.avatar ===
@@ -731,6 +738,7 @@ class Game extends Module {
       });
 
     this.unlockBall(room);
+    this.setBallInactiveColor(room);
 
     this.customAvatarManager.setPlayerAvatar(player, "🚧", 3000);
 
@@ -850,6 +858,66 @@ class Game extends Module {
     room
       .getBall()
       .setcGroup(room.CollisionFlags.ball | room.CollisionFlags.kick);
+  }
+
+  private getBallColorFromDisc(room: Room): number | null {
+    const ball = room.getBall();
+    if (!ball) return null;
+
+    const color = ball.getColor();
+    return typeof color === "number" ? color : null;
+  }
+
+  private parseColorValue(
+    color: number | string | null | undefined,
+  ): number | null {
+    if (typeof color === "number") return color;
+    if (typeof color === "string") {
+      const normalized = color.replace(/^0x/i, "").replace(/^#/i, "");
+      const parsed = parseInt(normalized, 16);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    return null;
+  }
+
+  private getStadiumBallColor(): number | null {
+    return this.parseColorValue(
+      (this.stadium as any)?.ballPhysics?.color ??
+        (BFL as any)?.ballPhysics?.color,
+    );
+  }
+
+  private rememberBallActiveColor(room: Room) {
+    const discColor = this.getBallColorFromDisc(room);
+    if (discColor !== null) {
+      this.ballActiveColor = discColor;
+      return;
+    }
+
+    this.ballActiveColor = this.getStadiumBallColor();
+  }
+
+  private setBallColor(room: Room, color: number | null) {
+    const ball = room.getBall();
+    if (!ball) return;
+
+    const normalizedColor = color ?? null;
+    const currentColor = ball.getColor();
+    const normalizedCurrentColor =
+      typeof currentColor === "number" ? currentColor : null;
+
+    if (normalizedCurrentColor === normalizedColor) return;
+
+    ball.setColor(normalizedColor);
+  }
+
+  private setBallInactiveColor(room: Room) {
+    this.setBallColor(room, this.ballInactiveColor);
+  }
+
+  private restoreBallActiveColor(room: Room) {
+    this.setBallColor(room, this.ballActiveColor ?? null);
   }
 
   public blockTeam(room: Room, team: Team) {
@@ -1121,7 +1189,7 @@ class Game extends Module {
     this.interceptPlayerLeftEndZone = false;
     this.playerWithBallTackleCount = 0;
 
-    this.clearPlayerWithBall();
+    this.clearPlayerWithBall(room);
   }
 }
 

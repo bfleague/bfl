@@ -1404,6 +1404,9 @@ export class Down extends LandPlay {
     if (!this.game.quarterback) return;
 
     const now = Date.now();
+    const lineOfScrimmageX =
+      StadiumUtils.getCoordinateFromYards(this.game.ballPosition).x;
+    const scrimmageTouchBuffer = MapMeasures.Yard * 5;
     const defenders = this.game.getTeamWithoutBall(room);
     const attackers = this.game
       .getTeamWithBall(room)
@@ -1442,6 +1445,17 @@ export class Down extends LandPlay {
       for (const defender of defendersInRange) {
         const key = `${attacker.id}:${defender.id}`;
         touchingPairs.add(key);
+
+        const touchNearScrimmage =
+          Math.abs(attacker.getX() - lineOfScrimmageX) <=
+            scrimmageTouchBuffer ||
+          Math.abs(defender.getX() - lineOfScrimmageX) <=
+            scrimmageTouchBuffer;
+
+        if (touchNearScrimmage) {
+          this.illegalHoldingContacts.delete(key);
+          continue;
+        }
 
         if (!this.illegalHoldingContacts.has(key)) {
           this.illegalHoldingContacts.set(key, now);

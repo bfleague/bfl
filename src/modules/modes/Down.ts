@@ -46,11 +46,14 @@ export class Down extends LandPlay {
   public readonly holdingPenalty = -5;
   public readonly qbPassedScrimmageLinePenalty = -5;
   public readonly attackIllegalTouchPenalty = -5;
+  public readonly illegalPushingPenalty = -5;
   public readonly maxPenaltiesInRedZone = 3;
   public readonly hikeMaxDistanceMoveBall = 8.5;
   public readonly hikeTimeLimit = 10 * 1000;
   public readonly distanceToHike = 50;
   public readonly illegalTouchPenalty = 10;
+  public readonly illegalPushingMaxContactTime = 2 * 1000;
+  public readonly illegalPushingTouchDistance = 5;
   public readonly firstDownDiscsIndex = [5, 6];
   public readonly minimumIntVelocity = 3;
   public readonly maximumHighestDampingIntVelocity = 6;
@@ -76,6 +79,7 @@ export class Down extends LandPlay {
   public downInfo: DownInfo = null;
   public playerWithBallInAdvantage = false;
   public lastHikeMode = false;
+  private illegalPushingContacts = new Map<string, number>();
 
   constructor(room: Room, game: Game) {
     super(room, game);
@@ -187,6 +191,18 @@ export class Down extends LandPlay {
 
         if (holdingPlayers) {
           this.handleHoldingPlayers(room, holdingPlayers);
+
+          return;
+        }
+
+        const illegalPushing = this.getIllegalPushing(room);
+
+        if (illegalPushing) {
+          this.handleIllegalPushing(
+            room,
+            illegalPushing.attacker,
+            illegalPushing.defender,
+          );
 
           return;
         }
@@ -314,6 +330,7 @@ export class Down extends LandPlay {
 
         if (player.id === this.game.quarterback?.id) {
           this.game.qbKickedBall = true;
+          this.clearIllegalPushingContacts();
           this.game.matchStats.add(this.game.quarterback, {
             passesTentados: 1,
           });
@@ -703,6 +720,7 @@ export class Down extends LandPlay {
     this.setBallLine(room);
 
     this.downInfo = new DownInfo();
+    this.clearIllegalPushingContacts();
 
     if (!room.isGamePaused() && this.hikeTimeEnabled) {
       this.game.hikeTimeout = new Timer(
@@ -746,6 +764,7 @@ export class Down extends LandPlay {
     this.invasion.clear();
     this.downInfo = null;
     this.lastHikeMode = false;
+    this.clearIllegalPushingContacts();
   }
 
   public setBallPositionForHike(ball: Disc, forTeam: Team): Position {
@@ -1377,6 +1396,86 @@ export class Down extends LandPlay {
     }
 
     return;
+  }
+
+  private getIllegalPushing(
+    room: Room,
+  ): { attacker: Player; defender: Player } | undefined {
+    if (!this.game.quarterback) return;
+
+    const now = Date.now();
+    const defenders = this.game.getTeamWithoutBall(room);
+    const attackers = this.game
+      .getTeamWithBall(room)
+      .filter((player) => player.id !== this.game.quarterback?.id);
+
+    if (!defenders.length || !attackers.length) return;
+
+    const touchingPairs = new Set<string>();
+
+    for (const attacker of attackers) {
+      for (const defender of defenders) {
+        if (attacker.distanceTo(defender) > this.illegalPushingTouchDistance)
+          continue;
+
+        const key = `${attacker.id}:${defender.id}`;
+        touchingPairs.add(key);
+
+        if (!this.illegalPushingContacts.has(key)) {
+          this.illegalPushingContacts.set(key, now);
+          continue;
+        }
+
+        const start = this.illegalPushingContacts.get(key);
+
+        if (start && now - start >= this.illegalPushingMaxContactTime) {
+          return { attacker, defender };
+        }
+      }
+    }
+
+    for (const key of Array.from(this.illegalPushingContacts.keys())) {
+      if (!touchingPairs.has(key)) {
+        this.illegalPushingContacts.delete(key);
+      }
+    }
+  }
+
+  private handleIllegalPushing(room: Room, attacker: Player, defender: Player) {
+    this.clearIllegalPushingContacts();
+    this.game.matchStats.add(attacker, { faltas: 1 });
+    this.game.customAvatarManager.setPlayerAvatar(attacker, "🤡", 3000);
+
+    if (!this.game.conversion) {
+      room.send({
+        message: translate(
+          "ILLEGAL_PUSHING",
+          attacker.name,
+          defender.name,
+          Math.abs(this.illegalPushingPenalty),
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.set({ room, decrement: this.illegalPushingPenalty });
+    } else {
+      room.send({
+        message: translate(
+          "ILLEGAL_PUSHING_CONVERSION",
+          attacker.name,
+          defender.name,
+        ),
+        color: Global.Color.Orange,
+        style: "bold",
+      });
+
+      this.game.resetToKickoff(room);
+    }
+  }
+
+  private clearIllegalPushingContacts() {
+    this.illegalPushingContacts.clear();
   }
 
   private getDefensePlayersTrespassing(room: Room) {

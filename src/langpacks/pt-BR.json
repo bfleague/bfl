@@ -86,5 +86,7 @@
   "INTERCEPTION_FAILED_SACK": "❌ Interceptação falhou",
   "HOLDING": "❌ Holding por %s • %s jardas de penalidade",
   "HOLDING_CONVERSION": "❌ Holding por %s • Perde a conversão",
+  "ILLEGAL_PUSHING": "❌ Pushing ilegal de %s em %s • %s jardas de penalidade",
+  "ILLEGAL_PUSHING_CONVERSION": "❌ Pushing ilegal de %s em %s • Perde a conversão",
   "INTERCEPTER_LEFT_IN_PLAY": "🚪 Interceptador saiu durante a jogada"
 }

@@ -503,7 +503,7 @@ export class Down extends LandPlay {
 
     this.game.unlockBall(room);
     this.game.setBallMoveable(room);
-    this.applyQuarterbackKickForce(room);
+    // this.applyQuarterbackKickForce(room);
 
     this.game.hikeTime = Date.now();
 
@@ -561,7 +561,7 @@ export class Down extends LandPlay {
       return;
     }
 
-    this.resetQuarterbackKickForce(room);
+    // this.resetQuarterbackKickForce(room);
 
     const beforeModeWasHike = this.game.mode === this.mode;
     const isConversion = this.game.conversion;
@@ -772,7 +772,7 @@ export class Down extends LandPlay {
     this.downInfo = null;
     this.lastHikeMode = false;
     this.clearIllegalHoldingContacts();
-    this.resetQuarterbackKickForce(this.room);
+    // this.resetQuarterbackKickForce(this.room);
   }
 
   public setBallPositionForHike(ball: Disc, forTeam: Team): Position {
@@ -844,7 +844,7 @@ export class Down extends LandPlay {
   }
 
   public setReceiver(room: Room, player: Player) {
-    this.resetQuarterbackKickForce(room);
+    // this.resetQuarterbackKickForce(room);
 
     this.game.setPlayerWithBall(
       room,

@@ -63,7 +63,7 @@ export class Down extends LandPlay {
   public readonly timeToKickAutomaticPunt = 10 * 60;
   public readonly downToAutomaticPunt = 4;
   public readonly maxDistance = 25;
-  public readonly qbKickForceValue = 1.08;
+  public readonly qbKickForceValue = 1.05;
 
   public qbCarriedBallTime = 0;
   public defenderBlockingBall: Player;

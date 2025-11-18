@@ -63,6 +63,7 @@ export class Down extends LandPlay {
   public readonly timeToKickAutomaticPunt = 10 * 60;
   public readonly downToAutomaticPunt = 4;
   public readonly maxDistance = 25;
+  public readonly qbKickForceValue = 1.08;
 
   public qbCarriedBallTime = 0;
   public defenderBlockingBall: Player;
@@ -76,9 +77,13 @@ export class Down extends LandPlay {
   public playerWithBallInAdvantage = false;
   public lastHikeMode = false;
   private illegalHoldingContacts = new Map<string, number>();
+  private qbKickForceApplied = false;
+  private qbKickForcePending = false;
+  private readonly room: Room;
 
   constructor(room: Room, game: Game) {
     super(room, game);
+    this.room = room;
 
     this.invasion = new Invasion(room, game);
 
@@ -498,6 +503,7 @@ export class Down extends LandPlay {
 
     this.game.unlockBall(room);
     this.game.setBallMoveable(room);
+    this.applyQuarterbackKickForce(room);
 
     this.game.hikeTime = Date.now();
 
@@ -554,6 +560,8 @@ export class Down extends LandPlay {
 
       return;
     }
+
+    this.resetQuarterbackKickForce(room);
 
     const beforeModeWasHike = this.game.mode === this.mode;
     const isConversion = this.game.conversion;
@@ -705,6 +713,8 @@ export class Down extends LandPlay {
       return;
     }
 
+    this.qbKickForcePending = true;
+
     room.send(message);
 
     this.game.teamWithBall = forTeam;
@@ -762,6 +772,7 @@ export class Down extends LandPlay {
     this.downInfo = null;
     this.lastHikeMode = false;
     this.clearIllegalHoldingContacts();
+    this.resetQuarterbackKickForce(this.room);
   }
 
   public setBallPositionForHike(ball: Disc, forTeam: Team): Position {
@@ -833,6 +844,8 @@ export class Down extends LandPlay {
   }
 
   public setReceiver(room: Room, player: Player) {
+    this.resetQuarterbackKickForce(room);
+
     this.game.setPlayerWithBall(
       room,
       player,
@@ -850,6 +863,23 @@ export class Down extends LandPlay {
       color: Global.Color.Yellow,
       style: "bold",
     });
+  }
+
+  private applyQuarterbackKickForce(room: Room) {
+    if (!this.qbKickForcePending) return;
+
+    this.game.setBallKickForce(room, this.qbKickForceValue);
+    this.qbKickForceApplied = true;
+    this.qbKickForcePending = false;
+  }
+
+  private resetQuarterbackKickForce(room: Room) {
+    this.qbKickForcePending = false;
+
+    if (this.qbKickForceApplied) {
+      this.game.setBallKickForce(room, 1);
+      this.qbKickForceApplied = false;
+    }
   }
 
   public handleFirstDownLine(room: Room) {

@@ -90,7 +90,7 @@ class Game extends Module {
   public ballPosition: Global.FieldPosition;
   public downCount = 0;
   public distance = 20;
-  public yardsBallBehind = 3;
+  public yardsBallBehind = 2.5;
   public hikeTimeout: Timer;
   public interceptionTimeout: Timer;
   public kickOffReset: Timer;

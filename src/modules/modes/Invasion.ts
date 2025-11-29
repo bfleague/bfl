@@ -6,13 +6,13 @@ import * as Global from "../../Global";
 
 import Game from "../Game";
 
-import MapMeasures from "../../utils/MapMeasures";
 import MathUtils from "../../utils/MathUtils";
 import Timer from "../../utils/Timer";
 import Disc from "../../core/Disc";
 import StadiumUtils from "../../utils/StadiumUtils";
 import Utils from "../../utils/Utils";
 import { DownPlay } from "./DownPlay";
+import MapMeasures from "../../utils/MapMeasures";
 
 type Line = { x1: number; y1: number; x2: number; y2: number };
 
@@ -351,47 +351,12 @@ export default class Invasion extends DownPlay {
     return { crowdingPlayers, defendersCrowding, attackersCrowding };
   }
 
-  private getOuterBoxWidth() {
-    const ballPos = this.game.getBallStartPos();
-
-    const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
-
-    const distanceToEndzone =
-      this.game.teamWithBall === Team.Blue
-        ? Math.abs(
-            Math.abs(ballPos.x) -
-              Math.abs(MapMeasures.RedZoneRed[0].x + MapMeasures.Yard),
-          )
-        : Math.abs(
-            Math.abs(ballPos.x) -
-              Math.abs(MapMeasures.RedZoneBlue[0].x - MapMeasures.Yard),
-          );
-
-    const rectW = Math.min(rectMaxW, distanceToEndzone);
-
-    return rectW;
-  }
-
   public isPlayerInsideCrowdingBox(player: Player) {
-    const ballPos = this.game.getBallStartPos();
+    const { rectX, rectY, rectW, rectH } = this.getOuterCrowdingBox();
 
     const circleX = player.getX();
     const circleY = player.getY();
     const circleR = player.getRadius();
-
-    const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
-
-    const rectLimitRed = MapMeasures.RedZoneRed[0].x + MapMeasures.Yard;
-
-    const rectY = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
-    const rectX =
-      this.game.teamWithBall === Team.Red
-        ? ballPos.x
-        : Math.max(ballPos.x - rectMaxW, rectLimitRed);
-
-    const rectW = this.getOuterBoxWidth();
-    const rectH =
-      MapMeasures.HashesHeight.y2 * 2 - MapMeasures.SingleHashHeight * 2;
 
     const distX = Math.abs(circleX - rectX - rectW / 2);
     const distY = Math.abs(circleY - rectY - rectH / 2);
@@ -521,26 +486,55 @@ export default class Invasion extends DownPlay {
     }
   }
 
-  private setInvasionLines(room: Room) {
+  private getOuterCrowdingBox() {
     const ballPos = this.game.getBallStartPos();
+    const baseX = ballPos.x;
+
+    const rectMaxW = this.outerInvasionWidthYards * MapMeasures.Yard;
+
+    const distanceToEndzone =
+      this.game.teamWithBall === Team.Blue
+        ? Math.abs(
+            Math.abs(baseX) -
+              Math.abs(MapMeasures.RedZoneRed[0].x + MapMeasures.Yard),
+          )
+        : Math.abs(
+            Math.abs(baseX) -
+              Math.abs(MapMeasures.RedZoneBlue[0].x - MapMeasures.Yard),
+          );
+
+    const rectW = Math.min(rectMaxW, distanceToEndzone);
+
+    const rectX =
+      this.game.teamWithBall === Team.Red ? baseX : baseX - rectW;
+
+    const rectY = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
+    const rectH =
+      MapMeasures.HashesHeight.y2 * 2 - MapMeasures.SingleHashHeight * 2;
+
+    const backX =
+      this.game.teamWithBall === Team.Red ? rectX : rectX + rectW;
+    const frontX =
+      this.game.teamWithBall === Team.Red ? rectX + rectW : rectX;
+
+    return { rectX, rectY, rectW, rectH, backX, frontX };
+  }
+
+  private setInvasionLines(room: Room) {
+    const outerBox = this.getOuterCrowdingBox();
     const scrimmagePos = StadiumUtils.getCoordinateFromYards(
       this.game.ballPosition,
     );
 
-    let maxHorizontalX =
-      this.game.teamWithBall === Team.Blue
-        ? ballPos.x - this.getOuterBoxWidth()
-        : ballPos.x + this.getOuterBoxWidth();
+    let maxHorizontalX = outerBox.frontX;
 
     const signal = this.game.teamWithBall === Team.Red ? -1 : 1;
 
     const numberOfPoints = 2 * 3;
-    const behindBallPosX = ballPos.x + signal * 0 * MapMeasures.Yard;
+    const behindBallPosX = outerBox.backX;
 
-    const hashHeightY1 =
-      MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
-    const hashHeightY2 =
-      MapMeasures.HashesHeight.y2 - MapMeasures.SingleHashHeight;
+    const hashHeightY1 = outerBox.rectY;
+    const hashHeightY2 = outerBox.rectY + outerBox.rectH;
 
     room
       .getDisc(this.invasionDiscsIndexes[0])
@@ -591,7 +585,7 @@ export default class Invasion extends DownPlay {
       const innerFrontX =
         scrimmagePos.x +
         this.innerInvasionWidthYards * MapMeasures.Yard * -signal;
-      const innerBottomX = ballPos.x;
+      const innerBottomX = outerBox.backX;
 
       room
         .getDisc(this.innerInvasionDiscsIndexes[0])

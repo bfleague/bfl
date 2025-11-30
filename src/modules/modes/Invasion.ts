@@ -316,12 +316,16 @@ export default class Invasion extends DownPlay {
         const d1 = room.getDisc(index[0]);
         const d2 = room.getDisc(index[1]);
 
+        if (!d1 || !d2) continue;
+
         d1.setPosition(d2.getPosition());
       }
 
       for (const index of this.innerInvasionLinesIndexes) {
         const d1 = room.getDisc(index[0]);
         const d2 = room.getDisc(index[1]);
+
+        if (!d1 || !d2) continue;
 
         d1.setPosition(d2.getPosition());
       }
@@ -330,7 +334,11 @@ export default class Invasion extends DownPlay {
         ...this.invasionDiscsIndexes,
         ...this.innerInvasionDiscsIndexes,
       ]) {
-        room.getDisc(index).setPosition({ x: 9999, y: 9999 });
+        const disc = room.getDisc(index);
+
+        if (!disc) continue;
+
+        disc.setPosition({ x: 9999, y: 9999 });
       }
 
       callback();
@@ -505,17 +513,14 @@ export default class Invasion extends DownPlay {
 
     const rectW = Math.min(rectMaxW, distanceToEndzone);
 
-    const rectX =
-      this.game.teamWithBall === Team.Red ? baseX : baseX - rectW;
+    const rectX = this.game.teamWithBall === Team.Red ? baseX : baseX - rectW;
 
     const rectY = MapMeasures.HashesHeight.y1 + MapMeasures.SingleHashHeight;
     const rectH =
       MapMeasures.HashesHeight.y2 * 2 - MapMeasures.SingleHashHeight * 2;
 
-    const backX =
-      this.game.teamWithBall === Team.Red ? rectX : rectX + rectW;
-    const frontX =
-      this.game.teamWithBall === Team.Red ? rectX + rectW : rectX;
+    const backX = this.game.teamWithBall === Team.Red ? rectX : rectX + rectW;
+    const frontX = this.game.teamWithBall === Team.Red ? rectX + rectW : rectX;
 
     return { rectX, rectY, rectW, rectH, backX, frontX };
   }

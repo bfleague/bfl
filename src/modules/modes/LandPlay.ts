@@ -68,12 +68,7 @@ export abstract class LandPlay extends Mode {
           if (this.game.interceptPlayer)
             this.handleInterceptPlayerLeftEndZone(this.game.interceptPlayer);
 
-          const tackle = GameUtils.getTackle({
-            room,
-            game: this.game,
-          });
-
-          if (tackle.players.length > 0) this.handleTackle(room, tackle);
+          this.handleTackle(room);
 
           if (
             this.game.firstTackleTick &&
@@ -493,189 +488,250 @@ export abstract class LandPlay extends Mode {
     }
   }
 
-  protected handleTackle(room: Room, tackle: Tackle) {
-    if (
-      tackle.tackleCount === 1 &&
-      this.game.running &&
-      !this.game.firstTackleTick
-    ) {
-      this.game.firstTackleTick = this.game.tickCount;
-      this.firstTackle = tackle;
-
-      return;
-    }
-
-    if (
+  protected checkNormalTackle(tackle: Tackle): boolean {
+    return (
       tackle.tackleCount >= this.touchesToTackleRunner ||
       (this.game.playerWithBall.id === this.game.quarterback?.id &&
         tackle.tackleCount >= this.touchesToTackleQBRunner) ||
       !this.game.running
-    ) {
-      if (
-        this.hasPlayerPassedEndZoneLine(
-          this.game.playerWithBall,
-          this.game.playerWithBall.getTeam(),
-        ) &&
-        !this.game.conversion
-      ) {
-        if (this.game.intercept) {
-          tackle.players.forEach((p) =>
-            this.game.matchStats.add(p, { tackles: 1 }),
-          );
+    );
+  }
 
-          if (this.game.interceptPlayerLeftEndZone) {
-            this.game.playerWithBallFinalPosition =
-              this.game.playerWithBall.getPosition();
-            this.setSafety(
-              room,
-              this.game.playerWithBall,
-              tackle.players,
-              "Voltou para a End Zone durante a interceptação",
-            );
-          } else {
-            this.game.playerWithBallFinalPosition =
-              this.game.playerWithBall.getPosition();
-            this.setTouchback(
-              room,
-              this.game.playerWithBall.getTeam(),
-              `Interceptador derrubado na End Zone`,
-              this.game.playerWithBall,
-            );
-          }
+  protected checkFumble(tackle: Tackle): boolean {
+    const playerWithBall = this.game.playerWithBall;
+
+    if (
+      this.hasPlayerPassedEndZoneLine(
+        playerWithBall,
+        playerWithBall.getTeam(),
+      ) &&
+      !this.game.conversion
+    ) {
+      return false;
+    }
+
+    return (
+      tackle.players.length >= 2 &&
+      !this.game.conversion &&
+      (this.game.playerWithBallState === PlayerWithBallState.Receiver ||
+        this.game.playerWithBallState ===
+          PlayerWithBallState.QbRunnerSacking) &&
+      (this.game.down.sack ||
+        this.game.playerWithBallSetTick +
+          this.timeToFumbleSeconds * Global.TICKS_PER_SECOND >=
+          this.game.tickCount)
+    );
+  }
+
+  protected handleNormalTackle(room: Room, tackle: Tackle) {
+    if (
+      this.hasPlayerPassedEndZoneLine(
+        this.game.playerWithBall,
+        this.game.playerWithBall.getTeam(),
+      ) &&
+      !this.game.conversion
+    ) {
+      if (this.game.intercept) {
+        tackle.players.forEach((p) =>
+          this.game.matchStats.add(p, { tackles: 1 }),
+        );
+
+        if (this.game.interceptPlayerLeftEndZone) {
+          this.game.playerWithBallFinalPosition =
+            this.game.playerWithBall.getPosition();
+          this.setSafety(
+            room,
+            this.game.playerWithBall,
+            tackle.players,
+            "Voltou para a End Zone durante a interceptação",
+          );
         } else {
-          this.setSafety(room, this.game.playerWithBall, tackle.players);
+          this.game.playerWithBallFinalPosition =
+            this.game.playerWithBall.getPosition();
+          this.setTouchback(
+            room,
+            this.game.playerWithBall.getTeam(),
+            `Interceptador derrubado na End Zone`,
+            this.game.playerWithBall,
+          );
         }
       } else {
-        tackle.players.forEach((p) => {
-          this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
-        });
-
-        const fumble =
-          tackle.players.length >= 2 &&
-          !this.game.conversion &&
-          (this.game.playerWithBallState === PlayerWithBallState.Receiver ||
-            this.game.playerWithBallState ===
-              PlayerWithBallState.QbRunnerSacking) &&
-          (this.game.down.sack ||
-            this.game.playerWithBallSetTick +
-              this.timeToFumbleSeconds * Global.TICKS_PER_SECOND >=
-              this.game.tickCount);
-
-        if (
-          this.game.down.sack &&
-          this.game.quarterback &&
-          this.game.isPlayerBehindLineOfScrimmage(this.game.quarterback)
-        ) {
-          if (fumble) {
-            room.send({
-              message: `😵 FUMBLE DE ${this.game.playerWithBall.name}!!! Strip sack por ${Utils.getPlayersNames(tackle.players)}`,
-              color: 0x00ffff,
-              style: "bold",
-            });
-
-            tackle.players.forEach((p) =>
-              this.game.matchStats.add(p, {
-                tackles: 1,
-                sacks: 1,
-                fumblesForcados: 1,
-              }),
-            );
-            this.game.matchStats.add(this.game.quarterback, {
-              stripSackRecebidos: 1,
-              fumbles: 1,
-              sacksRecebidos: 1,
-            });
-
-            this.game.customAvatarManager.setPlayerAvatar(
-              this.game.quarterback,
-              "😵",
-              3000,
-            );
-          } else {
-            room.send({
-              message: `💪 ${this.game.playerWithBall.name} foi sackado por ${Utils.getPlayersNames(tackle.players)}`,
-              color: Global.Color.Yellow,
-              style: "bold",
-            });
-
-            tackle.players.forEach((p) =>
-              this.game.matchStats.add(p, { tackles: 1, sacks: 1 }),
-            );
-            this.game.matchStats.add(this.game.quarterback, {
-              sacksRecebidos: 1,
-            });
-          }
-
-          this.game.playerWithBallState = PlayerWithBallState.Sack;
-        } else {
-          if (fumble) {
-            room.send({
-              message: `😵 FUMBLE DE ${this.game.playerWithBall.name}!!! Forçado por ${Utils.getPlayersNames(tackle.players)}`,
-              color: 0x00ffff,
-              style: "bold",
-            });
-
-            tackle.players.forEach((p) =>
-              this.game.matchStats.add(p, { tackles: 1, fumblesForcados: 1 }),
-            );
-            this.game.matchStats.add(this.game.playerWithBall, { fumbles: 1 });
-            this.game.matchStats.add(this.game.quarterback, {
-              fumblesLancados: 1,
-            });
-
-            this.game.customAvatarManager.setPlayerAvatar(
-              this.game.playerWithBall,
-              "😵",
-              3000,
-            );
-          } else {
-            room.send({
-              message: `💪 ${this.game.playerWithBall.name} foi derrubado por ${Utils.getPlayersNames(tackle.players)}`,
-              color: Global.Color.Yellow,
-              style: "bold",
-            });
-
-            tackle.players.forEach((p) =>
-              this.game.matchStats.add(p, { tackles: 1 }),
-            );
-          }
-        }
-
-        this.game.playerWithBallFinalPosition =
-          this.game.playerWithBall.getPosition();
-
-        this.game.setPlayerWithBallStats();
-
-        if (!this.game.conversion) {
-          if (fumble) {
-            this.game.downCount = 0;
-            this.game.distance = 20;
-
-            this.game.down.set({
-              room,
-              pos: StadiumUtils.getYardsFromXCoord(
-                this.game.playerWithBall.getX(),
-              ),
-              countDistanceFromNewPos: false,
-              forTeam: this.game.invertTeam(this.game.playerWithBall.getTeam()),
-            });
-          } else {
-            const ballHolder = this.game.playerWithBall;
-
-            const posX = ballHolder.getX();
-
-            this.game.down.set({
-              room,
-              pos: StadiumUtils.getYardsFromXCoord(posX),
-              forTeam: this.game.playerWithBall.getTeam(),
-              countDistanceFromNewPos:
-                this.game.mode === this.game.down.mode && !this.game.intercept,
-            });
-          }
-        } else {
-          this.game.resetToKickoff(room);
-        }
+        this.setSafety(room, this.game.playerWithBall, tackle.players);
       }
+
+      return;
+    }
+
+    tackle.players.forEach((p) => {
+      this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
+    });
+
+    if (
+      this.game.down.sack &&
+      this.game.quarterback &&
+      this.game.isPlayerBehindLineOfScrimmage(this.game.quarterback)
+    ) {
+      room.send({
+        message: `💪 ${this.game.playerWithBall.name} foi sackado por ${Utils.getPlayersNames(tackle.players)}`,
+        color: Global.Color.Yellow,
+        style: "bold",
+      });
+
+      tackle.players.forEach((p) =>
+        this.game.matchStats.add(p, { tackles: 1, sacks: 1 }),
+      );
+      this.game.matchStats.add(this.game.quarterback, {
+        sacksRecebidos: 1,
+      });
+
+      this.game.playerWithBallState = PlayerWithBallState.Sack;
+    } else {
+      room.send({
+        message: `💪 ${this.game.playerWithBall.name} foi derrubado por ${Utils.getPlayersNames(tackle.players)}`,
+        color: Global.Color.Yellow,
+        style: "bold",
+      });
+
+      tackle.players.forEach((p) =>
+        this.game.matchStats.add(p, { tackles: 1 }),
+      );
+    }
+
+    this.game.playerWithBallFinalPosition =
+      this.game.playerWithBall.getPosition();
+
+    this.game.setPlayerWithBallStats();
+
+    if (!this.game.conversion) {
+      const ballHolder = this.game.playerWithBall;
+      const posX = ballHolder.getX();
+
+      this.game.down.set({
+        room,
+        pos: StadiumUtils.getYardsFromXCoord(posX),
+        forTeam: this.game.playerWithBall.getTeam(),
+        countDistanceFromNewPos:
+          this.game.mode === this.game.down.mode && !this.game.intercept,
+      });
+    } else {
+      this.game.resetToKickoff(room);
+    }
+  }
+
+  protected handleFumble(room: Room, tackle: Tackle) {
+    tackle.players.forEach((p) => {
+      this.game.customAvatarManager.setPlayerAvatar(p, "💪", 3000);
+    });
+
+    if (
+      this.game.down.sack &&
+      this.game.quarterback &&
+      this.game.isPlayerBehindLineOfScrimmage(this.game.quarterback)
+    ) {
+      room.send({
+        message: `😵 FUMBLE DE ${this.game.playerWithBall.name}!!! Strip sack por ${Utils.getPlayersNames(tackle.players)}`,
+        color: 0x00ffff,
+        style: "bold",
+      });
+
+      tackle.players.forEach((p) =>
+        this.game.matchStats.add(p, {
+          tackles: 1,
+          sacks: 1,
+          fumblesForcados: 1,
+        }),
+      );
+      this.game.matchStats.add(this.game.quarterback, {
+        stripSackRecebidos: 1,
+        fumbles: 1,
+        sacksRecebidos: 1,
+      });
+
+      this.game.customAvatarManager.setPlayerAvatar(
+        this.game.quarterback,
+        "😵",
+        3000,
+      );
+
+      this.game.playerWithBallState = PlayerWithBallState.Sack;
+    } else {
+      room.send({
+        message: `😵 FUMBLE DE ${this.game.playerWithBall.name}!!! Forçado por ${Utils.getPlayersNames(tackle.players)}`,
+        color: 0x00ffff,
+        style: "bold",
+      });
+
+      tackle.players.forEach((p) =>
+        this.game.matchStats.add(p, { tackles: 1, fumblesForcados: 1 }),
+      );
+      this.game.matchStats.add(this.game.playerWithBall, { fumbles: 1 });
+      this.game.matchStats.add(this.game.quarterback, {
+        fumblesLancados: 1,
+      });
+
+      this.game.customAvatarManager.setPlayerAvatar(
+        this.game.playerWithBall,
+        "😵",
+        3000,
+      );
+    }
+
+    this.game.playerWithBallFinalPosition =
+      this.game.playerWithBall.getPosition();
+
+    this.game.setPlayerWithBallStats();
+
+    if (!this.game.conversion) {
+      this.game.downCount = 0;
+      this.game.distance = 20;
+
+      this.game.down.set({
+        room,
+        pos: StadiumUtils.getYardsFromXCoord(this.game.playerWithBall.getX()),
+        countDistanceFromNewPos: false,
+        forTeam: this.game.invertTeam(this.game.playerWithBall.getTeam()),
+      });
+    } else {
+      this.game.resetToKickoff(room);
+    }
+  }
+
+  protected handleTackle(room: Room) {
+    const normalTackle = GameUtils.getTackle({
+      room,
+      game: this.game,
+    });
+
+    if (normalTackle.players.length === 0) {
+      return;
+    }
+
+    if (
+      normalTackle.tackleCount === 1 &&
+      this.game.running &&
+      !this.game.firstTackleTick
+    ) {
+      this.game.firstTackleTick = this.game.tickCount;
+      this.firstTackle = normalTackle;
+
+      return;
+    }
+
+    if (!this.checkNormalTackle(normalTackle)) {
+      return;
+    }
+
+    const fumbleTackle = GameUtils.getTackle({
+      room,
+      game: this.game,
+    });
+
+    const fumble = this.checkFumble(fumbleTackle);
+
+    if (fumble) {
+      this.handleFumble(room, fumbleTackle);
+    } else {
+      this.handleNormalTackle(room, normalTackle);
     }
   }
 

@@ -109,11 +109,11 @@ export default class Holding extends DownPlay {
       const d1 = room.getDisc(index[0]);
       const d2 = room.getDisc(index[1]);
 
-      d1.setPosition(d2.getPosition());
+      d1?.setPosition(d2.getPosition());
     }
 
     for (const index of this.holdingDiscsIndexes) {
-      room.getDisc(index).setPosition({ x: 9999, y: 9999 });
+      room.getDisc(index)?.setPosition({ x: 9999, y: 9999 });
     }
   }
 

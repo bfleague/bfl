@@ -63,7 +63,7 @@ export class Down extends LandPlay {
   public readonly timeToKickAutomaticPunt = 10 * 60;
   public readonly downToAutomaticPunt = 4;
   public readonly maxDistance = 25;
-  public readonly qbKickForceValue = 1.03;
+  // public readonly qbKickForceValue = 1.03;
 
   public qbCarriedBallTime = 0;
   public defenderBlockingBall: Player;
@@ -865,22 +865,22 @@ export class Down extends LandPlay {
     });
   }
 
-  private applyQuarterbackKickForce(room: Room) {
-    if (!this.qbKickForcePending) return;
+  // private applyQuarterbackKickForce(room: Room) {
+  //   if (!this.qbKickForcePending) return;
 
-    this.game.setBallKickForce(room, this.qbKickForceValue);
-    this.qbKickForceApplied = true;
-    this.qbKickForcePending = false;
-  }
+  //   this.game.setBallKickForce(room, this.qbKickForceValue);
+  //   this.qbKickForceApplied = true;
+  //   this.qbKickForcePending = false;
+  // }
 
-  private resetQuarterbackKickForce(room: Room) {
-    this.qbKickForcePending = false;
+  // private resetQuarterbackKickForce(room: Room) {
+  //   this.qbKickForcePending = false;
 
-    if (this.qbKickForceApplied) {
-      this.game.setBallKickForce(room, 1);
-      this.qbKickForceApplied = false;
-    }
-  }
+  //   if (this.qbKickForceApplied) {
+  //     this.game.setBallKickForce(room, 1);
+  //     this.qbKickForceApplied = false;
+  //   }
+  // }
 
   public handleFirstDownLine(room: Room) {
     if (this.isFirstDownLineInsideEndZone() || this.goalMode) {

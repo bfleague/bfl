@@ -35,9 +35,12 @@ export default class Holding extends DownPlay {
   public readonly illegalHoldingPenalty = -5;
   public readonly illegalHoldingMaxContactTime = 3 * 1000;
   public readonly illegalHoldingTouchDistance = 5;
+  public readonly sandwichedMaxBehindYards = 4;
+  public readonly sandwichedTimeSeconds = 3;
 
   private holdingLinesTimeout: Timer;
   private illegalHoldingContacts = new Map<string, number>();
+  private sandwichedHoldingTicks = new Map<number, number>();
 
   public handle(room: Room): boolean {
     return this.handleIllegalHolding(room);
@@ -59,6 +62,7 @@ export default class Holding extends DownPlay {
     this.holdingLinesTimeout?.stop();
     this.holdingLinesTimeout = null;
     this.clearIllegalHoldingContacts();
+    this.clearSandwichedHolding();
 
     if (room) {
       this.clearHoldingLines(room);
@@ -260,6 +264,97 @@ export default class Holding extends DownPlay {
     this.illegalHoldingContacts.clear();
   }
 
+  public clearSandwichedHolding() {
+    this.sandwichedHoldingTicks.clear();
+  }
+
+  private getSandwichedHolding(
+    attackers: Player[],
+    defenders: Player[],
+  ): { attacker: Player; defender: Player } | undefined {
+    const tolerance = this.sandwichedMaxBehindYards * MapMeasures.Yard;
+    const requiredTicks = this.sandwichedTimeSeconds * Global.TICKS_PER_SECOND;
+    const defenseEndzoneDir = this.game.teamWithBall === Team.Red ? 1 : -1;
+
+    const activeAttackers = new Set<number>();
+
+    for (const attacker of attackers) {
+      if (
+        !this.isPlayerInsideHoldingBox(attacker) ||
+        this.isPlayerIntersectingEndZone(attacker)
+      ) {
+        this.sandwichedHoldingTicks.delete(attacker.id);
+        continue;
+      }
+
+      let matchedPair: [Player, Player] | null = null;
+
+      for (let i = 0; i < defenders.length; i++) {
+        const d1 = defenders[i];
+
+        if (
+          !this.isPlayerInsideHoldingBox(d1) ||
+          this.isPlayerIntersectingEndZone(d1)
+        )
+          continue;
+
+        for (let j = i + 1; j < defenders.length; j++) {
+          const d2 = defenders[j];
+
+          if (
+            !this.isPlayerInsideHoldingBox(d2) ||
+            this.isPlayerIntersectingEndZone(d2)
+          )
+            continue;
+
+          const attProg = attacker.getX() * defenseEndzoneDir;
+          const defProg1 = d1.getX() * defenseEndzoneDir;
+          const defProg2 = d2.getX() * defenseEndzoneDir;
+
+          const maxDefProg = Math.max(defProg1, defProg2);
+          const behind = attProg - maxDefProg;
+
+          if (behind < 0 || behind > tolerance) continue;
+
+          const minY = Math.min(d1.getY(), d2.getY());
+          const maxY = Math.max(d1.getY(), d2.getY());
+
+          if (attacker.getY() < minY || attacker.getY() > maxY) continue;
+
+          matchedPair = [d1, d2];
+          break;
+        }
+
+        if (matchedPair) break;
+      }
+
+      if (matchedPair) {
+        activeAttackers.add(attacker.id);
+        const ticks = (this.sandwichedHoldingTicks.get(attacker.id) || 0) + 1;
+        this.sandwichedHoldingTicks.set(attacker.id, ticks);
+
+        if (ticks >= requiredTicks) {
+          const nearestDef =
+            attacker.distanceTo(matchedPair[0]) <
+            attacker.distanceTo(matchedPair[1])
+              ? matchedPair[0]
+              : matchedPair[1];
+
+          this.clearSandwichedHolding();
+          return { attacker, defender: nearestDef };
+        }
+      } else {
+        this.sandwichedHoldingTicks.delete(attacker.id);
+      }
+    }
+
+    for (const id of Array.from(this.sandwichedHoldingTicks.keys())) {
+      if (!activeAttackers.has(id)) {
+        this.sandwichedHoldingTicks.delete(id);
+      }
+    }
+  }
+
   public handleIllegalHolding(room: Room): boolean {
     if (!this.game.quarterback) return false;
 
@@ -270,6 +365,17 @@ export default class Holding extends DownPlay {
       .filter((player) => player.id !== this.game.quarterback?.id);
 
     if (!defenders.length || !attackers.length) return false;
+
+    const sandwiched = this.getSandwichedHolding(attackers, defenders);
+    if (sandwiched) {
+      this.applyIllegalHolding(
+        room,
+        sandwiched.attacker,
+        sandwiched.defender,
+        true,
+      );
+      return true;
+    }
 
     const touchingPairs = new Set<string>();
 
@@ -340,8 +446,14 @@ export default class Holding extends DownPlay {
     return dx * dx + dy * dy <= circle.r * circle.r;
   }
 
-  private applyIllegalHolding(room: Room, attacker: Player, defender: Player) {
+  private applyIllegalHolding(
+    room: Room,
+    attacker: Player,
+    defender: Player,
+    isSandwiched = false,
+  ) {
     this.clearIllegalHoldingContacts();
+    this.clearSandwichedHolding();
     this.game.matchStats.add(attacker, { faltas: 1 });
     this.game.customAvatarManager.setPlayerAvatar(attacker, "🤡", 3000);
 
@@ -353,28 +465,36 @@ export default class Holding extends DownPlay {
       }
     };
 
-    if (!this.game.conversion) {
-      room.send({
-        message: translate(
+    const message = (() => {
+      if (isSandwiched) {
+        if (!this.game.conversion) {
+          return `❌ Holding sanduíche de ${attacker.name} em ${defender.name} • ${Math.abs(this.illegalHoldingPenalty)} jardas de penalidade`;
+        }
+
+        return `❌ Holding sanduíche de ${attacker.name} em ${defender.name} • Perde a conversão`;
+      }
+
+      if (!this.game.conversion) {
+        return translate(
           "ILLEGAL_HOLDING",
           attacker.name,
           defender.name,
           Math.abs(this.illegalHoldingPenalty),
-        ),
-        color: Global.Color.Orange,
-        style: "bold",
-      });
-    } else {
-      room.send({
-        message: translate(
-          "ILLEGAL_HOLDING_CONVERSION",
-          attacker.name,
-          defender.name,
-        ),
-        color: Global.Color.Orange,
-        style: "bold",
-      });
-    }
+        );
+      }
+
+      return translate(
+        "ILLEGAL_HOLDING_CONVERSION",
+        attacker.name,
+        defender.name,
+      );
+    })();
+
+    room.send({
+      message,
+      color: Global.Color.Orange,
+      style: "bold",
+    });
 
     this.showHoldingLines(room, applyPenalty);
   }
